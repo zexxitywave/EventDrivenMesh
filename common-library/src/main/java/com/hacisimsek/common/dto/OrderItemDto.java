@@ -12,6 +12,7 @@ import java.util.UUID;
 @NoArgsConstructor
 public class OrderItemDto {
     private UUID productId;
+    private String productName;   // populated by order-service for invoice generation
     private Integer quantity;
     private BigDecimal price;
 }

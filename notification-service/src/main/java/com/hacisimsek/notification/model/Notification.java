@@ -31,6 +31,13 @@ public class Notification {
     private String subject;
     private String message;
 
+    /**
+     * Raw PDF bytes for ORDER_PLACED notifications.
+     * Stored in MongoDB as binary — served by GET /api/notifications/invoice/{orderId}.
+     * Null for all other notification types.
+     */
+    private byte[] invoicePdf;
+
     private NotificationType type;
     private NotificationStatus status;
 

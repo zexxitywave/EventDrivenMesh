@@ -41,11 +41,8 @@ public class NotificationSagaHandler {
 
             log.info("ORDER_PLACED event for order: {}, email: {}", e.getOrderId(), e.getCustomerEmail());
 
-            notificationService.sendOrderPlacedNotification(
-                    e.getOrderId(),
-                    e.getCustomerId(),
-                    e.getCustomerEmail()   // was null — now uses the email from the event
-            );
+            // Use full-event overload so the PDF invoice is generated and attached
+            notificationService.sendOrderPlacedNotification(e);
         }
     }
 
