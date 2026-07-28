@@ -4,109 +4,228 @@ server:
 spring:
   application:
     name: api-gateway
+
+  # ── Redis (used by RequestRateLimiter to store token buckets per IP) ────────
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+      connect-timeout: 2000
+      timeout: 2000
+
   cloud:
     gateway:
       discovery:
         locator:
           enabled: true
           lower-case-service-id: true
+
+      # ── Default 429 response headers exposed to clients ───────────────────
+      default-filters:
+        - name: RequestRateLimiter
+          args:
+            # fallback limiter applied to any route not explicitly configured
+            rate-limiter: "#{@standardLimiter}"
+            key-resolver: "#{@ipKeyResolver}"
+            deny-empty-key: false          # don't crash if IP can't be resolved
+            empty-key-status: 429
+
       routes:
-        # ── Auth Service (public — no JWT filter) ──────────────────────────
+
+        # ── Auth Service — tightest limit (brute-force / spam protection) ───
         - id: auth-service
           uri: lb://auth-service
           predicates:
             - Path=/api/auth/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@authRateLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
-        # ── Razorpay Webhook (public — Razorpay calls this directly, secured by HMAC sig) ──
+        # ── Razorpay Webhook — high limit, no JWT, never block Razorpay ─────
         - id: payment-webhook
           uri: lb://payment-service
           predicates:
             - Path=/api/payments/webhook/**
+          filters:
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@webhookLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
-        # ── Protected Services (JWT filter applied) ────────────────────────
+        # ── Order Service — strict (order spam prevention) ───────────────────
         - id: order-service
           uri: lb://order-service
           predicates:
             - Path=/api/orders/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@strictLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Inventory Service — standard ─────────────────────────────────────
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
             - Path=/api/inventory/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Payment Service — strict (financial operations) ──────────────────
         - id: payment-service
           uri: lb://payment-service
           predicates:
             - Path=/api/payments/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@strictLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Shipping Service — standard ──────────────────────────────────────
         - id: shipping-service
           uri: lb://shipping-service
           predicates:
             - Path=/api/shipping/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Notification Service — standard ──────────────────────────────────
         - id: notification-service
           uri: lb://notification-service
           predicates:
             - Path=/api/notifications/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── User Service — standard ──────────────────────────────────────────
         - id: user-service
           uri: lb://user-service
           predicates:
             - Path=/api/users/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Product Service — relaxed (high read traffic expected) ───────────
         - id: product-service
           uri: lb://product-service
           predicates:
             - Path=/api/products/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@relaxedLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Cart Service — standard ──────────────────────────────────────────
         - id: cart-service
           uri: lb://cart-service
           predicates:
             - Path=/api/cart/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Wishlist Service — standard ──────────────────────────────────────
         - id: wishlist-service
           uri: lb://wishlist-service
           predicates:
             - Path=/api/wishlist/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Seller Service — standard ────────────────────────────────────────
         - id: seller-service
           uri: lb://seller-service
           predicates:
             - Path=/api/seller/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Seller Admin — standard ──────────────────────────────────────────
         - id: seller-admin
           uri: lb://seller-service
           predicates:
             - Path=/api/admin/sellers/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
+        # ── Logging Service — standard ───────────────────────────────────────
         - id: logging-service
           uri: lb://logging-service
           predicates:
             - Path=/api/logs/**
           filters:
             - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
 
 app:
   jwt:
@@ -122,3 +241,4 @@ eureka:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
+    org.springframework.data.redis: WARN

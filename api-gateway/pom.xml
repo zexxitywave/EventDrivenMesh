@@ -25,6 +25,12 @@
 			<artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
 		</dependency>
 
+		<!-- Redis reactive — required for Spring Cloud Gateway RequestRateLimiter -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-data-redis-reactive</artifactId>
+		</dependency>
+
 		<!-- JWT validation in gateway -->
 		<dependency>
 			<groupId>io.jsonwebtoken</groupId>
