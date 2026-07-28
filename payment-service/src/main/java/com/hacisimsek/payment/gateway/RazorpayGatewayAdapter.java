@@ -26,6 +26,9 @@ public class RazorpayGatewayAdapter implements PaymentGatewayAdapter {
     @Value("${payment.razorpay.key-secret}")
     private String keySecret;
 
+    @Value("${payment.razorpay.webhook-secret}")
+    private String webhookSecret;
+
     @Override
     public Payment.PaymentGateway getGateway() {
         return Payment.PaymentGateway.RAZORPAY;
@@ -103,6 +106,39 @@ public class RazorpayGatewayAdapter implements PaymentGatewayAdapter {
         } catch (RazorpayException e) {
             log.error("[Razorpay] Refund failed: {}", e.getMessage());
             throw new RuntimeException("Failed to process Razorpay refund: " + e.getMessage(), e);
+        }
+    }
+
+    /**
+     * Razorpay sends a SHA-256 HMAC of the raw request body signed with the
+     * webhook secret (different from key-secret). The header is X-Razorpay-Signature.
+     *
+     * Docs: https://razorpay.com/docs/webhooks/validate-test/
+     */
+    @Override
+    public boolean verifyWebhookSignature(String rawBody, String razorpaySignatureHeader) {
+        if (razorpaySignatureHeader == null || razorpaySignatureHeader.isBlank()) {
+            log.warn("[Razorpay] Webhook received with no signature header — rejecting");
+            return false;
+        }
+
+        try {
+            Mac mac = Mac.getInstance("HmacSHA256");
+            mac.init(new SecretKeySpec(webhookSecret.getBytes(StandardCharsets.UTF_8), "HmacSHA256"));
+            byte[] hash = mac.doFinal(rawBody.getBytes(StandardCharsets.UTF_8));
+            String computed = HexFormat.of().formatHex(hash);
+
+            boolean valid = computed.equals(razorpaySignatureHeader);
+            if (valid) {
+                log.info("[Razorpay] Webhook signature verified successfully");
+            } else {
+                log.error("[Razorpay] Webhook signature mismatch — possible forged request");
+            }
+            return valid;
+
+        } catch (Exception e) {
+            log.error("[Razorpay] Webhook signature verification error: {}", e.getMessage());
+            return false;
         }
     }
 }

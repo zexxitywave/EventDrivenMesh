@@ -16,4 +16,6 @@ public interface PaymentRepository extends JpaRepository<Payment, UUID> {
     List<Payment> findByStatus(Payment.PaymentStatus status);
 
     Optional<Payment> findByGatewayPaymentId(String gatewayPaymentId);
+
+    Optional<Payment> findByGatewayOrderId(String gatewayOrderId);
 }

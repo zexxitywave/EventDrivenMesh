@@ -13,6 +13,8 @@ import com.hacisimsek.payment.gateway.PaymentGatewayAdapter;
 import com.hacisimsek.payment.model.Payment;
 import com.hacisimsek.payment.repository.PaymentRepository;
 import com.hacisimsek.payment.service.PaymentService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
@@ -40,6 +42,8 @@ public class PaymentServiceImpl implements PaymentService {
      * We index them by their gateway type for O(1) lookup.
      */
     private final List<PaymentGatewayAdapter> gatewayAdapters;
+
+    private final ObjectMapper objectMapper;
 
     private static final String PAYMENT_TOPIC = "payment-events";
     private static final String DEFAULT_CURRENCY = "INR";
@@ -238,6 +242,122 @@ public class PaymentServiceImpl implements PaymentService {
     public List<PaymentResponse> getPaymentsByCustomerId(UUID customerId) {
         return paymentRepository.findByCustomerId(customerId)
                 .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    // ── Webhook event handler ─────────────────────────────────────────────────
+
+    /**
+     * Called by WebhookController after signature has already been verified.
+     *
+     * Razorpay webhook payload structure:
+     * {
+     *   "event": "payment.captured",
+     *   "payload": {
+     *     "payment": {
+     *       "entity": {
+     *         "id": "pay_xxx",
+     *         "order_id": "order_xxx",
+     *         "amount": 50000,
+     *         "error_description": "..."
+     *       }
+     *     },
+     *     "refund": {
+     *       "entity": { "id": "rfnd_xxx", "payment_id": "pay_xxx", "amount": 10000 }
+     *     }
+     *   }
+     * }
+     */
+    @Override
+    @Transactional
+    public void handleWebhookEvent(String eventType, String webhookPayload) {
+        log.info("[Webhook] Received Razorpay event: {}", eventType);
+
+        try {
+            JsonNode root = objectMapper.readTree(webhookPayload);
+
+            switch (eventType) {
+
+                case "payment.captured" -> {
+                    JsonNode entity = root.path("payload").path("payment").path("entity");
+                    String gatewayPaymentId = entity.path("id").asText();
+                    String gatewayOrderId   = entity.path("order_id").asText();
+
+                    paymentRepository.findByGatewayOrderId(gatewayOrderId).ifPresentOrElse(payment -> {
+                        if (payment.getStatus() == Payment.PaymentStatus.COMPLETED) {
+                            log.info("[Webhook] payment.captured — already COMPLETED, skipping: {}", payment.getId());
+                            return;
+                        }
+                        payment.setStatus(Payment.PaymentStatus.COMPLETED);
+                        payment.setGatewayPaymentId(gatewayPaymentId);
+                        payment.setTransactionId(generateTransactionId());
+                        payment.setPaymentDate(Instant.now());
+                        paymentRepository.save(payment);
+
+                        kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
+                                payment.getCorrelationId(), payment.getOrderId(), payment.getId(),
+                                payment.getCustomerId(), payment.getCustomerEmail()));
+
+                        log.info("[Webhook] payment.captured → COMPLETED: paymentId={}, txn={}",
+                                payment.getId(), payment.getTransactionId());
+
+                    }, () -> log.warn("[Webhook] payment.captured — no payment found for gatewayOrderId={}", gatewayOrderId));
+                }
+
+                case "payment.failed" -> {
+                    JsonNode entity = root.path("payload").path("payment").path("entity");
+                    String gatewayOrderId  = entity.path("order_id").asText();
+                    String errorDesc       = entity.path("error_description").asText("Payment failed at gateway");
+
+                    paymentRepository.findByGatewayOrderId(gatewayOrderId).ifPresentOrElse(payment -> {
+                        if (payment.getStatus() == Payment.PaymentStatus.FAILED) {
+                            log.info("[Webhook] payment.failed — already FAILED, skipping: {}", payment.getId());
+                            return;
+                        }
+                        payment.setStatus(Payment.PaymentStatus.FAILED);
+                        payment.setFailureReason(errorDesc);
+                        paymentRepository.save(payment);
+
+                        kafkaTemplate.send(PAYMENT_TOPIC, new PaymentFailedEvent(
+                                payment.getCorrelationId(), payment.getOrderId(),
+                                payment.getCustomerId(), payment.getCustomerEmail(), errorDesc));
+
+                        log.error("[Webhook] payment.failed → FAILED: paymentId={}, reason={}",
+                                payment.getId(), errorDesc);
+
+                    }, () -> log.warn("[Webhook] payment.failed — no payment found for gatewayOrderId={}", gatewayOrderId));
+                }
+
+                case "refund.created" -> {
+                    JsonNode entity          = root.path("payload").path("refund").path("entity");
+                    String gatewayPaymentId  = entity.path("payment_id").asText();
+                    long   refundPaise       = entity.path("amount").asLong(0);
+                    BigDecimal refundAmount  = BigDecimal.valueOf(refundPaise).divide(BigDecimal.valueOf(100));
+
+                    paymentRepository.findByGatewayPaymentId(gatewayPaymentId).ifPresentOrElse(payment -> {
+                        BigDecimal alreadyRefunded = payment.getRefundedAmount() != null
+                                ? payment.getRefundedAmount() : BigDecimal.ZERO;
+                        BigDecimal newTotal = alreadyRefunded.add(refundAmount);
+
+                        payment.setRefundedAmount(newTotal);
+                        payment.setRefundDate(Instant.now());
+                        payment.setStatus(newTotal.compareTo(payment.getAmount()) >= 0
+                                ? Payment.PaymentStatus.REFUNDED
+                                : Payment.PaymentStatus.PARTIALLY_REFUNDED);
+                        paymentRepository.save(payment);
+
+                        log.info("[Webhook] refund.created → {}: paymentId={}, refundAmount={}",
+                                payment.getStatus(), payment.getId(), refundAmount);
+
+                    }, () -> log.warn("[Webhook] refund.created — no payment found for gatewayPaymentId={}", gatewayPaymentId));
+                }
+
+                default -> log.info("[Webhook] Unhandled event type: {} — ignoring", eventType);
+            }
+
+        } catch (Exception e) {
+            log.error("[Webhook] Failed to process event {}: {}", eventType, e.getMessage(), e);
+            throw new RuntimeException("Webhook processing failed for event: " + eventType, e);
+        }
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

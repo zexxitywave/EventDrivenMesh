@@ -31,4 +31,14 @@ public interface PaymentGatewayAdapter {
      * Returns the gateway's refund ID for tracking.
      */
     String refund(String gatewayPaymentId, BigDecimal amount);
+
+    /**
+     * Verify the HMAC-SHA256 signature sent by Razorpay on every webhook POST.
+     * The raw request body and the X-Razorpay-Signature header are passed in.
+     * Returns true only if the computed digest matches the header value.
+     * Default implementation returns false — override in gateway-specific adapters.
+     */
+    default boolean verifyWebhookSignature(String rawBody, String razorpaySignatureHeader) {
+        return false;
+    }
 }

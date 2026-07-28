@@ -17,6 +17,12 @@ spring:
           predicates:
             - Path=/api/auth/**
 
+        # ── Razorpay Webhook (public — Razorpay calls this directly, secured by HMAC sig) ──
+        - id: payment-webhook
+          uri: lb://payment-service
+          predicates:
+            - Path=/api/payments/webhook/**
+
         # ── Protected Services (JWT filter applied) ────────────────────────
         - id: order-service
           uri: lb://order-service

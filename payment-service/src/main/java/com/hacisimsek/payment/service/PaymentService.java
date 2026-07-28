@@ -33,4 +33,13 @@ public interface PaymentService {
 
     /** Get all payments for a customer. */
     List<PaymentResponse> getPaymentsByCustomerId(UUID customerId);
+
+    /**
+     * Handle a verified Razorpay webhook event payload.
+     * Parses the event type and routes to the correct handler:
+     *   payment.captured  → mark COMPLETED, publish PaymentProcessedEvent
+     *   payment.failed    → mark FAILED,     publish PaymentFailedEvent
+     *   refund.created    → mark REFUNDED / PARTIALLY_REFUNDED
+     */
+    void handleWebhookEvent(String eventType, String webhookPayload);
 }

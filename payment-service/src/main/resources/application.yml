@@ -51,6 +51,7 @@ payment:
   razorpay:
     key-id: ${RAZORPAY_KEY_ID}
     key-secret: ${RAZORPAY_KEY_SECRET}
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
   stripe:
     secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
