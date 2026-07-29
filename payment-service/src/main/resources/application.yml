@@ -49,9 +49,9 @@ eureka:
 
 payment:
   razorpay:
-    key-id: ${RAZORPAY_KEY_ID}
-    key-secret: ${RAZORPAY_KEY_SECRET}
-    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET}
+    key-id: ${RAZORPAY_KEY_ID:rzp_test_placeholder}
+    key-secret: ${RAZORPAY_KEY_SECRET:rzp_secret_placeholder}
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:rzp_webhook_placeholder}
   stripe:
     secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
