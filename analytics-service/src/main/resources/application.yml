@@ -23,12 +23,17 @@ spring:
         format_sql: true
         jdbc:
           time_zone: UTC
+          batch_size: 1000
+        order_inserts: true
 
   kafka:
     bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
     consumer:
       group-id: analytics-service-group
       auto-offset-reset: earliest
+      max-poll-records: 2000
+      fetch-min-size: 1048576       # 1MB — wait for more data before delivering
+      fetch-max-wait: 500ms
 
 eureka:
   client:
@@ -49,3 +54,9 @@ management:
 logging:
   level:
     com.hacisimsek.analytics: INFO
+
+# ── Analytics-specific config ──────────────────────────────────────────────
+analytics:
+  # Dead Letter Queue topic — poison pills and unprocessable messages go here
+  # instead of being silently dropped. Inspect with Kafka UI at localhost:8071
+  dlq-topic: order-analytics-dlq

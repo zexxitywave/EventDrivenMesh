@@ -12,7 +12,13 @@ import java.util.UUID;
  * Used for SQL-based business analytics — revenue, top customers, trends.
  */
 @Entity
-@Table(name = "order_analytics")
+@Table(
+    name = "order_analytics",
+    uniqueConstraints = @UniqueConstraint(
+        name = "uk_order_analytics_event_id",
+        columnNames = "event_id"   // idempotency — prevents duplicate events
+    )
+)
 @Getter
 @Setter
 @NoArgsConstructor
