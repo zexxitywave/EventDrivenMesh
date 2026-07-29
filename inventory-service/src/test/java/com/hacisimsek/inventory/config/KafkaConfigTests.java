@@ -21,7 +21,7 @@ class KafkaConfigTests {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 null, // customerEmail
-                List.of(new OrderItemDto(UUID.randomUUID(), 1, BigDecimal.TEN)),
+                List.of(new OrderItemDto(UUID.randomUUID(), "Test Product", 1, BigDecimal.TEN)),
                 BigDecimal.TEN
         );
         RecordHeaders headers = new RecordHeaders();
