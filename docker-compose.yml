@@ -24,7 +24,6 @@ services:
       KAFKA_OFFSETS_TOPIC_NUM_PARTITIONS: 1
       KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
       KAFKA_AUTO_CREATE_TOPICS_ENABLE: "true"
-      # Prevent controller heartbeat timeouts under CPU pressure
       KAFKA_CONTROLLER_SOCKET_TIMEOUT_MS: 30000
       KAFKA_REQUEST_TIMEOUT_MS: 30000
       KAFKA_BROKER_HEARTBEAT_INTERVAL_MS: 2000
@@ -68,44 +67,6 @@ services:
       - ./scripts/create-multiple-postgres-dbs.sh:/docker-entrypoint-initdb.d/create-multiple-postgres-dbs.sh
       - postgres_data:/var/lib/postgresql/data
 
-  kafka-connect:
-    image: confluentinc/cp-kafka-connect:7.5.0
-    container_name: kafka-connect
-    restart: unless-stopped
-    ports:
-      - "8073:8083"
-    depends_on:
-      - kafka
-      - postgres
-      - mongodb
-    environment:
-      CONNECT_BOOTSTRAP_SERVERS: kafka:29092
-      CONNECT_REST_ADVERTISED_HOST_NAME: kafka-connect
-      CONNECT_REST_PORT: 8083
-      CONNECT_GROUP_ID: ecommerce-connect-group
-      # Internal topics for storing connector state
-      CONNECT_CONFIG_STORAGE_TOPIC: connect-configs
-      CONNECT_OFFSET_STORAGE_TOPIC: connect-offsets
-      CONNECT_STATUS_STORAGE_TOPIC: connect-status
-      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 1
-      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 1
-      # JSON converters (no schema registry needed)
-      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_VALUE_CONVERTER: org.apache.kafka.connect.json.JsonConverter
-      CONNECT_KEY_CONVERTER_SCHEMAS_ENABLE: "false"
-      CONNECT_VALUE_CONVERTER_SCHEMAS_ENABLE: "false"
-      CONNECT_PLUGIN_PATH: /usr/share/java,/usr/share/confluent-hub-components
-    # Install JDBC sink connector for PostgreSQL on startup
-    command:
-      - bash
-      - -c
-      - |
-        echo "Installing JDBC connector..."
-        confluent-hub install --no-prompt confluentinc/kafka-connect-jdbc:10.7.4
-        echo "Starting Kafka Connect..."
-        /etc/confluent/docker/run
-
   kafka-ui:
     image: ghcr.io/kafbat/kafka-ui:latest
     container_name: kafka-ui
@@ -118,9 +79,6 @@ services:
       DYNAMIC_CONFIG_ENABLED: "true"
       KAFKA_CLUSTERS_0_NAME: kafka-cluster
       KAFKA_CLUSTERS_0_BOOTSTRAPSERVERS: kafka:29092
-      # Show Kafka Connect in UI
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_NAME: ecommerce-connect
-      KAFKA_CLUSTERS_0_KAFKACONNECT_0_ADDRESS: http://kafka-connect:8083
 
 volumes:
   kafka_data:
