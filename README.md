@@ -8,6 +8,11 @@ through a central API Gateway with JWT authentication.
 
 *"Polyglot Persistence · Choreography-Based Saga · Zero-Downtime Kubernetes Deployments"*
 
+[![CI](https://github.com/zexxitywave/ecommerce-microservices/actions/workflows/ci.yml/badge.svg)](https://github.com/zexxitywave/ecommerce-microservices/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Java](https://img.shields.io/badge/Java-21-ED8B00)](https://openjdk.org/projects/jdk/21/)
+[![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.12-6DB33F)](https://spring.io/projects/spring-boot)
+
 ---
 
 ### Language 🛠️
