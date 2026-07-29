@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s      # scrape every 15 seconds
+  evaluation_interval: 15s  # evaluate rules every 15 seconds
+
+scrape_configs:
+
+  # ── Prometheus self-monitoring ─────────────────────────────────────────────
+  - job_name: prometheus
+    static_configs:
+      - targets: [ localhost:9090 ]
+
+  # ── Order Service ──────────────────────────────────────────────────────────
+  # Tracks: HTTP request latency (p50/p95/p99), Kafka publish rate,
+  # JVM heap, DB connection pool, active threads
+  - job_name: order-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8081 ]
+        labels:
+          service: order-service
+          team: backend
+
+  # ── Analytics Service ──────────────────────────────────────────────────────
+  # Tracks: Kafka consumer throughput (events/sec), batch size,
+  # DB insert rate, JVM heap, consumer lag indicator
+  - job_name: analytics-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8093 ]
+        labels:
+          service: analytics-service
+          team: backend
