@@ -100,7 +100,7 @@ class InventoryServiceImplTests {
                 UUID.randomUUID(),
                 UUID.randomUUID(),
                 null, // customerEmail
-                List.of(new OrderItemDto(productId, quantity, BigDecimal.TEN)),
+                List.of(new OrderItemDto(productId, "Test Product", quantity, BigDecimal.TEN)),
                 BigDecimal.TEN.multiply(BigDecimal.valueOf(quantity))
         );
     }
