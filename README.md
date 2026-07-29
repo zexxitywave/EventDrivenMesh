@@ -42,7 +42,7 @@ through a central API Gateway with JWT authentication.
 
 ## 📋 Table of Contents
 
-- [Why Zexxity?](#-why-zexxity)
+- [Key Highlights](#-key-highlights)
 - [Architecture](#-architecture)
 - [Order Saga Flow](#-order-saga-flow)
 - [🚀 Quick Start](#-quick-start)
@@ -70,7 +70,7 @@ through a central API Gateway with JWT authentication.
 
 ---
 
-## ✨ Why This Project?
+## ✨ Key Highlights
 
 - **Event-Driven Saga** — Checkout flows are orchestrated through Kafka events with automatic compensating rollbacks. No single point of failure.
 - **Polyglot Persistence** — Each service owns its data store. PostgreSQL for transactions, MongoDB for documents, Redis for session cache.
