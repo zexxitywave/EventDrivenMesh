@@ -43,6 +43,7 @@
         <module>wishlist-service</module>
         <module>seller-service</module>
         <module>logging-service</module>
+        <module>analytics-service</module>
     </modules>
 
     <dependencyManagement>
