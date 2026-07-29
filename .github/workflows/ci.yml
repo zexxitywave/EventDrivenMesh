@@ -1,0 +1,39 @@
+name: CI — Build & Verify
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: Build all modules (Java 21 + Maven)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Java 21
+        uses: actions/setup-java@v4
+        with:
+          java-version: '21'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build all modules
+        run: mvn clean package -DskipTests --no-transfer-progress
+
+      - name: Run unit tests
+        run: mvn test --no-transfer-progress
+
+      - name: Upload build artifacts
+        if: success()
+        uses: actions/upload-artifact@v4
+        with:
+          name: service-jars
+          path: |
+            */target/*.jar
+            !*/target/*-sources.jar
+          retention-days: 7
