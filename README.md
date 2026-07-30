@@ -1,8 +1,8 @@
 <div align="center">
 
-# E-Commerce Microservices Platform
+# EventDrivenMesh
 
-A production-grade, event-driven e-commerce backend built with Spring Boot microservices.
+A production-grade, event-driven backend built with Spring Boot microservices.
 Services communicate asynchronously via Apache Kafka (saga pattern) and synchronously via REST
 through a central API Gateway with JWT authentication.
 
