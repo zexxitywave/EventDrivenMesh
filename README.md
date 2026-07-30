@@ -12,6 +12,8 @@ through a central API Gateway with JWT authentication.
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Java](https://img.shields.io/badge/Java-21-ED8B00)](https://openjdk.org/projects/jdk/21/)
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.12-6DB33F)](https://spring.io/projects/spring-boot)
+[![Prometheus](https://img.shields.io/badge/Prometheus-E6522C)](https://prometheus.io/)
+[![Grafana](https://img.shields.io/badge/Grafana-F46800)](https://grafana.com/)
 
 ---
 
@@ -40,6 +42,9 @@ through a central API Gateway with JWT authentication.
 ![Eureka](https://img.shields.io/badge/Eureka-Service%20Discovery-green?style=for-the-badge)
 ![Actuator](https://img.shields.io/badge/Spring%20Actuator-Prometheus%20Ready-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Maven](https://img.shields.io/badge/Maven-Multi--Module-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
+![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
+![Grafana](https://img.shields.io/badge/Grafana-Dashboards-F46800?style=for-the-badge&logo=grafana&logoColor=white)
+![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
 
 </div>
 
@@ -68,8 +73,10 @@ through a central API Gateway with JWT authentication.
   - [Shipping Service](#13-shipping-service)
   - [Notification Service](#14-notification-service)
   - [Logging Service](#15-logging-service)
+  - [Analytics Service](#16-analytics-service)
 - [Kafka Topics](#-kafka-topics)
 - [Kubernetes](#-kubernetes)
+- [Observability](#-observability)
 - [Project Structure](#-project-structure)
 - [Tech Stack](#-tech-stack)
 
@@ -83,6 +90,11 @@ through a central API Gateway with JWT authentication.
 - **PDF Invoice Generation** — On every successful order, the notification service auto-generates a styled PDF invoice (via OpenPDF / iText) and attaches it to the confirmation email. Invoices are stored as binary in MongoDB and downloadable anytime via `GET /api/notifications/invoice/{orderId}`.
 - **Kubernetes-Ready** — HPA-configured with CPU/memory scaling, zero-downtime rolling updates, liveness/readiness probes, and Prometheus scraping out of the box.
 - **Full Observability** — A dedicated logging service aggregates structured logs across all 15 services with cross-service traceId correlation and a 30-day TTL.
+- **Analytics Service (new)** — CQRS pattern with a dedicated analytics PostgreSQL DB separate from transactional DBs. Batch Kafka consumer delivers ~500 events/sec throughput. Tracks revenue, top customers, and daily order trends.
+- **Poison Pill + DLQ Pattern** — The analytics consumer detects malformed/unprocessable events and routes them to `order-analytics-dlq` for safe reprocessing without blocking the main consumer.
+- **Idempotency via `event_id`** — A unique constraint on `event_id` in the analytics DB prevents duplicate event ingestion even under consumer restarts or replay.
+- **Prometheus + Grafana Observability** — Micrometer-instrumented services expose HTTP latency p50/p95/p99, Kafka consumer throughput, JVM heap usage, and HikariCP connection pool metrics. Grafana dashboards at `localhost:3005`.
+- **GitHub Actions CI Pipeline** — Builds all 16 modules on every push to ensure the multi-module Maven project compiles cleanly across the entire codebase.
 
 ---
 
@@ -112,6 +124,7 @@ graph TB
     GW --> SHIP[shipping-service :8085]
     GW --> NOTIF[notification-service :8084]
     GW --> LOG[logging-service :8092]
+    GW --> ANALYTICS[analytics-service :8093]
 
     ORDER -- order-events --> KAFKA
     KAFKA -- order-events --> INV
@@ -125,6 +138,7 @@ graph TB
     SHIP -- shipping-events --> KAFKA
     KAFKA -- shipping-events --> ORDER
     KAFKA -- shipping-events --> NOTIF
+    KAFKA -- order-events --> ANALYTICS
 
     WISH -- REST --> CART
     SELLER -- REST --> PRODUCT
@@ -139,6 +153,7 @@ graph TB
     ORDER --- PG
     PAY --- PG
     SHIP --- PG
+    ANALYTICS --- PG
     INV --- MONGO
     WISH --- MONGO
     NOTIF --- MONGO
@@ -287,7 +302,10 @@ This starts:
 | shipping-service | `8085` | PostgreSQL `shipping_db` |
 | notification-service | `8084` | MongoDB `notification_db` |
 | logging-service | `8092` | MongoDB `logging_db` |
+| analytics-service | `8093` | PostgreSQL `analytics_db` |
 | Kafka UI | `8071` | — |
+| Prometheus | `9095` | — |
+| Grafana | `3005` | — |
 
 All services register with Eureka and are reachable through the API Gateway at `http://localhost:8080`.
 
@@ -336,6 +354,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/seller/**` | seller-service | ✅ |
 | `/api/notifications/**` | notification-service | ✅ |
 | `/api/logs/**` | logging-service | ✅ |
+| `/api/analytics/**` | analytics-service | ✅ |
 
 ---
 
@@ -673,17 +692,59 @@ Intercepts all Kafka business events and converts them into structured log entri
 
 ---
 
+### 16. Analytics Service
+
+**Port:** `8093` &nbsp;|&nbsp; **Database:** PostgreSQL `analytics_db`
+
+Dedicated read-side analytics store implementing the **CQRS pattern** — all analytical queries run against a separate PostgreSQL database, leaving transactional DBs untouched. Consumes `order-events` in batches and projects aggregate metrics in real time.
+
+**Design Decisions**
+
+| Concern | Solution |
+|---|---|
+| CQRS | Dedicated `analytics_db` separate from `order_db` |
+| Throughput | Batch Kafka consumer — up to 500 events/batch, ~500 events/sec |
+| Idempotency | Unique constraint on `event_id` — safe for consumer restarts and replay |
+| Resilience | Poison pill detection routes bad events to `order-analytics-dlq` |
+
+**Kafka:** Consumes → `order-events` (batch) &nbsp;|&nbsp; Publishes failed events → `order-analytics-dlq`
+
+**API Endpoints**
+
+| Method | Path | Description |
+|---|---|---|
+| GET | `/api/analytics/summary` | Total orders, total revenue, unique customers |
+| GET | `/api/analytics/top-customers` | Top customers ranked by spend |
+| GET | `/api/analytics/revenue-per-day` | Daily revenue time series |
+| GET | `/api/analytics/orders` | Paginated order analytics records |
+
+**Performance Stats** (from load testing)
+
+| Metric | Value |
+|---|---|
+| Total events ingested | 19,717 |
+| Total revenue tracked | ₹1,774,510,283 |
+| Consumer throughput | ~500 events/sec |
+| Batch size | 500 events/batch |
+
+**DLQ Handling**
+
+Any event that fails deserialization or violates a DB constraint beyond the idempotency check is forwarded to `order-analytics-dlq`. A separate consumer can replay or inspect failed events without blocking the main pipeline.
+
+---
+
 ## 📨 Kafka Topics
 
 | Topic | Producer | Consumers | Events |
 |---|---|---|---|
-| `order-events` | order-service | inventory-service, logging-service | `OrderCreatedEvent` |
+| `order-events` | order-service | inventory-service, analytics-service, logging-service | `OrderCreatedEvent` |
 | `inventory-events` | inventory-service | order-service, payment-service, logging-service | `InventoryReservedEvent`, `InventoryReservationFailedEvent` |
 | `inventory-alerts` | inventory-service | ops / monitoring | Low-stock alerts |
 | `payment-events` | payment-service | order-service, shipping-service, notification-service, logging-service | `PaymentProcessedEvent`, `PaymentFailedEvent` |
 | `shipping-events` | shipping-service | order-service, notification-service, logging-service | `ShipmentProcessedEvent`, `ShipmentFailedEvent` |
 | `service-logs` | any service | logging-service | Explicit log entries |
 | `wishlist-events` | wishlist-service | future use | Wishlist activity |
+| `order-analytics-dlq` | analytics-service | ops / monitoring | Poison pill / failed analytics events |
 
 **Kafka configuration (docker-compose)**
 
@@ -736,6 +797,67 @@ kubectl apply -f k8s/order-hpa.yaml
 
 ---
 
+## 📊 Observability
+
+All services are instrumented with **Micrometer** and expose a `/actuator/prometheus` endpoint. Prometheus scrapes these endpoints and Grafana visualises the data.
+
+### Stack
+
+| Component | Role |
+|---|---|
+| Micrometer | Metrics instrumentation inside each Spring Boot service |
+| Prometheus | Time-series metrics scraping and storage |
+| Grafana | Dashboard visualisation and alerting |
+
+### Endpoints
+
+| Tool | URL | Credentials |
+|---|---|---|
+| Prometheus | http://localhost:9095 | — |
+| Grafana | http://localhost:3005 | admin / admin |
+
+### Quick Start
+
+```bash
+# Start Prometheus
+docker run -d \
+  --name prometheus \
+  -p 9095:9090 \
+  -v $(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
+  prom/prometheus
+
+# Start Grafana
+docker run -d \
+  --name grafana \
+  -p 3005:3000 \
+  -e GF_SECURITY_ADMIN_PASSWORD=admin \
+  grafana/grafana
+```
+
+> On Windows with PowerShell replace `$(pwd)` with `${PWD}`.
+
+After Grafana starts:
+1. Open http://localhost:3005 and log in with `admin / admin`
+2. Add Prometheus as a data source: `http://host.docker.internal:9095`
+3. Import the dashboard JSON from `monitoring/grafana-dashboard.json`
+
+### Dashboard Panels
+
+The Grafana dashboard includes 8 panels:
+
+| Panel | Metric |
+|---|---|
+| HTTP Request Rate | Requests per second across all services |
+| HTTP Latency p50 / p95 / p99 | `http_server_requests_seconds` percentiles |
+| Kafka Consumer Lag | Messages behind per topic / consumer group |
+| Kafka Throughput | Events ingested per second (analytics consumer) |
+| JVM Heap Usage | `jvm_memory_used_bytes` — heap vs. non-heap |
+| JVM GC Pause Time | Garbage collection pause duration |
+| HikariCP Active Connections | Active DB connections per service |
+| HikariCP Pending Threads | Connection pool saturation indicator |
+
+---
+
 ## 📁 Project Structure
 
 ```
@@ -746,6 +868,9 @@ ecommerce-microservices/
 ├── scripts/
 │   └── create-multiple-postgres-dbs.sh  # Auto-creates 7 PostgreSQL databases
 ├── k8s/                         # Kubernetes manifests (order-service reference)
+├── monitoring/                  # Prometheus & Grafana config
+│   ├── prometheus.yml           # Scrape configs for all services
+│   └── grafana-dashboard.json   # Pre-built Grafana dashboard (8 panels)
 ├── common-library/              # Shared Kafka events & DTOs
 ├── service-registry/            # Eureka server
 ├── api-gateway/                 # Spring Cloud Gateway + JWT filter
@@ -760,7 +885,8 @@ ecommerce-microservices/
 ├── payment-service/             # Razorpay / Stripe / Mock payments
 ├── shipping-service/            # Shipment tracking
 ├── notification-service/        # Email + in-app notifications
-└── logging-service/             # Centralized log aggregation (30-day TTL)
+├── logging-service/             # Centralized log aggregation (30-day TTL)
+└── analytics-service/           # CQRS analytics — batch Kafka consumer + REST API
 ```
 
 ---
@@ -780,6 +906,9 @@ ecommerce-microservices/
 | Auth | JWT (JJWT 0.12), Spring Security, Google OAuth2 |
 | Payment | Razorpay, Stripe (stub), Mock |
 | Email | AWS SES (auth-service), Resend (notification-service) |
+| Analytics | Spring Kafka batch consumer, Spring Data JPA, PostgreSQL |
+| Observability | Micrometer, Prometheus, Grafana |
+| CI/CD | GitHub Actions |
 | Build | Maven multi-module |
 | Containerization | Docker Compose, Kubernetes (HPA) |
 | Code Generation | Lombok, MapStruct |
