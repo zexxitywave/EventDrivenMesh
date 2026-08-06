@@ -8,18 +8,114 @@ scrape_configs:
     static_configs:
       - targets: [ localhost:9090 ]
 
+  # ── Order Service ──────────────────────────────────────────────────────────
   - job_name: order-service
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 192.168.56.1:8081 ]
+      - targets: [ host.docker.internal:8081 ]
         labels:
           service: order-service
-          team: backend
 
+  # ── Inventory Service ──────────────────────────────────────────────────────
+  - job_name: inventory-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8082 ]
+        labels:
+          service: inventory-service
+
+  # ── Payment Service ────────────────────────────────────────────────────────
+  - job_name: payment-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8083 ]
+        labels:
+          service: payment-service
+
+  # ── Notification Service ───────────────────────────────────────────────────
+  - job_name: notification-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8084 ]
+        labels:
+          service: notification-service
+
+  # ── Shipping Service ───────────────────────────────────────────────────────
+  - job_name: shipping-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8085 ]
+        labels:
+          service: shipping-service
+
+  # ── Auth Service ───────────────────────────────────────────────────────────
+  - job_name: auth-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8086 ]
+        labels:
+          service: auth-service
+
+  # ── Product Service ────────────────────────────────────────────────────────
+  - job_name: product-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8087 ]
+        labels:
+          service: product-service
+
+  # ── Cart Service ───────────────────────────────────────────────────────────
+  - job_name: cart-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8088 ]
+        labels:
+          service: cart-service
+
+  # ── User Service ───────────────────────────────────────────────────────────
+  - job_name: user-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8089 ]
+        labels:
+          service: user-service
+
+  # ── Seller Service ─────────────────────────────────────────────────────────
+  - job_name: seller-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8090 ]
+        labels:
+          service: seller-service
+
+  # ── Wishlist Service ───────────────────────────────────────────────────────
+  - job_name: wishlist-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8091 ]
+        labels:
+          service: wishlist-service
+
+  # ── Logging Service ────────────────────────────────────────────────────────
+  - job_name: logging-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8092 ]
+        labels:
+          service: logging-service
+
+  # ── Analytics Service ──────────────────────────────────────────────────────
   - job_name: analytics-service
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 192.168.56.1:8093 ]
+      - targets: [ host.docker.internal:8093 ]
         labels:
           service: analytics-service
-          team: backend
+
+  # ── API Gateway ────────────────────────────────────────────────────────────
+  - job_name: api-gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8080 ]
+        labels:
+          service: api-gateway
