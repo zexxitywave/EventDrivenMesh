@@ -33,16 +33,16 @@ spring:
             redirect-uri: "{baseUrl}/api/auth/oauth2/callback/{registrationId}"
 
   mail:
-    host: ${MAIL_HOST:localhost}
-    port: ${MAIL_PORT:1025}
-    username: ${MAIL_USERNAME:}
-    password: ${MAIL_PASSWORD:}
+    host: ${MAIL_HOST:smtp.resend.com}
+    port: ${MAIL_PORT:465}
+    username: ${MAIL_USERNAME:resend}
+    password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
-          auth: false
-          starttls:
-            enable: false
+          auth: true
+          ssl:
+            enable: true
 
 app:
   jwt:
