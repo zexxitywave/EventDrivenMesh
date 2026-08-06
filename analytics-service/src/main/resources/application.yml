@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8093
 
 spring:
@@ -32,7 +32,7 @@ spring:
       group-id: analytics-service-group
       auto-offset-reset: earliest
       max-poll-records: 2000
-      fetch-min-size: 1048576       # 1MB — wait for more data before delivering
+      fetch-min-size: 1048576       # 1MB â€” wait for more data before delivering
       fetch-max-wait: 500ms
 
 eureka:
@@ -66,9 +66,10 @@ logging:
   level:
     com.hacisimsek.analytics: INFO
 
-# ── Analytics-specific config ──────────────────────────────────────────────
+# â”€â”€ Analytics-specific config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 analytics:
-  # Dead Letter Queue topic — poison pills and unprocessable messages go here
+  # Dead Letter Queue topic â€” poison pills and unprocessable messages go here
   # instead of being silently dropped. Inspect with Kafka UI at localhost:8071
   dlq-topic: order-analytics-dlq
+
 

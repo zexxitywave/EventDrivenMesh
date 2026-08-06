@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8091
 
 spring:
@@ -37,3 +37,4 @@ eureka:
 logging:
   level:
     com.hacisimsek.seller: DEBUG
+

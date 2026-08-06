@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8092
 
 spring:
@@ -43,4 +43,5 @@ app:
 logging:
   level:
     com.hacisimsek.logging: DEBUG
+
 

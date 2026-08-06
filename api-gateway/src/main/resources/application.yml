@@ -1,11 +1,11 @@
-server:
+﻿server:
   port: 8080
 
 spring:
   application:
     name: api-gateway
 
-  # ── Redis (used by RequestRateLimiter to store token buckets per IP) ────────
+  # â”€â”€ Redis (used by RequestRateLimiter to store token buckets per IP) â”€â”€â”€â”€â”€â”€â”€â”€
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -21,7 +21,7 @@ spring:
           enabled: true
           lower-case-service-id: true
 
-      # ── Default 429 response headers exposed to clients ───────────────────
+      # â”€â”€ Default 429 response headers exposed to clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       default-filters:
         - name: RequestRateLimiter
           args:
@@ -33,7 +33,7 @@ spring:
 
       routes:
 
-        # ── Auth Service — tightest limit (brute-force / spam protection) ───
+        # â”€â”€ Auth Service â€” tightest limit (brute-force / spam protection) â”€â”€â”€
         - id: auth-service
           uri: lb://auth-service
           predicates:
@@ -46,7 +46,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Razorpay Webhook — high limit, no JWT, never block Razorpay ─────
+        # â”€â”€ Razorpay Webhook â€” high limit, no JWT, never block Razorpay â”€â”€â”€â”€â”€
         - id: payment-webhook
           uri: lb://payment-service
           predicates:
@@ -59,7 +59,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Order Service — strict (order spam prevention) ───────────────────
+        # â”€â”€ Order Service â€” strict (order spam prevention) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: order-service
           uri: lb://order-service
           predicates:
@@ -73,7 +73,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Inventory Service — standard ─────────────────────────────────────
+        # â”€â”€ Inventory Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
@@ -87,7 +87,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Payment Service — strict (financial operations) ──────────────────
+        # â”€â”€ Payment Service â€” strict (financial operations) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: payment-service
           uri: lb://payment-service
           predicates:
@@ -101,7 +101,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Shipping Service — standard ──────────────────────────────────────
+        # â”€â”€ Shipping Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: shipping-service
           uri: lb://shipping-service
           predicates:
@@ -115,7 +115,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Notification Service — standard ──────────────────────────────────
+        # â”€â”€ Notification Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: notification-service
           uri: lb://notification-service
           predicates:
@@ -129,7 +129,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── User Service — standard ──────────────────────────────────────────
+        # â”€â”€ User Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: user-service
           uri: lb://user-service
           predicates:
@@ -143,7 +143,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Product Service — relaxed (high read traffic expected) ───────────
+        # â”€â”€ Product Service â€” relaxed (high read traffic expected) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: product-service
           uri: lb://product-service
           predicates:
@@ -157,7 +157,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Cart Service — standard ──────────────────────────────────────────
+        # â”€â”€ Cart Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: cart-service
           uri: lb://cart-service
           predicates:
@@ -171,7 +171,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Wishlist Service — standard ──────────────────────────────────────
+        # â”€â”€ Wishlist Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: wishlist-service
           uri: lb://wishlist-service
           predicates:
@@ -185,7 +185,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Seller Service — standard ────────────────────────────────────────
+        # â”€â”€ Seller Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: seller-service
           uri: lb://seller-service
           predicates:
@@ -199,7 +199,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Seller Admin — standard ──────────────────────────────────────────
+        # â”€â”€ Seller Admin â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: seller-admin
           uri: lb://seller-service
           predicates:
@@ -213,7 +213,7 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # ── Logging Service — standard ───────────────────────────────────────
+        # â”€â”€ Logging Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         - id: logging-service
           uri: lb://logging-service
           predicates:
@@ -242,3 +242,4 @@ logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.data.redis: WARN
+

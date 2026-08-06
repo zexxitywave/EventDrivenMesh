@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8084
 
 spring:
@@ -55,3 +55,4 @@ eureka:
 
   instance:
     prefer-ip-address: true
+

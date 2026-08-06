@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8090
 
 spring:
@@ -27,4 +27,5 @@ eureka:
 logging:
   level:
     com.hacisimsek.wishlist: DEBUG
+
 
