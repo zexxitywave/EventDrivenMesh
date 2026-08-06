@@ -27,7 +27,7 @@ spring:
         order_inserts: true
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
     consumer:
       group-id: analytics-service-group
       auto-offset-reset: earliest
@@ -71,3 +71,4 @@ analytics:
   # Dead Letter Queue topic — poison pills and unprocessable messages go here
   # instead of being silently dropped. Inspect with Kafka UI at localhost:8071
   dlq-topic: order-analytics-dlq
+

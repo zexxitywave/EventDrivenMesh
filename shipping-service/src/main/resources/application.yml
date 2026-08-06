@@ -28,7 +28,7 @@ spring:
           time_zone: UTC
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
     consumer:
       group-id: shipping-service-group
       auto-offset-reset: earliest
@@ -46,3 +46,4 @@ eureka:
       defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
   instance:
     prefer-ip-address: true
+

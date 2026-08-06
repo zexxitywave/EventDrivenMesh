@@ -28,7 +28,7 @@ spring:
         dialect: org.hibernate.dialect.PostgreSQLDialect
 
   kafka:
-    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9092}
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
     consumer:
       group-id: payment-service-group
       auto-offset-reset: earliest
@@ -55,3 +55,4 @@ payment:
   stripe:
     secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
+

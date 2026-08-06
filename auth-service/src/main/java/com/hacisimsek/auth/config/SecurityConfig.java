@@ -1,5 +1,4 @@
 package com.hacisimsek.auth.config;
-
 import com.hacisimsek.auth.security.CustomUserDetailsService;
 import com.hacisimsek.auth.security.JwtAuthenticationFilter;
 import com.hacisimsek.auth.security.oauth2.OAuth2AuthenticationFailureHandler;

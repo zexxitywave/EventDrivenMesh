@@ -20,9 +20,9 @@ data:
   DB_PORT: "5432"
 
   # ── Kafka ─────────────────────────────────────────────────────────────────
-  # Kafka EXTERNAL listener is on localhost:9092 on the host (docker-compose)
-  # From inside a pod that maps to host.docker.internal:9092
-  KAFKA_BOOTSTRAP_SERVERS: "host.docker.internal:9092"
+  # Kafka EXTERNAL listener is on localhost:9095 on the host (docker-compose)
+  # From inside a pod that maps to host.docker.internal:9095
+  KAFKA_BOOTSTRAP_SERVERS: "host.docker.internal:9095"
 
   # ── Eureka ────────────────────────────────────────────────────────────────
   EUREKA_HOST: "host.docker.internal"
@@ -47,3 +47,4 @@ data:
   # ── Graceful Shutdown ─────────────────────────────────────────────────────
   SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: "30s"
   SERVER_SHUTDOWN: "graceful"
+
