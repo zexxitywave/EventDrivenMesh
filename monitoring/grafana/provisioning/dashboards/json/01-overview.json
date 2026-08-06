@@ -1,0 +1,275 @@
+{
+  "uid": "zexxity-overview",
+  "title": "Zexxity — System Overview",
+  "description": "System-wide view of order, inventory, payment and shipping services",
+  "tags": ["zexxity", "overview"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "schemaVersion": 38,
+  "panels": [
+
+    { "id": 1, "type": "row", "title": "System Health", "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 2, "type": "stat", "title": "Services Online",
+      "gridPos": { "x": 0, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "count(up{job=~\"order-service|inventory-service|payment-service|shipping-service\"} == 1)", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none", "textMode": "auto" },
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": 0 }, { "color": "yellow", "value": 2 }, { "color": "green", "value": 4 }] }, "mappings": [] } }
+    },
+
+    {
+      "id": 3, "type": "stat", "title": "Services Offline",
+      "gridPos": { "x": 4, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "count(up{job=~\"order-service|inventory-service|payment-service|shipping-service\"} == 0) or vector(0)", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 1 }] } } }
+    },
+
+    {
+      "id": 4, "type": "stat", "title": "Total HTTP req/s",
+      "gridPos": { "x": 8, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[1m]))", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "reqps", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 100 }] } } }
+    },
+
+    {
+      "id": 5, "type": "stat", "title": "5xx Error Rate",
+      "gridPos": { "x": 12, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\",status=~\"5..\"}[1m]))", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "reqps", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 0.1 }] } } }
+    },
+
+    {
+      "id": 6, "type": "stat", "title": "P95 Latency (all services)",
+      "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m])))", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "s", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 1 }, { "color": "red", "value": 2 }] } } }
+    },
+
+    {
+      "id": 7, "type": "stat", "title": "Total JVM Heap Used",
+      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(jvm_memory_used_bytes{area=\"heap\",job=~\"order-service|inventory-service|payment-service|shipping-service\"})", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 1073741824 }, { "color": "red", "value": 2147483648 }] } } }
+    },
+
+    { "id": 10, "type": "row", "title": "Service Up/Down Status", "gridPos": { "x": 0, "y": 5, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 11, "type": "stat", "title": "Service Status",
+      "gridPos": { "x": 0, "y": 6, "w": 24, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "up{job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": {
+        "reduceOptions": { "calcs": ["lastNotNull"] },
+        "colorMode": "background", "graphMode": "none", "textMode": "auto",
+        "orientation": "horizontal"
+      },
+      "fieldConfig": {
+        "defaults": {
+          "mappings": [{ "type": "value", "options": { "0": { "text": "DOWN", "color": "red" }, "1": { "text": "UP", "color": "green" } } }],
+          "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": 0 }, { "color": "green", "value": 1 }] }
+        }
+      }
+    },
+
+    { "id": 20, "type": "row", "title": "HTTP Traffic", "gridPos": { "x": 0, "y": 10, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 21, "type": "timeseries", "title": "Request Rate by Service",
+      "gridPos": { "x": 0, "y": 11, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (job) (rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[1m]))", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 22, "type": "timeseries", "title": "Request Rate by Status Code",
+      "gridPos": { "x": 12, "y": 11, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\",status=~\"2..\"}[1m]))", "legendFormat": "2xx Success", "refId": "A" },
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\",status=~\"4..\"}[1m]))", "legendFormat": "4xx Client Error", "refId": "B" },
+        { "expr": "sum(rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\",status=~\"5..\"}[1m]))", "legendFormat": "5xx Server Error", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "2xx Success" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "4xx Client Error" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byName", "options": "5xx Server Error" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    {
+      "id": 23, "type": "timeseries", "title": "P50 / P95 / P99 Latency — All Services",
+      "gridPos": { "x": 0, "y": 19, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m])))", "legendFormat": "P50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m])))", "legendFormat": "P95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m])))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 24, "type": "timeseries", "title": "P95 Latency per Service",
+      "gridPos": { "x": 12, "y": 19, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (job, le) (rate(http_server_requests_seconds_bucket{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m])))", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    { "id": 30, "type": "row", "title": "JVM Memory & CPU", "gridPos": { "x": 0, "y": 27, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 31, "type": "timeseries", "title": "Heap Used per Service",
+      "gridPos": { "x": 0, "y": 28, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "jvm_memory_used_bytes{area=\"heap\",job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 32, "type": "bargauge", "title": "Heap Used vs Max",
+      "gridPos": { "x": 12, "y": 28, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "jvm_memory_used_bytes{area=\"heap\",job=~\"order-service|inventory-service|payment-service|shipping-service\"} / jvm_memory_max_bytes{area=\"heap\",job=~\"order-service|inventory-service|payment-service|shipping-service\"} * 100", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "orientation": "horizontal", "displayMode": "gradient" },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 }] } } }
+    },
+
+    {
+      "id": 33, "type": "timeseries", "title": "CPU Usage per Service",
+      "gridPos": { "x": 0, "y": 36, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "process_cpu_usage{job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}} process", "refId": "A" },
+        { "expr": "system_cpu_usage{job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}} system", "refId": "B" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 34, "type": "timeseries", "title": "GC Pause Time per Service",
+      "gridPos": { "x": 12, "y": 36, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(jvm_gc_pause_seconds_sum{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[1m])", "legendFormat": "{{job}} — {{action}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    { "id": 40, "type": "row", "title": "Threads & DB Connections", "gridPos": { "x": 0, "y": 44, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 41, "type": "timeseries", "title": "Live Threads per Service",
+      "gridPos": { "x": 0, "y": 45, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "jvm_threads_live_threads{job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 42, "type": "timeseries", "title": "HikariCP Connections",
+      "gridPos": { "x": 12, "y": 45, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "hikaricp_connections_active{job=~\"order-service|payment-service|shipping-service\"}", "legendFormat": "{{job}} active", "refId": "A" },
+        { "expr": "hikaricp_connections_idle{job=~\"order-service|payment-service|shipping-service\"}", "legendFormat": "{{job}} idle", "refId": "B" },
+        { "expr": "hikaricp_connections_pending{job=~\"order-service|payment-service|shipping-service\"}", "legendFormat": "{{job}} pending", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byRegexp", "options": ".*active.*" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*idle.*" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byRegexp", "options": ".*pending.*" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    { "id": 50, "type": "row", "title": "Top Endpoints", "gridPos": { "x": 0, "y": 53, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 51, "type": "table", "title": "Top 10 Busiest Endpoints",
+      "gridPos": { "x": 0, "y": 54, "w": 12, "h": 10 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{
+        "expr": "topk(10, sum by (job, uri, method) (rate(http_server_requests_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m])))",
+        "legendFormat": "", "refId": "A", "instant": true, "format": "table"
+      }],
+      "options": { "sortBy": [{ "displayName": "req/s", "desc": true }] },
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "job": "Service", "uri": "Endpoint", "method": "Method", "Value": "req/s" } } }
+      ],
+      "fieldConfig": { "defaults": { "unit": "reqps" } }
+    },
+
+    {
+      "id": 52, "type": "table", "title": "Top 10 Slowest Endpoints (P95)",
+      "gridPos": { "x": 12, "y": 54, "w": 12, "h": 10 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{
+        "expr": "topk(10, histogram_quantile(0.95, sum by (job, uri, method, le) (rate(http_server_requests_seconds_bucket{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[5m]))))",
+        "legendFormat": "", "refId": "A", "instant": true, "format": "table"
+      }],
+      "options": { "sortBy": [{ "displayName": "P95 Latency", "desc": true }] },
+      "transformations": [
+        { "id": "organize", "options": { "renameByName": { "job": "Service", "uri": "Endpoint", "method": "Method", "Value": "P95 Latency" } } }
+      ],
+      "fieldConfig": { "defaults": { "unit": "s" } }
+    },
+
+    { "id": 60, "type": "row", "title": "GC Overview", "gridPos": { "x": 0, "y": 64, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 61, "type": "timeseries", "title": "GC Pause Time/s — All Services",
+      "gridPos": { "x": 0, "y": 65, "w": 8, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(jvm_gc_pause_seconds_sum{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[1m])", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 62, "type": "timeseries", "title": "GC Collections/min",
+      "gridPos": { "x": 8, "y": 65, "w": 8, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(jvm_gc_pause_seconds_count{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[1m]) * 60", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 63, "type": "timeseries", "title": "Heap Allocation Rate bytes/s",
+      "gridPos": { "x": 16, "y": 65, "w": 8, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(jvm_gc_memory_allocated_bytes_total{job=~\"order-service|inventory-service|payment-service|shipping-service\"}[1m])", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "Bps", "custom": { "lineWidth": 2 } } }
+    }
+
+  ]
+}

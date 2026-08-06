@@ -1,5 +1,19 @@
 package com.hacisimsek.payment.service.impl;
 
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
 import com.hacisimsek.common.event.payment.PaymentFailedEvent;
 import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
@@ -13,40 +27,41 @@ import com.hacisimsek.payment.gateway.PaymentGatewayAdapter;
 import com.hacisimsek.payment.model.Payment;
 import com.hacisimsek.payment.repository.PaymentRepository;
 import com.hacisimsek.payment.service.PaymentService;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.kafka.core.KafkaTemplate;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.math.BigDecimal;
-import java.time.Instant;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.function.Function;
-import java.util.stream.Collectors;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class PaymentServiceImpl implements PaymentService {
 
     private final PaymentRepository paymentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-
-    /**
-     * All gateway adapters injected as a list — Spring discovers every PaymentGatewayAdapter bean.
-     * We index them by their gateway type for O(1) lookup.
-     */
     private final List<PaymentGatewayAdapter> gatewayAdapters;
-
     private final ObjectMapper objectMapper;
+    private final Counter paymentsProcessedCounter;
+    private final Counter paymentsFailedCounter;
 
     private static final String PAYMENT_TOPIC = "payment-events";
     private static final String DEFAULT_CURRENCY = "INR";
+
+    public PaymentServiceImpl(PaymentRepository paymentRepository,
+                               KafkaTemplate<String, Object> kafkaTemplate,
+                               List<PaymentGatewayAdapter> gatewayAdapters,
+                               ObjectMapper objectMapper,
+                               MeterRegistry meterRegistry) {
+        this.paymentRepository = paymentRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.gatewayAdapters = gatewayAdapters;
+        this.objectMapper = objectMapper;
+        this.paymentsProcessedCounter = Counter.builder("zexxity.payments.processed")
+                .description("Total payments successfully processed")
+                .register(meterRegistry);
+        this.paymentsFailedCounter = Counter.builder("zexxity.payments.failed")
+                .description("Total payments that failed")
+                .register(meterRegistry);
+    }
 
     // ── Saga-driven auto processing (existing flow) ───────────────────────────
 
@@ -86,6 +101,7 @@ public class PaymentServiceImpl implements PaymentService {
 
             kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
                     event.getCorrelationId(), orderId, payment.getId(), customerId, event.getCustomerEmail()));
+            paymentsProcessedCounter.increment();
             log.info("Saga: payment completed for order={}, txn={}", orderId, payment.getTransactionId());
         } else {
             payment.setStatus(Payment.PaymentStatus.FAILED);
@@ -95,6 +111,7 @@ public class PaymentServiceImpl implements PaymentService {
             kafkaTemplate.send(PAYMENT_TOPIC, new PaymentFailedEvent(
                     event.getCorrelationId(), orderId, customerId,
                     event.getCustomerEmail(), "Payment processing failed"));
+            paymentsFailedCounter.increment();
             log.error("Saga: payment failed for order={}", orderId);
         }
     }

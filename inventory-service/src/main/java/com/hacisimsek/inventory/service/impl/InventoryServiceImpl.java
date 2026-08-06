@@ -9,7 +9,8 @@ import com.hacisimsek.inventory.model.InventoryStatus;
 import com.hacisimsek.inventory.repository.InventoryRepository;
 import com.hacisimsek.inventory.repository.ReservationRepository;
 import com.hacisimsek.inventory.service.InventoryService;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -23,13 +24,25 @@ import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class InventoryServiceImpl implements InventoryService {
 
     private final InventoryRepository inventoryRepository;
     private final ReservationRepository reservationRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final Counter reservationFailedCounter;
+
+    public InventoryServiceImpl(InventoryRepository inventoryRepository,
+                                 ReservationRepository reservationRepository,
+                                 KafkaTemplate<String, Object> kafkaTemplate,
+                                 MeterRegistry meterRegistry) {
+        this.inventoryRepository = inventoryRepository;
+        this.reservationRepository = reservationRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.reservationFailedCounter = Counter.builder("zexxity.inventory.reservation.failed")
+                .description("Total inventory reservation failures")
+                .register(meterRegistry);
+    }
 
     @Override
     public void reserveInventory(OrderCreatedEvent orderCreatedEvent) {
@@ -87,6 +100,7 @@ public class InventoryServiceImpl implements InventoryService {
                     orderCreatedEvent.getOrderId(),
                     insufficientItemsMessage.toString()
             ));
+            reservationFailedCounter.increment();
             log.error("Inventory reservation failed for order {}: {}", orderCreatedEvent.getOrderId(), insufficientItemsMessage);
             return;
         }

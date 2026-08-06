@@ -1,0 +1,276 @@
+groups:
+
+  # ── Service Availability ────────────────────────────────────────────────────
+  - name: service-availability
+    interval: 15s
+    rules:
+      - alert: ServiceDown
+        expr: up{job=~"order-service|inventory-service|payment-service|shipping-service"} == 0
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "Service {{ $labels.job }} is DOWN"
+          description: "{{ $labels.job }} has been unreachable for more than 30 seconds."
+
+      - alert: ServiceRestartDetected
+        expr: changes(process_uptime_seconds{job=~"order-service|inventory-service|payment-service|shipping-service"}[5m]) > 0
+        for: 0s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Service {{ $labels.job }} restarted"
+          description: "{{ $labels.job }} process uptime reset detected — possible crash/restart."
+
+  # ── HTTP Errors & Latency ───────────────────────────────────────────────────
+  - name: http-errors
+    interval: 15s
+    rules:
+      - alert: High5xxRate
+        expr: |
+          sum by (job) (
+            rate(http_server_requests_seconds_count{
+              job=~"order-service|inventory-service|payment-service|shipping-service",
+              status=~"5.."
+            }[1m])
+          ) > 0.5
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "High 5xx error rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} is returning more than 0.5 5xx errors/sec for 1 minute."
+
+      - alert: Elevated4xxRate
+        expr: |
+          sum by (job) (
+            rate(http_server_requests_seconds_count{
+              job=~"order-service|inventory-service|payment-service|shipping-service",
+              status=~"4.."
+            }[1m])
+          ) > 5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Elevated 4xx rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} is returning more than 5 4xx errors/sec for 2 minutes."
+
+      - alert: HighP95Latency
+        expr: |
+          histogram_quantile(0.95,
+            sum by (job, le) (
+              rate(http_server_requests_seconds_bucket{
+                job=~"order-service|inventory-service|payment-service|shipping-service"
+              }[5m])
+            )
+          ) > 2
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High P95 latency on {{ $labels.job }}"
+          description: "P95 latency on {{ $labels.job }} exceeds 2s for 2 minutes."
+
+      - alert: CriticalP99Latency
+        expr: |
+          histogram_quantile(0.99,
+            sum by (job, le) (
+              rate(http_server_requests_seconds_bucket{
+                job=~"order-service|inventory-service|payment-service|shipping-service"
+              }[5m])
+            )
+          ) > 5
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical P99 latency on {{ $labels.job }}"
+          description: "P99 latency on {{ $labels.job }} exceeds 5s for 2 minutes."
+
+      - alert: ZeroRequestRate
+        expr: |
+          sum by (job) (
+            rate(http_server_requests_seconds_count{
+              job=~"order-service|inventory-service|payment-service|shipping-service"
+            }[3m])
+          ) == 0
+          and
+          up{job=~"order-service|inventory-service|payment-service|shipping-service"} == 1
+        for: 3m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Zero request rate on {{ $labels.job }}"
+          description: "{{ $labels.job }} is up but receiving 0 requests for 3 minutes."
+
+  # ── JVM Memory ─────────────────────────────────────────────────────────────
+  - name: jvm-memory
+    interval: 15s
+    rules:
+      - alert: HighHeapUsage
+        expr: |
+          (
+            jvm_memory_used_bytes{area="heap",
+              job=~"order-service|inventory-service|payment-service|shipping-service"}
+            /
+            jvm_memory_max_bytes{area="heap",
+              job=~"order-service|inventory-service|payment-service|shipping-service"}
+          ) * 100 > 80
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High heap usage on {{ $labels.job }}"
+          description: "{{ $labels.job }} heap usage is above 80% for 2 minutes. Current: {{ $value | printf \"%.1f\" }}%"
+
+      - alert: CriticalHeapUsage
+        expr: |
+          (
+            jvm_memory_used_bytes{area="heap",
+              job=~"order-service|inventory-service|payment-service|shipping-service"}
+            /
+            jvm_memory_max_bytes{area="heap",
+              job=~"order-service|inventory-service|payment-service|shipping-service"}
+          ) * 100 > 92
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Critical heap usage on {{ $labels.job }}"
+          description: "{{ $labels.job }} heap usage is above 92% — OOM risk!"
+
+      - alert: FrequentGCPauses
+        expr: |
+          rate(jvm_gc_pause_seconds_count{
+            job=~"order-service|inventory-service|payment-service|shipping-service"
+          }[1m]) * 60 > 10
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Frequent GC pauses on {{ $labels.job }}"
+          description: "{{ $labels.job }} is experiencing more than 10 GC collections/min."
+
+      - alert: LongGCPauseDuration
+        expr: |
+          rate(jvm_gc_pause_seconds_sum{
+            job=~"order-service|inventory-service|payment-service|shipping-service"
+          }[1m]) > 0.3
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Long GC pause time on {{ $labels.job }}"
+          description: "{{ $labels.job }} GC is consuming more than 0.3s/s for 2 minutes."
+
+  # ── JVM Threads ─────────────────────────────────────────────────────────────
+  - name: jvm-threads
+    interval: 15s
+    rules:
+      - alert: HighBlockedThreadCount
+        expr: |
+          jvm_threads_states_threads{
+            state="blocked",
+            job=~"order-service|inventory-service|payment-service|shipping-service"
+          } > 10
+        for: 1m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High blocked thread count on {{ $labels.job }}"
+          description: "{{ $labels.job }} has {{ $value }} blocked threads — possible deadlock."
+
+      - alert: ThreadCountSpike
+        expr: |
+          jvm_threads_live_threads{
+            job=~"order-service|inventory-service|payment-service|shipping-service"
+          } > 200
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "Thread count spike on {{ $labels.job }}"
+          description: "{{ $labels.job }} has more than 200 live threads."
+
+  # ── HikariCP Connection Pool ────────────────────────────────────────────────
+  - name: hikaricp
+    interval: 15s
+    rules:
+      - alert: PoolExhausted
+        expr: |
+          hikaricp_connections_pending{
+            job=~"order-service|payment-service|shipping-service"
+          } > 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "DB connection pool pending on {{ $labels.job }}"
+          description: "{{ $labels.job }} has {{ $value }} threads waiting for a DB connection."
+
+      - alert: PoolCritical
+        expr: |
+          hikaricp_connections_pending{
+            job=~"order-service|payment-service|shipping-service"
+          } > 5
+        for: 30s
+        labels:
+          severity: critical
+        annotations:
+          summary: "DB connection pool critical on {{ $labels.job }}"
+          description: "{{ $labels.job }} has {{ $value }} threads waiting for DB connections — pool likely exhausted."
+
+      - alert: HighAcquisitionTime
+        expr: |
+          histogram_quantile(0.95,
+            sum by (job, le) (
+              rate(hikaricp_connections_acquire_seconds_bucket{
+                job=~"order-service|payment-service|shipping-service"
+              }[2m])
+            )
+          ) > 0.5
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "High DB connection acquisition time on {{ $labels.job }}"
+          description: "P95 connection acquisition time on {{ $labels.job }} exceeds 0.5s."
+
+  # ── Order Saga Pipeline ─────────────────────────────────────────────────────
+  - name: pipeline
+    interval: 15s
+    rules:
+      - alert: OrderProcessingStalled
+        expr: |
+          rate(zexxity_orders_created_total[3m]) == 0
+          and
+          up{job="order-service"} == 1
+        for: 3m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Order processing stalled"
+          description: "No new orders have been created in 3 minutes while order-service is up."
+
+      - alert: InventoryReservationFailures
+        expr: rate(zexxity_inventory_reservation_failed_total[1m]) > 0
+        for: 30s
+        labels:
+          severity: warning
+        annotations:
+          summary: "Inventory reservation failures detected"
+          description: "Inventory reservations are failing — possible stock issue or service error."
+
+      - alert: PaymentFailureSpike
+        expr: |
+          rate(zexxity_payments_failed_total[1m])
+          /
+          (rate(zexxity_payments_processed_total[1m]) + rate(zexxity_payments_failed_total[1m]))
+          > 0.05
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Payment failure rate above 5%"
+          description: "More than 5% of payments are failing. Check payment gateway connectivity."

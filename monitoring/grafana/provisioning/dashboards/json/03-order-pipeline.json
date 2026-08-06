@@ -1,0 +1,202 @@
+{
+  "uid": "zexxity-order-pipeline",
+  "title": "Zexxity — Order Pipeline",
+  "description": "End-to-end order saga: order creation → inventory reservation → payment → shipping",
+  "tags": ["zexxity", "pipeline", "saga"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "schemaVersion": 38,
+  "panels": [
+
+    { "id": 1, "type": "row", "title": "Pipeline Scorecards", "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 2, "type": "stat", "title": "Orders Created (total)",
+      "gridPos": { "x": 0, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "zexxity_orders_created_total", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "blue", "value": 0 }] } } }
+    },
+
+    {
+      "id": 3, "type": "stat", "title": "Orders Created/min",
+      "gridPos": { "x": 4, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(zexxity_orders_created_total[1m]) * 60", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 50 }, { "color": "red", "value": 100 }] } } }
+    },
+
+    {
+      "id": 4, "type": "stat", "title": "Payments Processed (total)",
+      "gridPos": { "x": 8, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "zexxity_payments_processed_total", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }] } } }
+    },
+
+    {
+      "id": 5, "type": "stat", "title": "Payments Failed (total)",
+      "gridPos": { "x": 12, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "zexxity_payments_failed_total", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 1 }] } } }
+    },
+
+    {
+      "id": 6, "type": "stat", "title": "Inventory Reservation Failures",
+      "gridPos": { "x": 16, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "zexxity_inventory_reservation_failed_total", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "short", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 1 }] } } }
+    },
+
+    {
+      "id": 7, "type": "stat", "title": "Payment Success Rate",
+      "gridPos": { "x": 20, "y": 1, "w": 4, "h": 4 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(zexxity_payments_processed_total[5m]) / (rate(zexxity_payments_processed_total[5m]) + rate(zexxity_payments_failed_total[5m])) * 100", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "none" },
+      "fieldConfig": { "defaults": { "unit": "percent", "thresholds": { "mode": "absolute", "steps": [{ "color": "red", "value": 0 }, { "color": "yellow", "value": 90 }, { "color": "green", "value": 99 }] } } }
+    },
+
+    { "id": 10, "type": "row", "title": "Order & Payment Rates", "gridPos": { "x": 0, "y": 5, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 11, "type": "timeseries", "title": "Orders Created vs Payments Processed (rate/min)",
+      "gridPos": { "x": 0, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(zexxity_orders_created_total[1m]) * 60", "legendFormat": "Orders Created/min", "refId": "A" },
+        { "expr": "rate(zexxity_payments_processed_total[1m]) * 60", "legendFormat": "Payments Processed/min", "refId": "B" },
+        { "expr": "rate(zexxity_payments_failed_total[1m]) * 60", "legendFormat": "Payments Failed/min", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Orders Created/min" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "Payments Processed/min" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "Payments Failed/min" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    {
+      "id": 12, "type": "timeseries", "title": "Payment Success vs Failure Rate",
+      "gridPos": { "x": 12, "y": 6, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(zexxity_payments_processed_total[1m])", "legendFormat": "Success", "refId": "A" },
+        { "expr": "rate(zexxity_payments_failed_total[1m])", "legendFormat": "Failed", "refId": "B" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Success" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "Failed" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    { "id": 20, "type": "row", "title": "Cumulative Counters", "gridPos": { "x": 0, "y": 14, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 21, "type": "timeseries", "title": "Cumulative Orders Created",
+      "gridPos": { "x": 0, "y": 15, "w": 8, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "zexxity_orders_created_total", "legendFormat": "Total Orders", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 }, "color": { "mode": "fixed", "fixedColor": "blue" } } }
+    },
+
+    {
+      "id": 22, "type": "timeseries", "title": "Cumulative Payments",
+      "gridPos": { "x": 8, "y": 15, "w": 8, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "zexxity_payments_processed_total", "legendFormat": "Processed", "refId": "A" },
+        { "expr": "zexxity_payments_failed_total", "legendFormat": "Failed", "refId": "B" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "Processed" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "Failed" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    {
+      "id": 23, "type": "timeseries", "title": "Cumulative Inventory Reservation Failures",
+      "gridPos": { "x": 16, "y": 15, "w": 8, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "zexxity_inventory_reservation_failed_total", "legendFormat": "Reservation Failures", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2, "fillOpacity": 10 }, "color": { "mode": "fixed", "fixedColor": "orange" } } }
+    },
+
+    { "id": 30, "type": "row", "title": "Order API Latency (order-service)", "gridPos": { "x": 0, "y": 23, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 31, "type": "timeseries", "title": "POST /api/orders — P50 / P95 / P99",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"order-service\", uri=\"/api/orders\", method=\"POST\"}[5m])))", "legendFormat": "P50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"order-service\", uri=\"/api/orders\", method=\"POST\"}[5m])))", "legendFormat": "P95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"order-service\", uri=\"/api/orders\", method=\"POST\"}[5m])))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 32, "type": "timeseries", "title": "Order API Request Rate & Errors",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "rate(http_server_requests_seconds_count{job=\"order-service\", status=~\"2..\"}[1m])", "legendFormat": "2xx success", "refId": "A" },
+        { "expr": "rate(http_server_requests_seconds_count{job=\"order-service\", status=~\"4..\"}[1m])", "legendFormat": "4xx client error", "refId": "B" },
+        { "expr": "rate(http_server_requests_seconds_count{job=\"order-service\", status=~\"5..\"}[1m])", "legendFormat": "5xx server error", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "2xx success" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "4xx client error" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byName", "options": "5xx server error" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    { "id": 40, "type": "row", "title": "Per-Service CPU & Heap during Load", "gridPos": { "x": 0, "y": 32, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 41, "type": "timeseries", "title": "Heap Used — Pipeline Services",
+      "gridPos": { "x": 0, "y": 33, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "jvm_memory_used_bytes{area=\"heap\",job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 42, "type": "timeseries", "title": "CPU Usage — Pipeline Services",
+      "gridPos": { "x": 12, "y": 33, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "process_cpu_usage{job=~\"order-service|inventory-service|payment-service|shipping-service\"}", "legendFormat": "{{job}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "percentunit", "min": 0, "max": 1, "custom": { "lineWidth": 2 } } }
+    }
+
+  ]
+}

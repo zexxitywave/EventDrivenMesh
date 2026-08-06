@@ -9,7 +9,8 @@ import com.hacisimsek.order.model.Order;
 import com.hacisimsek.order.model.OrderItem;
 import com.hacisimsek.order.repository.OrderRepository;
 import com.hacisimsek.order.service.OrderService;
-import lombok.RequiredArgsConstructor;
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
@@ -21,12 +22,22 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
 @Slf4j
 public class OrderServiceImpl implements OrderService {
 
     private final OrderRepository orderRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final Counter ordersCreatedCounter;
+
+    public OrderServiceImpl(OrderRepository orderRepository,
+                            KafkaTemplate<String, Object> kafkaTemplate,
+                            MeterRegistry meterRegistry) {
+        this.orderRepository = orderRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.ordersCreatedCounter = Counter.builder("zexxity.orders.created")
+                .description("Total number of orders successfully created")
+                .register(meterRegistry);
+    }
 
     @Override
     @Transactional
@@ -77,6 +88,9 @@ public class OrderServiceImpl implements OrderService {
         );
 
         log.info("Sending OrderCreatedEvent for order {}", savedOrder.getId());
+
+        // Increment Prometheus counter
+        ordersCreatedCounter.increment();
 
         // Update order status to indicate saga started
         savedOrder.setStatus(Order.OrderStatus.INVENTORY_CHECKING);

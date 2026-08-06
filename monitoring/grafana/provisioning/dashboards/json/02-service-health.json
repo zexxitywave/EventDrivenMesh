@@ -1,0 +1,197 @@
+{
+  "uid": "zexxity-service-health",
+  "title": "Zexxity — Service Health",
+  "description": "Per-service drill-down: latency, errors, JVM, threads, HikariCP",
+  "tags": ["zexxity", "service-health"],
+  "timezone": "browser",
+  "refresh": "5s",
+  "time": { "from": "now-30m", "to": "now" },
+  "schemaVersion": 38,
+  "templating": {
+    "list": [
+      {
+        "name": "service",
+        "type": "query",
+        "label": "Service",
+        "datasource": { "uid": "prometheus" },
+        "query": "label_values(jvm_memory_used_bytes{job=~\"order-service|inventory-service|payment-service|shipping-service\"}, job)",
+        "refresh": 2,
+        "includeAll": false,
+        "multi": false,
+        "sort": 1,
+        "current": { "text": "order-service", "value": "order-service" }
+      }
+    ]
+  },
+  "panels": [
+
+    { "id": 1, "type": "row", "title": "Request Rate & Errors", "gridPos": { "x": 0, "y": 0, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 2, "type": "timeseries", "title": "Request Rate by HTTP Method",
+      "gridPos": { "x": 0, "y": 1, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "sum by (method) (rate(http_server_requests_seconds_count{job=\"$service\", method=\"GET\"}[1m]))", "legendFormat": "GET", "refId": "A" },
+        { "expr": "sum by (method) (rate(http_server_requests_seconds_count{job=\"$service\", method=\"POST\"}[1m]))", "legendFormat": "POST", "refId": "B" },
+        { "expr": "sum by (method) (rate(http_server_requests_seconds_count{job=\"$service\", method=\"PUT\"}[1m]))", "legendFormat": "PUT", "refId": "C" },
+        { "expr": "sum by (method) (rate(http_server_requests_seconds_count{job=\"$service\", method=\"DELETE\"}[1m]))", "legendFormat": "DELETE", "refId": "D" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 3, "type": "timeseries", "title": "4xx Error Breakdown by Endpoint",
+      "gridPos": { "x": 12, "y": 1, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (uri, status) (rate(http_server_requests_seconds_count{job=\"$service\", status=~\"4..\"}[1m]))", "legendFormat": "{{status}} {{uri}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 }, "color": { "mode": "fixed", "fixedColor": "yellow" } } }
+    },
+
+    {
+      "id": 4, "type": "timeseries", "title": "5xx Error Breakdown by Endpoint",
+      "gridPos": { "x": 0, "y": 9, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum by (uri, status) (rate(http_server_requests_seconds_count{job=\"$service\", status=~\"5..\"}[1m]))", "legendFormat": "{{status}} {{uri}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "reqps", "custom": { "lineWidth": 2 }, "color": { "mode": "fixed", "fixedColor": "red" } } }
+    },
+
+    {
+      "id": 5, "type": "timeseries", "title": "Latency P50 / P95 / P99",
+      "gridPos": { "x": 12, "y": 9, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "histogram_quantile(0.50, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$service\"}[5m])))", "legendFormat": "P50", "refId": "A" },
+        { "expr": "histogram_quantile(0.95, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$service\"}[5m])))", "legendFormat": "P95", "refId": "B" },
+        { "expr": "histogram_quantile(0.99, sum by (le) (rate(http_server_requests_seconds_bucket{job=\"$service\"}[5m])))", "legendFormat": "P99", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    { "id": 10, "type": "row", "title": "JVM Memory", "gridPos": { "x": 0, "y": 17, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 11, "type": "timeseries", "title": "Heap vs Non-Heap Pool Breakdown",
+      "gridPos": { "x": 0, "y": 18, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "jvm_memory_used_bytes{job=\"$service\", area=\"heap\"}", "legendFormat": "heap — {{id}}", "refId": "A" },
+        { "expr": "jvm_memory_used_bytes{job=\"$service\", area=\"nonheap\"}", "legendFormat": "nonheap — {{id}}", "refId": "B" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "bytes", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 12, "type": "gauge", "title": "Heap Used %",
+      "gridPos": { "x": 12, "y": 18, "w": 6, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "sum(jvm_memory_used_bytes{job=\"$service\", area=\"heap\"}) / sum(jvm_memory_max_bytes{job=\"$service\", area=\"heap\"}) * 100", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "showThresholdLabels": true, "showThresholdMarkers": true },
+      "fieldConfig": { "defaults": { "unit": "percent", "min": 0, "max": 100, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 70 }, { "color": "red", "value": 85 }] } } }
+    },
+
+    {
+      "id": 13, "type": "stat", "title": "Non-Heap Metaspace Used",
+      "gridPos": { "x": 18, "y": 18, "w": 6, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "jvm_memory_used_bytes{job=\"$service\", id=\"Metaspace\"}", "legendFormat": "", "refId": "A" }],
+      "options": { "reduceOptions": { "calcs": ["lastNotNull"] }, "colorMode": "background", "graphMode": "area" },
+      "fieldConfig": { "defaults": { "unit": "bytes", "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "red", "value": 134217728 }] } } }
+    },
+
+    { "id": 20, "type": "row", "title": "GC", "gridPos": { "x": 0, "y": 26, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 21, "type": "timeseries", "title": "GC Collections/min",
+      "gridPos": { "x": 0, "y": 27, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(jvm_gc_pause_seconds_count{job=\"$service\"}[1m]) * 60", "legendFormat": "{{action}} — {{cause}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+    },
+
+    {
+      "id": 22, "type": "timeseries", "title": "GC Pause Duration",
+      "gridPos": { "x": 12, "y": 27, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "rate(jvm_gc_pause_seconds_sum{job=\"$service\"}[1m])", "legendFormat": "{{action}} — {{cause}}", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 } } }
+    },
+
+    { "id": 30, "type": "row", "title": "Threads", "gridPos": { "x": 0, "y": 35, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 31, "type": "timeseries", "title": "Thread States",
+      "gridPos": { "x": 0, "y": 36, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "jvm_threads_states_threads{job=\"$service\", state=\"runnable\"}", "legendFormat": "runnable", "refId": "A" },
+        { "expr": "jvm_threads_states_threads{job=\"$service\", state=\"waiting\"}", "legendFormat": "waiting", "refId": "B" },
+        { "expr": "jvm_threads_states_threads{job=\"$service\", state=\"timed-waiting\"}", "legendFormat": "timed-waiting", "refId": "C" },
+        { "expr": "jvm_threads_states_threads{job=\"$service\", state=\"blocked\"}", "legendFormat": "blocked", "refId": "D" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "runnable" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "waiting" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byName", "options": "timed-waiting" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "blue" } }] },
+          { "matcher": { "id": "byName", "options": "blocked" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    {
+      "id": 32, "type": "timeseries", "title": "Live / Daemon / Peak Threads",
+      "gridPos": { "x": 12, "y": 36, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "jvm_threads_live_threads{job=\"$service\"}", "legendFormat": "live", "refId": "A" },
+        { "expr": "jvm_threads_daemon_threads{job=\"$service\"}", "legendFormat": "daemon", "refId": "B" },
+        { "expr": "jvm_threads_peak_threads{job=\"$service\"}", "legendFormat": "peak", "refId": "C" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "short", "custom": { "lineWidth": 2 } } }
+    },
+
+    { "id": 40, "type": "row", "title": "HikariCP Connection Pool", "gridPos": { "x": 0, "y": 44, "w": 24, "h": 1 }, "collapsed": false },
+
+    {
+      "id": 41, "type": "timeseries", "title": "Connection Pool State",
+      "gridPos": { "x": 0, "y": 45, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [
+        { "expr": "hikaricp_connections_active{job=\"$service\"}", "legendFormat": "active", "refId": "A" },
+        { "expr": "hikaricp_connections_idle{job=\"$service\"}", "legendFormat": "idle", "refId": "B" },
+        { "expr": "hikaricp_connections_pending{job=\"$service\"}", "legendFormat": "pending", "refId": "C" },
+        { "expr": "hikaricp_connections{job=\"$service\"}", "legendFormat": "total", "refId": "D" }
+      ],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": {
+        "defaults": { "unit": "short", "custom": { "lineWidth": 2 } },
+        "overrides": [
+          { "matcher": { "id": "byName", "options": "active" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "green" } }] },
+          { "matcher": { "id": "byName", "options": "idle" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "yellow" } }] },
+          { "matcher": { "id": "byName", "options": "pending" }, "properties": [{ "id": "color", "value": { "mode": "fixed", "fixedColor": "red" } }] }
+        ]
+      }
+    },
+
+    {
+      "id": 42, "type": "timeseries", "title": "HikariCP P95 Acquisition Time",
+      "gridPos": { "x": 12, "y": 45, "w": 12, "h": 8 },
+      "datasource": { "uid": "prometheus" },
+      "targets": [{ "expr": "histogram_quantile(0.95, sum by (le) (rate(hikaricp_connections_acquire_seconds_bucket{job=\"$service\"}[2m])))", "legendFormat": "P95 acquisition time", "refId": "A" }],
+      "options": { "tooltip": { "mode": "multi" }, "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["mean", "max", "lastNotNull"] } },
+      "fieldConfig": { "defaults": { "unit": "s", "custom": { "lineWidth": 2 }, "thresholds": { "mode": "absolute", "steps": [{ "color": "green", "value": 0 }, { "color": "yellow", "value": 0.1 }, { "color": "red", "value": 0.5 }] } } }
+    }
+
+  ]
+}
