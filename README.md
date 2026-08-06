@@ -76,6 +76,7 @@ through a central API Gateway with JWT authentication.
   - [Analytics Service](#16-analytics-service)
 - [Kafka Topics](#-kafka-topics)
 - [Kubernetes](#-kubernetes)
+- [Load Testing Results](#-load-testing-results)
 - [Observability](#-observability)
 - [Project Structure](#-project-structure)
 - [Tech Stack](#-tech-stack)
@@ -794,6 +795,77 @@ kubectl apply -f k8s/order-hpa.yaml
 ```
 
 > To containerize any other service: add a `Dockerfile`, create `application-k8s.yml` with overrides, then add `Deployment` + `Service` + `HPA` manifests to `/k8s`.
+
+---
+
+## 🔥 Load Testing Results
+
+Load tests run against **order-service** (port `8081`) directly using **Apache JMeter 5.6.3**.
+Target: `POST /api/orders` — Samsung Galaxy S26, single item per order.
+Tool: `load-tests/order-load-test.jmx`
+
+---
+
+### Run 1 — Warm-up (50 threads × 300 loops, 10s ramp-up)
+
+| Property | Value |
+|---|---|
+| Threads (users) | 50 |
+| Ramp-up period | 10 seconds |
+| Loop count | 300 |
+| **Total orders placed** | **15,000** |
+
+| Metric | Value |
+|---|---|
+| Min response time | 8 ms |
+| Max response time | 24,564 ms |
+| Average | 209 ms |
+| Median (P50) | 20 ms |
+| P90 | 271 ms |
+| P95 | 741 ms |
+| P99 | 3,374 ms |
+| Throughput | **30.3 req/s** |
+| Error rate | **0.00%** |
+| Received KB/s | 18.80 |
+| Sent KB/s | 11.85 |
+
+---
+
+### Run 2 — Sustained Load (50 threads × 300 loops, 100s ramp-up)
+
+| Property | Value |
+|---|---|
+| Threads (users) | 50 |
+| Ramp-up period | 100 seconds |
+| Loop count | 300 |
+| **Total orders placed** | **15,000** |
+
+| Metric | Value |
+|---|---|
+| Min response time | 8 ms |
+| Max response time | ~27,000 ms |
+| Average | ~209 ms |
+| Median (P50) | ~30 ms |
+| P90 | ~300 ms |
+| P95 | ~1,000 ms |
+| P99 | ~7,000 ms |
+| Throughput | **~20 req/s** |
+| Error rate | **0.00%** |
+
+---
+
+### Combined Summary
+
+| Run | Orders | Threads | Ramp-up | Throughput | Errors |
+|-----|--------|---------|---------|------------|--------|
+| Warm-up | 15,000 | 50 | 10s | 30.3/s | 0% |
+| Sustained | 15,000 | 50 | 100s | ~20/s | 0% |
+| **Total** | **30,000** | | | | **0%** |
+
+> All 30,000 orders triggered the full Kafka saga:
+> `order-events → inventory-events → payment-events → shipping-events → notification (PDF email)`
+>
+> Zero errors across 30,000 requests confirms the saga is stable under sustained concurrent load.
 
 ---
 
