@@ -3,6 +3,7 @@ package com.hacisimsek.apigateway.ratelimit;
 import org.springframework.cloud.gateway.filter.ratelimit.RedisRateLimiter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 
 /**
  * Defines named RedisRateLimiter beans for each sensitivity tier.
@@ -51,8 +52,10 @@ public class RateLimiterConfig {
      * Standard — most authenticated services (cart, user, wishlist, shipping,
      * notifications, seller, inventory, logging).
      * 20 req/s sustained, burst up to 40.
+     * Marked @Primary so Spring Cloud Gateway auto-config resolves this as default.
      */
     @Bean
+    @Primary
     public RedisRateLimiter standardLimiter() {
         return new RedisRateLimiter(20, 40, 1);
     }
