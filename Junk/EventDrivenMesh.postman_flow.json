@@ -1,0 +1,389 @@
+{
+  "version": "1.0.0",
+  "info": {
+    "name": "EventDrivenMesh - Full Saga Flow",
+    "description": "End-to-end automated flow: Register → Login → Setup (Category + Product + Inventory) → Place Order → Verify Payment → Track Shipment → Check Notifications → Download Invoice"
+  },
+  "flows": [
+    {
+      "id": "eventdrivenmesh-saga-flow",
+      "name": "EventDrivenMesh Full Saga",
+      "nodes": [
+
+        {
+          "id": "start",
+          "type": "trigger",
+          "name": "Start",
+          "position": { "x": 100, "y": 300 }
+        },
+
+        {
+          "id": "register",
+          "type": "request",
+          "name": "1. Register User",
+          "position": { "x": 350, "y": 100 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/register",
+            "headers": { "Content-Type": "application/json" },
+            "body": {
+              "name": "Test User",
+              "email": "testuser@example.com",
+              "password": "Password@123"
+            }
+          }
+        },
+
+        {
+          "id": "verify-email",
+          "type": "request",
+          "name": "2. Verify Email (OTP)",
+          "position": { "x": 350, "y": 220 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/verify-email",
+            "headers": { "Content-Type": "application/json" },
+            "body": {
+              "email": "testuser@example.com",
+              "otp": "{{otp}}"
+            }
+          }
+        },
+
+        {
+          "id": "login",
+          "type": "request",
+          "name": "3. Login",
+          "position": { "x": 350, "y": 340 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/auth/login",
+            "headers": { "Content-Type": "application/json" },
+            "body": {
+              "email": "testuser@example.com",
+              "password": "Password@123"
+            },
+            "extract": {
+              "accessToken": "$.accessToken",
+              "refreshToken": "$.refreshToken",
+              "userId": "$.userId"
+            }
+          }
+        },
+
+        {
+          "id": "create-category",
+          "type": "request",
+          "name": "4. Create Category",
+          "position": { "x": 650, "y": 100 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/products/categories",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{accessToken}}"
+            },
+            "body": {
+              "name": "Smartphones",
+              "description": "Mobile phones and smartphones"
+            },
+            "extract": {
+              "categoryId": "$.id"
+            }
+          }
+        },
+
+        {
+          "id": "create-product",
+          "type": "request",
+          "name": "5. Create Product",
+          "position": { "x": 650, "y": 240 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/products",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{accessToken}}",
+              "X-User-Id": "{{userId}}"
+            },
+            "body": {
+              "name": "Samsung Galaxy S25",
+              "description": "Latest flagship smartphone",
+              "price": 79999.00,
+              "sku": "SGS25-BLK-256",
+              "brand": "Samsung",
+              "categoryId": "{{categoryId}}",
+              "stockQuantity": 100,
+              "imageUrls": ["https://example.com/image1.jpg"]
+            },
+            "extract": {
+              "productId": "$.id"
+            }
+          }
+        },
+
+        {
+          "id": "create-inventory",
+          "type": "request",
+          "name": "6. Create Inventory",
+          "position": { "x": 650, "y": 380 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/inventory",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{accessToken}}"
+            },
+            "body": {
+              "productId": "{{productId}}",
+              "quantity": 100,
+              "lowStockThreshold": 10,
+              "warehouseLocation": "Warehouse-A"
+            },
+            "extract": {
+              "inventoryId": "$.id"
+            }
+          }
+        },
+
+        {
+          "id": "check-stock",
+          "type": "request",
+          "name": "7. Check Stock Availability",
+          "position": { "x": 650, "y": 500 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/inventory/check?productId={{productId}}&quantity=1",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            }
+          }
+        },
+
+        {
+          "id": "create-order",
+          "type": "request",
+          "name": "8. Place Order (Triggers Kafka Saga)",
+          "position": { "x": 950, "y": 300 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/orders",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{accessToken}}"
+            },
+            "body": {
+              "customerId": "{{userId}}",
+              "items": [
+                {
+                  "productId": "{{productId}}",
+                  "productName": "Samsung Galaxy S25",
+                  "quantity": 1,
+                  "price": 79999.00
+                }
+              ],
+              "shippingAddress": {
+                "street": "123 MG Road",
+                "city": "Bangalore",
+                "state": "Karnataka",
+                "pincode": "560001",
+                "country": "India"
+              },
+              "totalAmount": 79999.00
+            },
+            "extract": {
+              "orderId": "$.orderId"
+            }
+          }
+        },
+
+        {
+          "id": "get-order",
+          "type": "request",
+          "name": "9. Get Order Status",
+          "position": { "x": 1250, "y": 180 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/orders/{{orderId}}",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            }
+          }
+        },
+
+        {
+          "id": "initiate-payment",
+          "type": "request",
+          "name": "10. Initiate Payment",
+          "position": { "x": 1250, "y": 320 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/payments/initiate",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{accessToken}}"
+            },
+            "body": {
+              "orderId": "{{orderId}}",
+              "customerId": "{{userId}}",
+              "amount": 79999.00,
+              "currency": "INR",
+              "gateway": "MOCK"
+            },
+            "extract": {
+              "paymentId": "$.paymentId",
+              "gatewayOrderId": "$.gatewayOrderId"
+            }
+          }
+        },
+
+        {
+          "id": "verify-payment",
+          "type": "request",
+          "name": "11. Verify Payment",
+          "position": { "x": 1250, "y": 460 },
+          "data": {
+            "method": "POST",
+            "url": "{{baseUrl}}/api/payments/verify",
+            "headers": {
+              "Content-Type": "application/json",
+              "Authorization": "Bearer {{accessToken}}"
+            },
+            "body": {
+              "orderId": "{{orderId}}",
+              "gatewayOrderId": "{{gatewayOrderId}}",
+              "gatewayPaymentId": "pay_mock_{{orderId}}",
+              "gatewaySignature": "mock_signature"
+            }
+          }
+        },
+
+        {
+          "id": "get-payment",
+          "type": "request",
+          "name": "12. Get Payment by Order",
+          "position": { "x": 1550, "y": 200 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/payments/order/{{orderId}}",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            }
+          }
+        },
+
+        {
+          "id": "get-shipment",
+          "type": "request",
+          "name": "13. Get Shipment (Auto-created via Kafka)",
+          "position": { "x": 1550, "y": 360 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/shipping/order/{{orderId}}",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            },
+            "extract": {
+              "shipmentId": "$.id",
+              "trackingNumber": "$.trackingNumber"
+            }
+          }
+        },
+
+        {
+          "id": "get-notifications",
+          "type": "request",
+          "name": "14. Get Notifications",
+          "position": { "x": 1550, "y": 500 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/notifications",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}",
+              "X-User-Id": "{{userId}}"
+            }
+          }
+        },
+
+        {
+          "id": "get-unread-count",
+          "type": "request",
+          "name": "15. Get Unread Count",
+          "position": { "x": 1850, "y": 300 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/notifications/unread/count",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}",
+              "X-User-Id": "{{userId}}"
+            }
+          }
+        },
+
+        {
+          "id": "download-invoice",
+          "type": "request",
+          "name": "16. Download Invoice PDF",
+          "position": { "x": 1850, "y": 440 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/notifications/invoice/{{orderId}}",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            }
+          }
+        },
+
+        {
+          "id": "analytics-summary",
+          "type": "request",
+          "name": "17. Analytics Summary",
+          "position": { "x": 2150, "y": 300 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/summary",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            }
+          }
+        },
+
+        {
+          "id": "top-customers",
+          "type": "request",
+          "name": "18. Top Customers",
+          "position": { "x": 2150, "y": 440 },
+          "data": {
+            "method": "GET",
+            "url": "{{baseUrl}}/api/analytics/top-customers",
+            "headers": {
+              "Authorization": "Bearer {{accessToken}}"
+            }
+          }
+        }
+
+      ],
+
+      "edges": [
+        { "from": "start",           "to": "register" },
+        { "from": "register",        "to": "verify-email" },
+        { "from": "verify-email",    "to": "login" },
+        { "from": "login",           "to": "create-category" },
+        { "from": "create-category", "to": "create-product" },
+        { "from": "create-product",  "to": "create-inventory" },
+        { "from": "create-inventory","to": "check-stock" },
+        { "from": "check-stock",     "to": "create-order" },
+        { "from": "create-order",    "to": "get-order" },
+        { "from": "create-order",    "to": "initiate-payment" },
+        { "from": "initiate-payment","to": "verify-payment" },
+        { "from": "verify-payment",  "to": "get-payment" },
+        { "from": "verify-payment",  "to": "get-shipment" },
+        { "from": "get-shipment",    "to": "get-notifications" },
+        { "from": "get-notifications","to": "get-unread-count" },
+        { "from": "get-notifications","to": "download-invoice" },
+        { "from": "download-invoice", "to": "analytics-summary" },
+        { "from": "analytics-summary","to": "top-customers" }
+      ]
+    }
+  ]
+}

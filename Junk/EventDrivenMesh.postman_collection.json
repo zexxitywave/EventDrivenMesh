@@ -1,0 +1,1019 @@
+{
+  "info": {
+    "name": "EventDrivenMesh",
+    "description": "Complete API collection for the EventDrivenMesh microservices project. All requests go through the API Gateway at http://localhost:8080.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080" },
+    { "key": "accessToken", "value": "" },
+    { "key": "refreshToken", "value": "" },
+    { "key": "userId", "value": "" },
+    { "key": "orderId", "value": "" },
+    { "key": "paymentId", "value": "" },
+    { "key": "productId", "value": "" },
+    { "key": "categoryId", "value": "" },
+    { "key": "inventoryId", "value": "" },
+    { "key": "shipmentId", "value": "" },
+    { "key": "notificationId", "value": "" },
+    { "key": "logId", "value": "" },
+    { "key": "alertRuleId", "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+
+    {
+      "name": "Auth",
+      "description": "Authentication — register, verify, login, refresh, logout, password reset, OAuth2",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/register", "host": ["{{baseUrl}}"], "path": ["api","auth","register"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"John Doe\",\n  \"email\": \"john@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "description": "Register a new user. Sends OTP to the email for verification. No JWT required."
+          }
+        },
+        {
+          "name": "Verify Email (OTP)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/verify-email", "host": ["{{baseUrl}}"], "path": ["api","auth","verify-email"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"otp\": \"123456\"\n}"
+            },
+            "description": "Verify email using the 6-digit OTP sent after registration."
+          }
+        },
+        {
+          "name": "Resend Verification OTP",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/resend-verification?email=john@example.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","auth","resend-verification"],
+              "query": [{ "key": "email", "value": "john@example.com" }]
+            },
+            "description": "Resend verification OTP if user didn't receive it or it expired."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "  pm.collectionVariables.set('userId', json.userId);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"password\": \"Password@123\"\n}"
+            },
+            "description": "Login with email + password. Auto-saves accessToken, refreshToken, and userId into collection variables."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.accessToken) {",
+                  "  pm.collectionVariables.set('accessToken', json.accessToken);",
+                  "  pm.collectionVariables.set('refreshToken', json.refreshToken);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api","auth","refresh"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "description": "Exchange refresh token for a new access token. Old refresh token is revoked (token rotation)."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/logout", "host": ["{{baseUrl}}"], "path": ["api","auth","logout"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}"
+            },
+            "description": "Revoke the refresh token. User will need to login again."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api","auth","forgot-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\"\n}"
+            },
+            "description": "Request a password reset OTP sent to the registered email."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api","auth","reset-password"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"john@example.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassword@123\"\n}"
+            },
+            "description": "Reset password using the OTP received via email."
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/me", "host": ["{{baseUrl}}"], "path": ["api","auth","me"] },
+            "description": "Get current authenticated user info from JWT. Requires Bearer token."
+          }
+        },
+        {
+          "name": "Google OAuth2 Login (Browser)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/auth/oauth2/authorize/google", "host": ["{{baseUrl}}"], "path": ["api","auth","oauth2","authorize","google"] },
+            "description": "Open this URL in a browser to start Google OAuth2 login flow."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Order",
+      "description": "Order management — place orders and trigger the Kafka saga",
+      "item": [
+        {
+          "name": "Create Order",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.orderId) { pm.collectionVariables.set('orderId', json.orderId); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/orders", "host": ["{{baseUrl}}"], "path": ["api","orders"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"customerId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"productName\": \"Samsung Galaxy S25\",\n      \"quantity\": 1,\n      \"price\": 79999.00\n    }\n  ],\n  \"shippingAddress\": {\n    \"street\": \"123 MG Road\",\n    \"city\": \"Bangalore\",\n    \"state\": \"Karnataka\",\n    \"pincode\": \"560001\",\n    \"country\": \"India\"\n  },\n  \"totalAmount\": 79999.00\n}"
+            },
+            "description": "Place a new order. Triggers the full Kafka saga: order → inventory → payment → shipping → notification."
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","orders","{{orderId}}"] },
+            "description": "Get order details by order UUID."
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/orders", "host": ["{{baseUrl}}"], "path": ["api","orders"] },
+            "description": "Get all orders (admin use)."
+          }
+        },
+        {
+          "name": "Get Orders by Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/orders/customer/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api","orders","customer","{{userId}}"] },
+            "description": "Get all orders for a specific customer."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Payment Gateway",
+      "description": "Payment initiation, verification, refunds, and Razorpay webhook",
+      "item": [
+        {
+          "name": "Initiate Payment",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.paymentId) { pm.collectionVariables.set('paymentId', json.paymentId); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/payments/initiate", "host": ["{{baseUrl}}"], "path": ["api","payments","initiate"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"amount\": 79999.00,\n  \"currency\": \"INR\",\n  \"gateway\": \"RAZORPAY\"\n}"
+            },
+            "description": "Create a gateway order/session for the frontend checkout UI."
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/payments/verify", "host": ["{{baseUrl}}"], "path": ["api","payments","verify"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"gatewayOrderId\": \"order_xyz123\",\n  \"gatewayPaymentId\": \"pay_xyz123\",\n  \"gatewaySignature\": \"razorpay_signature_here\"\n}"
+            },
+            "description": "Verify Razorpay callback signature and capture the payment."
+          }
+        },
+        {
+          "name": "Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/payments/refund", "host": ["{{baseUrl}}"], "path": ["api","payments","refund"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"amount\": 79999.00,\n  \"reason\": \"Customer requested cancellation\"\n}"
+            },
+            "description": "Initiate a full or partial refund."
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","{{paymentId}}"] },
+            "description": "Get payment details by payment UUID."
+          }
+        },
+        {
+          "name": "Get Payment by Order ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/payments/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","order","{{orderId}}"] },
+            "description": "Get the payment associated with a specific order."
+          }
+        },
+        {
+          "name": "Get Payments by Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/payments/customer/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","customer","{{userId}}"] },
+            "description": "Get all payments made by a customer."
+          }
+        },
+        {
+          "name": "Get Order for Checkout (Proxy)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/payments/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","payments","orders","{{orderId}}"] },
+            "description": "Proxy endpoint — fetches order details from order-service via Eureka for the checkout UI."
+          }
+        },
+        {
+          "name": "Razorpay Webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Razorpay-Signature", "value": "razorpay_hmac_signature_here" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/payments/webhook/razorpay", "host": ["{{baseUrl}}"], "path": ["api","payments","webhook","razorpay"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"event\": \"payment.captured\",\n  \"payload\": {\n    \"payment\": {\n      \"entity\": {\n        \"id\": \"pay_xyz123\",\n        \"order_id\": \"order_xyz123\",\n        \"amount\": 7999900,\n        \"currency\": \"INR\",\n        \"status\": \"captured\"\n      }\n    }\n  }\n}"
+            },
+            "description": "Razorpay webhook endpoint. Called directly by Razorpay — no JWT needed. Secured via HMAC-SHA256 signature."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Inventory",
+      "description": "Inventory management — stock records, restock, availability check",
+      "item": [
+        {
+          "name": "Create Inventory Item",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('inventoryId', json.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/inventory", "host": ["{{baseUrl}}"], "path": ["api","inventory"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 100,\n  \"lowStockThreshold\": 10,\n  \"warehouseLocation\": \"Warehouse-A\"\n}"
+            },
+            "description": "Create an inventory record for a product."
+          }
+        },
+        {
+          "name": "Get Inventory by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}", "host": ["{{baseUrl}}"], "path": ["api","inventory","{{inventoryId}}"] },
+            "description": "Get inventory record by its UUID."
+          }
+        },
+        {
+          "name": "Get Inventory by Product ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/inventory/product/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","inventory","product","{{productId}}"] },
+            "description": "Get inventory record by product UUID — most useful for other services."
+          }
+        },
+        {
+          "name": "Get All Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/inventory", "host": ["{{baseUrl}}"], "path": ["api","inventory"] },
+            "description": "List all inventory records."
+          }
+        },
+        {
+          "name": "Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}", "host": ["{{baseUrl}}"], "path": ["api","inventory","{{inventoryId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 150,\n  \"lowStockThreshold\": 15,\n  \"warehouseLocation\": \"Warehouse-B\"\n}"
+            },
+            "description": "Update quantity, location, or threshold for an inventory record."
+          }
+        },
+        {
+          "name": "Restock Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}/restock", "host": ["{{baseUrl}}"], "path": ["api","inventory","{{inventoryId}}","restock"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"quantity\": 50,\n  \"notes\": \"Restocked from supplier batch #42\"\n}"
+            },
+            "description": "Add units to an existing inventory record."
+          }
+        },
+        {
+          "name": "Delete Inventory Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/inventory/{{inventoryId}}", "host": ["{{baseUrl}}"], "path": ["api","inventory","{{inventoryId}}"] },
+            "description": "Delete an inventory record."
+          }
+        },
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/inventory/check?productId={{productId}}&quantity=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","inventory","check"],
+              "query": [
+                { "key": "productId", "value": "{{productId}}" },
+                { "key": "quantity", "value": "1" }
+              ]
+            },
+            "description": "Check if a product has sufficient stock. Returns true/false."
+          }
+        },
+        {
+          "name": "Get Low Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/inventory/low-stock", "host": ["{{baseUrl}}"], "path": ["api","inventory","low-stock"] },
+            "description": "Get all items currently in LOW_STOCK status."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Shipping",
+      "description": "Shipment tracking — auto-created when payment completes via Kafka",
+      "item": [
+        {
+          "name": "Get Shipment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/shipping/{{shipmentId}}", "host": ["{{baseUrl}}"], "path": ["api","shipping","{{shipmentId}}"] },
+            "description": "Get shipment details by shipment UUID."
+          }
+        },
+        {
+          "name": "Get Shipment by Order ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/shipping/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","shipping","order","{{orderId}}"] },
+            "description": "Get the shipment associated with a specific order."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Analytics",
+      "description": "CQRS read-side analytics — separate analytics_db, fed via Kafka consumer",
+      "item": [
+        {
+          "name": "Get Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/analytics/summary", "host": ["{{baseUrl}}"], "path": ["api","analytics","summary"] },
+            "description": "Returns total orders, total revenue, and average order value."
+          }
+        },
+        {
+          "name": "Get All Order Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/analytics/orders", "host": ["{{baseUrl}}"], "path": ["api","analytics","orders"] },
+            "description": "Get all projected order analytics records from the analytics DB."
+          }
+        },
+        {
+          "name": "Get Top Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/analytics/top-customers", "host": ["{{baseUrl}}"], "path": ["api","analytics","top-customers"] },
+            "description": "Get customers ranked by total order count."
+          }
+        },
+        {
+          "name": "Get Revenue Per Day",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/analytics/revenue-per-day", "host": ["{{baseUrl}}"], "path": ["api","analytics","revenue-per-day"] },
+            "description": "Get daily revenue time series data."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Product",
+      "description": "Product catalog — CRUD, search, filters, pagination, categories",
+      "item": [
+        {
+          "name": "Create Product",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "var json = pm.response.json();",
+                  "if (json.id) { pm.collectionVariables.set('productId', json.id); }"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{userId}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/products", "host": ["{{baseUrl}}"], "path": ["api","products"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Samsung Galaxy S25\",\n  \"description\": \"Latest flagship smartphone\",\n  \"price\": 79999.00,\n  \"sku\": \"SGS25-BLK-256\",\n  \"brand\": \"Samsung\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"stockQuantity\": 100,\n  \"imageUrls\": [\"https://example.com/image1.jpg\"]\n}"
+            },
+            "description": "Create a product. X-User-Id header is injected by the API Gateway from JWT — set it manually here for testing."
+          }
+        },
+        {
+          "name": "Bulk Create Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{userId}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/products/bulk", "host": ["{{baseUrl}}"], "path": ["api","products","bulk"] },
+            "body": {
+              "mode": "raw",
+              "raw": "[\n  {\n    \"name\": \"iPhone 16\",\n    \"description\": \"Apple flagship\",\n    \"price\": 89999.00,\n    \"sku\": \"IPH16-BLK-128\",\n    \"brand\": \"Apple\",\n    \"categoryId\": \"{{categoryId}}\",\n    \"stockQuantity\": 50\n  },\n  {\n    \"name\": \"OnePlus 13\",\n    \"description\": \"OnePlus flagship\",\n    \"price\": 69999.00,\n    \"sku\": \"OP13-GRN-256\",\n    \"brand\": \"OnePlus\",\n    \"categoryId\": \"{{categoryId}}\",\n    \"stockQuantity\": 75\n  }\n]"
+            },
+            "description": "Bulk create multiple products in one request."
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","products","{{productId}}"] },
+            "description": "Get product details by UUID."
+          }
+        },
+        {
+          "name": "Get Product by SKU",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/products/sku/SGS25-BLK-256", "host": ["{{baseUrl}}"], "path": ["api","products","sku","SGS25-BLK-256"] },
+            "description": "Get product by SKU string."
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products?keyword=samsung&minPrice=50000&maxPrice=100000&page=0&size=20&sortBy=price&sortDir=asc",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","products"],
+              "query": [
+                { "key": "keyword", "value": "samsung" },
+                { "key": "minPrice", "value": "50000" },
+                { "key": "maxPrice", "value": "100000" },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" },
+                { "key": "sortBy", "value": "price" },
+                { "key": "sortDir", "value": "asc" }
+              ]
+            },
+            "description": "Full-text search with optional filters. Params: keyword, categoryId, status, minPrice, maxPrice, brand, page, size, sortBy, sortDir."
+          }
+        },
+        {
+          "name": "Get Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/category/{{categoryId}}?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","products","category","{{categoryId}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            },
+            "description": "Get all products under a specific category with pagination."
+          }
+        },
+        {
+          "name": "Get My Products (Seller)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{userId}}" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/my-products?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","products","my-products"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            },
+            "description": "Get all products listed by the logged-in seller."
+          }
+        },
+        {
+          "name": "Get Products by Seller ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/products/seller/{{userId}}?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","products","seller","{{userId}}"],
+              "query": [
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "20" }
+              ]
+            },
+            "description": "Get all products for a specific seller UUID."
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-User-Id", "value": "{{userId}}" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","products","{{productId}}"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Samsung Galaxy S25 Ultra\",\n  \"description\": \"Updated flagship\",\n  \"price\": 89999.00,\n  \"sku\": \"SGS25U-BLK-256\",\n  \"brand\": \"Samsung\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"stockQuantity\": 80\n}"
+            },
+            "description": "Update product details."
+          }
+        },
+        {
+          "name": "Update Product Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/products/{{productId}}/status", "host": ["{{baseUrl}}"], "path": ["api","products","{{productId}}","status"] },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"status\": \"ACTIVE\"\n}"
+            },
+            "description": "Change product status. Values: ACTIVE, INACTIVE, OUT_OF_STOCK."
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","products","{{productId}}"] },
+            "description": "Delete a product by UUID."
+          }
+        },
+        {
+          "name": "Categories",
+          "item": [
+            {
+              "name": "Create Category",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "var json = pm.response.json();",
+                      "if (json.id) { pm.collectionVariables.set('categoryId', json.id); }"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/products/categories", "host": ["{{baseUrl}}"], "path": ["api","products","categories"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Smartphones\",\n  \"description\": \"Mobile phones and smartphones\",\n  \"parentCategoryId\": null\n}"
+                },
+                "description": "Create a new product category. Auto-saves categoryId variable."
+              }
+            },
+            {
+              "name": "Bulk Create Categories",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/products/categories/bulk", "host": ["{{baseUrl}}"], "path": ["api","products","categories","bulk"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "[\n  { \"name\": \"Electronics\", \"description\": \"Electronic devices\" },\n  { \"name\": \"Clothing\", \"description\": \"Apparel and fashion\" },\n  { \"name\": \"Books\", \"description\": \"Books and literature\" }\n]"
+                },
+                "description": "Bulk create multiple categories."
+              }
+            },
+            {
+              "name": "Get All Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/products/categories", "host": ["{{baseUrl}}"], "path": ["api","products","categories"] },
+                "description": "List all product categories."
+              }
+            },
+            {
+              "name": "Get Category by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/products/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api","products","categories","{{categoryId}}"] },
+                "description": "Get a single category by UUID."
+              }
+            },
+            {
+              "name": "Update Category",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/products/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api","products","categories","{{categoryId}}"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"Mobile Phones\",\n  \"description\": \"All mobile phones including smartphones\"\n}"
+                },
+                "description": "Update category name or description."
+              }
+            },
+            {
+              "name": "Delete Category",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/products/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api","products","categories","{{categoryId}}"] },
+                "description": "Delete a category by UUID."
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Logging",
+      "description": "Centralized log aggregation with traceId correlation and alert rules",
+      "item": [
+        {
+          "name": "Search Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs?serviceName=order-service&level=ERROR&page=0&size=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","logs"],
+              "query": [
+                { "key": "serviceName", "value": "order-service" },
+                { "key": "level", "value": "ERROR" },
+                { "key": "keyword", "value": "", "disabled": true },
+                { "key": "traceId", "value": "", "disabled": true },
+                { "key": "from", "value": "", "disabled": true },
+                { "key": "to", "value": "", "disabled": true },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "50" }
+              ]
+            },
+            "description": "Search logs with optional filters. Params: serviceName, level (INFO/WARN/ERROR), keyword, traceId, from, to, page, size."
+          }
+        },
+        {
+          "name": "Get Log by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/logs/{{logId}}", "host": ["{{baseUrl}}"], "path": ["api","logs","{{logId}}"] },
+            "description": "Get a single log entry by UUID."
+          }
+        },
+        {
+          "name": "Get Logs by Trace ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/logs/trace/550e8400-e29b-41d4-a716-446655440000", "host": ["{{baseUrl}}"], "path": ["api","logs","trace","550e8400-e29b-41d4-a716-446655440000"] },
+            "description": "Get all logs tied to a single saga via correlationId/traceId. Replace the UUID with your actual traceId."
+          }
+        },
+        {
+          "name": "Get Log Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/stats?windowMinutes=60",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","logs","stats"],
+              "query": [{ "key": "windowMinutes", "value": "60" }]
+            },
+            "description": "Aggregated stats over a rolling time window. Default: last 60 minutes."
+          }
+        },
+        {
+          "name": "Get Recent Errors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/logs/errors/recent?minutes=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","logs","errors","recent"],
+              "query": [{ "key": "minutes", "value": "10" }]
+            },
+            "description": "Get recent ERROR logs — useful for a monitoring dashboard."
+          }
+        },
+        {
+          "name": "Alert Rules",
+          "item": [
+            {
+              "name": "Get All Alert Rules",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/logs/alerts", "host": ["{{baseUrl}}"], "path": ["api","logs","alerts"] },
+                "description": "List all configured alert rules."
+              }
+            },
+            {
+              "name": "Create Alert Rule",
+              "event": [
+                {
+                  "listen": "test",
+                  "script": {
+                    "exec": [
+                      "var json = pm.response.json();",
+                      "if (json.id) { pm.collectionVariables.set('alertRuleId', json.id); }"
+                    ],
+                    "type": "text/javascript"
+                  }
+                }
+              ],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/logs/alerts", "host": ["{{baseUrl}}"], "path": ["api","logs","alerts"] },
+                "body": {
+                  "mode": "raw",
+                  "raw": "{\n  \"name\": \"High Payment Errors\",\n  \"serviceName\": \"payment-service\",\n  \"level\": \"ERROR\",\n  \"threshold\": 5,\n  \"windowSeconds\": 60,\n  \"enabled\": true\n}"
+                },
+                "description": "Create an alert rule. Fires when error threshold is exceeded within the time window."
+              }
+            },
+            {
+              "name": "Toggle Alert Rule",
+              "request": {
+                "method": "PATCH",
+                "header": [],
+                "url": {
+                  "raw": "{{baseUrl}}/api/logs/alerts/{{alertRuleId}}/toggle?enabled=true",
+                  "host": ["{{baseUrl}}"],
+                  "path": ["api","logs","alerts","{{alertRuleId}}","toggle"],
+                  "query": [{ "key": "enabled", "value": "true" }]
+                },
+                "description": "Enable or disable an alert rule."
+              }
+            },
+            {
+              "name": "Delete Alert Rule",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/logs/alerts/{{alertRuleId}}", "host": ["{{baseUrl}}"], "path": ["api","logs","alerts","{{alertRuleId}}"] },
+                "description": "Delete an alert rule by UUID."
+              }
+            }
+          ]
+        }
+      ]
+    },
+
+    {
+      "name": "Notification",
+      "description": "In-app notifications and PDF invoice download",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{userId}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications", "host": ["{{baseUrl}}"], "path": ["api","notifications"] },
+            "description": "Get all notifications for the logged-in user."
+          }
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{userId}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications/unread", "host": ["{{baseUrl}}"], "path": ["api","notifications","unread"] },
+            "description": "Get only unread notifications."
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{userId}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications/unread/count", "host": ["{{baseUrl}}"], "path": ["api","notifications","unread","count"] },
+            "description": "Get unread notification count — useful for badge display in UI."
+          }
+        },
+        {
+          "name": "Get Notifications by Order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/notifications/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","notifications","order","{{orderId}}"] },
+            "description": "Get all notifications related to a specific order."
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["api","notifications","{{notificationId}}","read"] },
+            "description": "Mark a single notification as read."
+          }
+        },
+        {
+          "name": "Mark All Notifications as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "X-User-Id", "value": "{{userId}}" }],
+            "url": { "raw": "{{baseUrl}}/api/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api","notifications","read-all"] },
+            "description": "Mark all notifications as read for the logged-in user."
+          }
+        },
+        {
+          "name": "Download Invoice PDF",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/notifications/invoice/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","notifications","invoice","{{orderId}}"] },
+            "description": "Download the PDF invoice for an order. Returns application/pdf. Generated automatically when order is placed."
+          }
+        }
+      ]
+    }
+
+  ]
+}
