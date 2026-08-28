@@ -1,0 +1,212 @@
+{
+  "info": {
+    "name": "EventDrivenMesh - Order Saga Flow",
+    "description": "Clean 11-step end-to-end Order Saga flow. Run via Collection Runner in order.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",        "value": "http://localhost:8080" },
+    { "key": "accessToken",    "value": "" },
+    { "key": "userId",         "value": "" },
+    { "key": "categoryId",     "value": "" },
+    { "key": "productId",      "value": "" },
+    { "key": "inventoryId",    "value": "" },
+    { "key": "orderId",        "value": "" },
+    { "key": "paymentId",      "value": "" },
+    { "key": "gatewayOrderId", "value": "" },
+    { "key": "shipmentId",     "value": "" }
+  ],
+  "item": [
+    {
+      "name": "1 - LOGIN",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.collectionVariables.set('accessToken', j.accessToken);",
+        "pm.collectionVariables.set('userId', j.userId);",
+        "pm.test('Login OK', () => pm.response.to.have.status(200));",
+        "console.log('accessToken saved:', j.accessToken ? 'YES' : 'NO');",
+        "console.log('userId saved:', j.userId);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": { "raw": "{{baseUrl}}/api/auth/login", "host": ["{{baseUrl}}"], "path": ["api","auth","login"] },
+        "body": { "mode": "raw", "raw": "{\n  \"email\": \"testuser@example.com\",\n  \"password\": \"Password@123\"\n}" }
+      }
+    },
+    {
+      "name": "2 - CREATE CATEGORY",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.collectionVariables.set('categoryId', j.id);",
+        "pm.test('Category created', () => pm.response.to.have.status(200).or.have.status(201));",
+        "console.log('categoryId saved:', j.id);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/products/categories", "host": ["{{baseUrl}}"], "path": ["api","products","categories"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Smartphones\",\n  \"description\": \"Mobile phones and smartphones\"\n}" }
+      }
+    },
+    {
+      "name": "3 - CREATE PRODUCT",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.collectionVariables.set('productId', j.id);",
+        "pm.test('Product created', () => pm.response.to.have.status(200).or.have.status(201));",
+        "console.log('productId saved:', j.id);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "X-User-Id",     "value": "{{userId}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/products", "host": ["{{baseUrl}}"], "path": ["api","products"] },
+        "body": { "mode": "raw", "raw": "{\n  \"name\": \"Samsung Galaxy S25\",\n  \"description\": \"Latest flagship smartphone\",\n  \"price\": 79999.00,\n  \"sku\": \"SGS25-BLK-256\",\n  \"brand\": \"Samsung\",\n  \"categoryId\": \"{{categoryId}}\",\n  \"stockQuantity\": 100\n}" }
+      }
+    },
+    {
+      "name": "4 - CREATE INVENTORY",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.collectionVariables.set('inventoryId', j.id);",
+        "pm.test('Inventory created', () => pm.response.to.have.status(200).or.have.status(201));",
+        "console.log('inventoryId saved:', j.id);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/inventory", "host": ["{{baseUrl}}"], "path": ["api","inventory"] },
+        "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 100,\n  \"lowStockThreshold\": 10,\n  \"warehouseLocation\": \"Warehouse-A\"\n}" }
+      }
+    },
+    {
+      "name": "5 - CREATE ORDER  [TRIGGERS KAFKA SAGA]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.collectionVariables.set('orderId', j.orderId || j.id);",
+        "pm.test('Order placed', () => pm.response.to.have.status(200).or.have.status(201));",
+        "console.log('orderId saved:', j.orderId || j.id);",
+        "console.log('KAFKA SAGA TRIGGERED:');",
+        "console.log('  order-events -> inventory-service');",
+        "console.log('  inventory-events -> payment-service');",
+        "console.log('  payment-events -> shipping-service');",
+        "console.log('  payment+shipping-events -> notification-service');"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/orders", "host": ["{{baseUrl}}"], "path": ["api","orders"] },
+        "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"{{userId}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"productName\": \"Samsung Galaxy S25\",\n      \"quantity\": 1,\n      \"price\": 79999.00\n    }\n  ],\n  \"shippingAddress\": {\n    \"street\": \"123 MG Road\",\n    \"city\": \"Bangalore\",\n    \"state\": \"Karnataka\",\n    \"pincode\": \"560001\",\n    \"country\": \"India\"\n  },\n  \"totalAmount\": 79999.00\n}" }
+      }
+    },
+    {
+      "name": "6 - KAFKA SAGA  [CHECK ORDER STATUS]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.test('Order status received', () => pm.response.to.have.status(200));",
+        "console.log('Order status:', j.status);",
+        "console.log('Saga running async via Kafka topics...');"
+      ]}}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","orders","{{orderId}}"] }
+      }
+    },
+    {
+      "name": "7 - PAYMENT  [INITIATE]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "if (j.paymentId)      pm.collectionVariables.set('paymentId', j.paymentId);",
+        "if (j.gatewayOrderId) pm.collectionVariables.set('gatewayOrderId', j.gatewayOrderId);",
+        "pm.test('Payment initiated', () => pm.response.to.have.status(200).or.have.status(201));",
+        "console.log('paymentId:', j.paymentId);",
+        "console.log('gatewayOrderId:', j.gatewayOrderId);"
+      ]}}],
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type",  "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/payments/initiate", "host": ["{{baseUrl}}"], "path": ["api","payments","initiate"] },
+        "body": { "mode": "raw", "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"amount\": 79999.00,\n  \"currency\": \"INR\",\n  \"gateway\": \"MOCK\"\n}" }
+      }
+    },
+    {
+      "name": "8 - INVENTORY  [RESERVE / UPDATE STOCK]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.test('Inventory fetched', () => pm.response.to.have.status(200));",
+        "console.log('Stock quantity after saga:', j.quantity);",
+        "console.log('Inventory status:', j.status);"
+      ]}}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/inventory/product/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","inventory","product","{{productId}}"] }
+      }
+    },
+    {
+      "name": "9 - SHIPPING  [CREATE SHIPMENT]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "if (j.id) pm.collectionVariables.set('shipmentId', j.id);",
+        "pm.test('Shipment found', () => pm.response.to.have.status(200));",
+        "console.log('Shipment ID:', j.id);",
+        "console.log('Tracking Number:', j.trackingNumber);",
+        "console.log('Status:', j.status);"
+      ]}}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/shipping/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","shipping","order","{{orderId}}"] }
+      }
+    },
+    {
+      "name": "10 - NOTIFICATION  [EMAIL + IN-APP]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "var j = pm.response.json();",
+        "pm.test('Notifications fetched', () => pm.response.to.have.status(200));",
+        "var list = Array.isArray(j) ? j : (j.content || j.notifications || []);",
+        "console.log('Total notifications:', list.length);",
+        "list.slice(0,5).forEach(function(n){ console.log(' -', n.type, '|', n.message || n.title || ''); });"
+      ]}}],
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{accessToken}}" },
+          { "key": "X-User-Id",     "value": "{{userId}}" }
+        ],
+        "url": { "raw": "{{baseUrl}}/api/notifications", "host": ["{{baseUrl}}"], "path": ["api","notifications"] }
+      }
+    },
+    {
+      "name": "11 - INVOICE  [DOWNLOAD PDF]",
+      "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+        "pm.test('Invoice returned', () => pm.response.to.have.status(200));",
+        "var ct = pm.response.headers.get('Content-Type') || '';",
+        "console.log('Content-Type:', ct);",
+        "console.log(ct.includes('pdf') ? 'PDF invoice ready' : 'Check if saga completed fully');"
+      ]}}],
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{accessToken}}" }],
+        "url": { "raw": "{{baseUrl}}/api/notifications/invoice/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","notifications","invoice","{{orderId}}"] }
+      }
+    }
+  ]
+}

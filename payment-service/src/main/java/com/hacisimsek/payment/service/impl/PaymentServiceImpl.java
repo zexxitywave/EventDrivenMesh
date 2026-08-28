@@ -8,10 +8,10 @@ import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
+import com.hacisimsek.common.logging.LogPublisher;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
@@ -40,21 +40,25 @@ public class PaymentServiceImpl implements PaymentService {
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final List<PaymentGatewayAdapter> gatewayAdapters;
     private final ObjectMapper objectMapper;
+    private final LogPublisher logPublisher;
     private final Counter paymentsProcessedCounter;
     private final Counter paymentsFailedCounter;
 
     private static final String PAYMENT_TOPIC = "payment-events";
     private static final String DEFAULT_CURRENCY = "INR";
+    private static final String SERVICE_NAME = "payment-service";
 
     public PaymentServiceImpl(PaymentRepository paymentRepository,
                                KafkaTemplate<String, Object> kafkaTemplate,
                                List<PaymentGatewayAdapter> gatewayAdapters,
                                ObjectMapper objectMapper,
+                               LogPublisher logPublisher,
                                MeterRegistry meterRegistry) {
         this.paymentRepository = paymentRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.gatewayAdapters = gatewayAdapters;
         this.objectMapper = objectMapper;
+        this.logPublisher = logPublisher;
         this.paymentsProcessedCounter = Counter.builder("zexxity.payments.processed")
                 .description("Total payments successfully processed")
                 .register(meterRegistry);
@@ -103,6 +107,13 @@ public class PaymentServiceImpl implements PaymentService {
                     event.getCorrelationId(), orderId, payment.getId(), customerId, event.getCustomerEmail()));
             paymentsProcessedCounter.increment();
             log.info("Saga: payment completed for order={}, txn={}", orderId, payment.getTransactionId());
+            logPublisher.info(SERVICE_NAME,
+                    event.getCorrelationId() != null ? event.getCorrelationId().toString() : null,
+                    "Payment completed for order: " + orderId,
+                    Map.of("orderId", orderId.toString(),
+                           "paymentId", payment.getId().toString(),
+                           "transactionId", payment.getTransactionId(),
+                           "gateway", "MOCK"));
         } else {
             payment.setStatus(Payment.PaymentStatus.FAILED);
             payment.setFailureReason("Saga payment processing failed");
@@ -113,6 +124,12 @@ public class PaymentServiceImpl implements PaymentService {
                     event.getCustomerEmail(), "Payment processing failed"));
             paymentsFailedCounter.increment();
             log.error("Saga: payment failed for order={}", orderId);
+            logPublisher.error(SERVICE_NAME,
+                    event.getCorrelationId() != null ? event.getCorrelationId().toString() : null,
+                    "Payment failed for order: " + orderId,
+                    Map.of("orderId", orderId.toString(),
+                           "paymentId", payment.getId().toString(),
+                           "reason", "Saga payment processing failed"));
         }
     }
 

@@ -29,16 +29,18 @@ spring:
 
   mail:
     host: smtp.resend.com
-    port: 587
+    port: 465
     username: resend
-    password: ${RESEND_API_KEY}
+    password: ${MAIL_PASSWORD}
 
     properties:
       mail:
         smtp:
           auth: true
-          starttls:
+          ssl:
             enable: true
+          starttls:
+            enable: false
 
   aop:
     proxy-target-class: true
@@ -55,4 +57,6 @@ eureka:
 
   instance:
     prefer-ip-address: true
+
+
 

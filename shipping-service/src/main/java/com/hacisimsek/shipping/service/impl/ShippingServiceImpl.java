@@ -3,6 +3,7 @@ package com.hacisimsek.shipping.service.impl;
 import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentProcessedEvent;
+import com.hacisimsek.common.logging.LogPublisher;
 import com.hacisimsek.shipping.model.Shipment;
 import com.hacisimsek.shipping.repository.ShipmentRepository;
 import com.hacisimsek.shipping.service.ShippingService;
@@ -14,6 +15,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
 
@@ -24,7 +26,9 @@ public class ShippingServiceImpl implements ShippingService {
 
     private final ShipmentRepository shipmentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final LogPublisher logPublisher;
 
+    private static final String SERVICE_NAME = "shipping-service";
     private static final String[] CARRIERS = {"DHL", "FedEx", "UPS", "USPS"};
 
     @Override
@@ -71,11 +75,23 @@ public class ShippingServiceImpl implements ShippingService {
             kafkaTemplate.send("shipping-events", shipmentEvent);
             log.info("Order shipped successfully. Order ID: {}, Tracking: {}",
                     paymentEvent.getOrderId(), savedShipment.getTrackingNumber());
+            logPublisher.info(SERVICE_NAME,
+                    paymentEvent.getCorrelationId() != null ? paymentEvent.getCorrelationId().toString() : null,
+                    "Shipment created for order: " + paymentEvent.getOrderId() + " | tracking: " + savedShipment.getTrackingNumber(),
+                    Map.of("orderId", paymentEvent.getOrderId().toString(),
+                           "shipmentId", savedShipment.getId().toString(),
+                           "trackingNumber", savedShipment.getTrackingNumber(),
+                           "carrier", savedShipment.getCarrierName()));
 
         } catch (Exception e) {
             log.error("Failed to process shipping for order: {}", paymentEvent.getOrderId(), e);
+            logPublisher.error(SERVICE_NAME,
+                    paymentEvent.getCorrelationId() != null ? paymentEvent.getCorrelationId().toString() : null,
+                    "Shipment failed for order: " + paymentEvent.getOrderId(),
+                    e,
+                    Map.of("orderId", paymentEvent.getOrderId().toString(),
+                           "reason", e.getMessage() != null ? e.getMessage() : "unknown"));
 
-            // Send shipment failure event
             ShipmentFailedEvent failedEvent = new ShipmentFailedEvent(
                     paymentEvent.getCorrelationId(),
                     paymentEvent.getOrderId(),

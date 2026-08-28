@@ -82,7 +82,6 @@ public class SellerProfile {
         this.createdAt = now;
         this.updatedAt = now;
     }
-
     @PreUpdate
     protected void onUpdate() {
         this.updatedAt = Instant.now();

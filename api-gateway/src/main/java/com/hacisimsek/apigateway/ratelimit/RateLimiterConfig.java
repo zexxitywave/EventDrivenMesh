@@ -47,7 +47,6 @@ public class RateLimiterConfig {
     public RedisRateLimiter strictLimiter() {
         return new RedisRateLimiter(5, 10, 1);
     }
-
     /**
      * Standard — most authenticated services (cart, user, wishlist, shipping,
      * notifications, seller, inventory, logging).
@@ -59,7 +58,6 @@ public class RateLimiterConfig {
     public RedisRateLimiter standardLimiter() {
         return new RedisRateLimiter(20, 40, 1);
     }
-
     /**
      * Relaxed — product catalog reads.
      * High read traffic is expected and acceptable.

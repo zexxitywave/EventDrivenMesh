@@ -78,3 +78,51 @@ management:
         http.server.requests: true
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
+
+
+
+
+#http://localhost:8083/index.html
+
+#
+#  POST http://localhost:8080/api/payments/verify
+#Authorization: Bearer {{accessToken}}
+#Content-Type: application/json
+#
+#  {
+#    "orderId": "98c44782-f8ec-4ff0-bf22-e276ffb43a4e",
+#    "gatewayOrderId": "order_TVKdLP8PiirJ3I...",
+#    "gatewayPaymentId": "pay_xxx",
+#    "gatewaySignature": "signature_xxx"
+#  }
+
+
+
+#  POST http://localhost:8080/api/payments/verify
+#Authorization: Bearer {{accessToken}}
+#Content-Type: application/json
+#
+#  {
+#    "orderId": "98c44782-f8ec-4ff0-bf22-e276ffb43a4e",
+#    "gatewayOrderId": "order_xxx",
+#    "gatewayPaymentId": "pay_xxx",
+#    "gatewaySignature": "signature_from_razorpay"
+#  }
+
+
+#
+#  POST http://localhost:8080/api/payments/initiate
+#Authorization: Bearer {{accessToken}}
+#Content-Type: application/json
+#
+#  {
+#    "orderId": "98c44782-f8ec-4ff0-bf22-e276ffb43a4e",
+#    "customerId": "11111111-1111-1111-1111-111111111111",
+#    "amount": 89999.00,
+#    "currency": "INR",
+#    "gateway": "RAZORPAY"
+#  }
+#
+#GET http://localhost:8080/api/orders/98c44782-f8ec-4ff0-bf22-e276ffb43a4e
+
+

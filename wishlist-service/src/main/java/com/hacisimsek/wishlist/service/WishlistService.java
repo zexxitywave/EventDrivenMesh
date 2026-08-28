@@ -28,7 +28,6 @@ public class WishlistService {
     private final WishlistRepository wishlistRepository;
     private final RestTemplate restTemplate;
     private final KafkaTemplate<String, Object> kafkaTemplate;
-
     private static final String PRODUCT_BASE_URL  = "http://product-service/api/products";
     private static final String CART_ADD_URL       = "http://cart-service/api/cart/items";
     private static final String WISHLIST_TOPIC     = "wishlist-events";

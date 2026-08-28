@@ -5,7 +5,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.Deserializer;
-
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;

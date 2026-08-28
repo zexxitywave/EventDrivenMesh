@@ -7,7 +7,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 
 import java.util.TimeZone;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.hacisimsek.payment", "com.hacisimsek.common"})
 @EnableKafka
 @EnableDiscoveryClient
 public class PaymentServiceApplication {

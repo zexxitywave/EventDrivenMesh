@@ -3,6 +3,7 @@ package com.hacisimsek.inventory.service.impl;
 import com.hacisimsek.common.event.inventory.InventoryReservationFailedEvent;
 import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
 import com.hacisimsek.common.event.order.OrderCreatedEvent;
+import com.hacisimsek.common.logging.LogPublisher;
 import com.hacisimsek.inventory.model.InventoryItem;
 import com.hacisimsek.inventory.model.InventoryReservation;
 import com.hacisimsek.inventory.model.InventoryStatus;
@@ -30,15 +31,20 @@ public class InventoryServiceImpl implements InventoryService {
     private final InventoryRepository inventoryRepository;
     private final ReservationRepository reservationRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final LogPublisher logPublisher;
     private final Counter reservationFailedCounter;
+
+    private static final String SERVICE_NAME = "inventory-service";
 
     public InventoryServiceImpl(InventoryRepository inventoryRepository,
                                  ReservationRepository reservationRepository,
                                  KafkaTemplate<String, Object> kafkaTemplate,
+                                 LogPublisher logPublisher,
                                  MeterRegistry meterRegistry) {
         this.inventoryRepository = inventoryRepository;
         this.reservationRepository = reservationRepository;
         this.kafkaTemplate = kafkaTemplate;
+        this.logPublisher = logPublisher;
         this.reservationFailedCounter = Counter.builder("zexxity.inventory.reservation.failed")
                 .description("Total inventory reservation failures")
                 .register(meterRegistry);
@@ -102,6 +108,11 @@ public class InventoryServiceImpl implements InventoryService {
             ));
             reservationFailedCounter.increment();
             log.error("Inventory reservation failed for order {}: {}", orderCreatedEvent.getOrderId(), insufficientItemsMessage);
+            logPublisher.error(SERVICE_NAME,
+                    orderCreatedEvent.getCorrelationId() != null ? orderCreatedEvent.getCorrelationId().toString() : null,
+                    "Inventory reservation failed for order: " + orderCreatedEvent.getOrderId(),
+                    Map.of("orderId", orderCreatedEvent.getOrderId().toString(),
+                           "reason", insufficientItemsMessage.toString()));
             return;
         }
 
@@ -145,6 +156,11 @@ public class InventoryServiceImpl implements InventoryService {
 
         publishReservedEvent(orderCreatedEvent);
         log.info("Inventory reserved for order: {}", orderCreatedEvent.getOrderId());
+        logPublisher.info(SERVICE_NAME,
+                orderCreatedEvent.getCorrelationId() != null ? orderCreatedEvent.getCorrelationId().toString() : null,
+                "Inventory reserved for order: " + orderCreatedEvent.getOrderId(),
+                Map.of("orderId", orderCreatedEvent.getOrderId().toString(),
+                       "itemCount", String.valueOf(reservationItems.size())));
     }
 
     private void publishReservedEvent(OrderCreatedEvent orderCreatedEvent) {

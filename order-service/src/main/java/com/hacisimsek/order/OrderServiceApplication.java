@@ -8,7 +8,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import java.util.TimeZone;
 
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.hacisimsek.order", "com.hacisimsek.common"})
 @EnableDiscoveryClient
 @EnableKafka
 public class OrderServiceApplication {

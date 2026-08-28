@@ -36,11 +36,15 @@ public class UserPrincipal implements UserDetails {
         return email;
     }
     @Override public boolean isAccountNonExpired() {
-        return true; }
+        return true;
+    }
     @Override public boolean isAccountNonLocked() {
-        return true; }
+        return true;
+    }
     @Override public boolean isCredentialsNonExpired() {
-        return true; }
+        return true;
+    }
     @Override public boolean isEnabled() {
-        return emailVerified; }
+        return emailVerified;
+    }
 }

@@ -73,3 +73,41 @@ analytics:
   dlq-topic: order-analytics-dlq
 
 
+#//{
+#"eventId": "550e8400-e29b-41d4-a716-446655440001",
+#"correlationId": "550e8400-e29b-41d4-a716-446655440002",
+#"timestamp": "2026-08-28T10:00:00Z",
+#"orderId": "550e8400-e29b-41d4-a716-446655440003",
+#"customerId": "11111111-1111-1111-1111-111111111111",
+#"customerEmail": "test@example.com",
+#"totalAmount": 99999.00,
+#"items": [
+#  {
+#    "productId": "550e8400-e29b-41d4-a716-446655440004",
+#    "productName": "Test Product",
+#    "quantity": 1,
+#    "price": 99999.00
+#  }
+#]
+#}
+
+
+
+
+
+#  {
+#    "eventId": "test-poison-pill-001",
+#    "correlationId": "test-correlation-001",
+#    "timestamp": "2026-08-28T02:00:00Z",
+#    "orderId": null,
+#    "customerId": "11111111-1111-1111-1111-111111111111",
+#    "customerEmail": "test@example.com",
+#    "totalAmount": 99999.00,
+#    "items": []
+#  }
+
+
+
+
+
+
