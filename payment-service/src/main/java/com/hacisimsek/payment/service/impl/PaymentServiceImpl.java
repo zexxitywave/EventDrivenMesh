@@ -9,6 +9,7 @@ import java.util.function.Function;
 import java.util.stream.Collectors;
 
 import com.hacisimsek.common.logging.LogPublisher;
+import com.hacisimsek.payment.exception.PaymentAlreadyExistsException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -141,13 +142,13 @@ public class PaymentServiceImpl implements PaymentService {
         // ── Idempotency guard — prevent duplicate payments for the same order ──
         paymentRepository.findByOrderId(request.getOrderId()).ifPresent(existing -> {
             if (existing.getStatus() == Payment.PaymentStatus.COMPLETED) {
-                throw new IllegalStateException(
+                throw new PaymentAlreadyExistsException(
                     "Payment already completed for order: " + request.getOrderId()
                     + " | paymentId: " + existing.getId()
                     + " | txn: " + existing.getTransactionId());
             }
             if (existing.getStatus() == Payment.PaymentStatus.PENDING) {
-                throw new IllegalStateException(
+                throw new PaymentAlreadyExistsException(
                     "Payment already in progress for order: " + request.getOrderId()
                     + " | paymentId: " + existing.getId()
                     + " | gatewayOrderId: " + existing.getGatewayOrderId()
