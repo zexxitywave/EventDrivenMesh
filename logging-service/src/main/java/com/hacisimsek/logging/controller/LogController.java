@@ -95,4 +95,3 @@ public class LogController {
         return ResponseEntity.ok(logService.getRecentErrors(minutes));
     }
 }
-// unstable
