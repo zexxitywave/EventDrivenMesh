@@ -138,6 +138,22 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public GatewayOrderResponse initiatePayment(InitiatePaymentRequest request) {
+        // ── Idempotency guard — prevent duplicate payments for the same order ──
+        paymentRepository.findByOrderId(request.getOrderId()).ifPresent(existing -> {
+            if (existing.getStatus() == Payment.PaymentStatus.COMPLETED) {
+                throw new IllegalStateException(
+                    "Payment already completed for order: " + request.getOrderId()
+                    + " | paymentId: " + existing.getId()
+                    + " | txn: " + existing.getTransactionId());
+            }
+            if (existing.getStatus() == Payment.PaymentStatus.PENDING) {
+                throw new IllegalStateException(
+                    "Payment already in progress for order: " + request.getOrderId()
+                    + " | paymentId: " + existing.getId()
+                    + " | gatewayOrderId: " + existing.getGatewayOrderId()
+                    + " — use existing gatewayOrderId to complete payment.");
+            }
+        });
         Payment.PaymentGateway gateway = request.getGateway() != null
                 ? request.getGateway() : Payment.PaymentGateway.RAZORPAY;
 
