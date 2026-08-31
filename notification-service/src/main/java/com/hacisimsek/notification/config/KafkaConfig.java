@@ -1,5 +1,6 @@
 package com.hacisimsek.notification.config;
 
+import com.hacisimsek.common.kafka.EventJsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -15,7 +16,6 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
 
@@ -25,9 +25,6 @@ import java.util.Map;
 @Configuration
 public class KafkaConfig {
 
-    private static final String TRUSTED_PACKAGES = "*";
-
-    // Single broker for all topics
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
 
@@ -45,7 +42,6 @@ public class KafkaConfig {
 
     @Bean
     public KafkaTemplate<String, Object> kafkaTemplate() {
-
         return new KafkaTemplate<>(producerFactory());
     }
 
@@ -56,18 +52,17 @@ public class KafkaConfig {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "notification-service-group");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
         config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 10000);
         config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES);
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
-
+        // EventJsonDeserializer reads the __TypeId__ header and deserializes to the
+        // exact event class, preserving all inherited fields from BaseEvent
+        // (correlationId, eventId, timestamp, etc.)
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
-                new JsonDeserializer<>(Object.class, false));
+                new EventJsonDeserializer());
     }
 
     @Bean
@@ -77,7 +72,6 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
         // Retry twice with 2s gap, then skip — prevents poison-pill messages
-        // from blocking the consumer and causing coordinator thrashing
         factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 2)));
         return factory;
     }

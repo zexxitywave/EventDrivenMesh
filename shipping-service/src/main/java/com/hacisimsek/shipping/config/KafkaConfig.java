@@ -1,7 +1,6 @@
 package com.hacisimsek.shipping.config;
 
-import java.util.HashMap;
-import java.util.Map;
+import com.hacisimsek.common.kafka.EventJsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -19,16 +18,14 @@ import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
 import org.springframework.kafka.listener.DefaultErrorHandler;
-import org.springframework.kafka.support.serializer.JsonDeserializer;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
 
+import java.util.HashMap;
+import java.util.Map;
 
 @Configuration
 public class KafkaConfig {
-
-    // "*" is the correct wildcard — package globs with ".*" are NOT supported
-    private static final String TRUSTED_PACKAGES = "*";
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
@@ -69,18 +66,17 @@ public class KafkaConfig {
         Map<String, Object> config = new HashMap<>();
         config.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
         config.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class);
-        config.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, JsonDeserializer.class);
         config.put(ConsumerConfig.GROUP_ID_CONFIG, "shipping-service-group");
         config.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         config.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG, false);
         config.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG, 30000);
         config.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG, 10000);
         config.put(ConsumerConfig.MAX_POLL_INTERVAL_MS_CONFIG, 300000);
-        config.put(JsonDeserializer.TRUSTED_PACKAGES, TRUSTED_PACKAGES);
-        config.put(JsonDeserializer.USE_TYPE_INFO_HEADERS, true);
-
+        // EventJsonDeserializer reads the __TypeId__ header and deserializes to the
+        // exact event class, preserving all inherited fields from BaseEvent
+        // (correlationId, eventId, timestamp, etc.)
         return new DefaultKafkaConsumerFactory<>(config, new StringDeserializer(),
-                new JsonDeserializer<>(Object.class, false));
+                new EventJsonDeserializer());
     }
 
     @Bean
