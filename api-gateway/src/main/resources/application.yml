@@ -5,7 +5,6 @@ spring:
   application:
     name: api-gateway
 
-  # â”€â”€ Redis (used by RequestRateLimiter to store token buckets per IP) â”€â”€â”€â”€â”€â”€â”€â”€
   data:
     redis:
       host: ${REDIS_HOST:localhost}
@@ -21,23 +20,21 @@ spring:
           enabled: true
           lower-case-service-id: true
 
-      # â”€â”€ Default 429 response headers exposed to clients â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
       default-filters:
         - name: RequestRateLimiter
           args:
-            # fallback limiter applied to any route not explicitly configured
             rate-limiter: "#{@standardLimiter}"
             key-resolver: "#{@ipKeyResolver}"
-            deny-empty-key: false          # don't crash if IP can't be resolved
+            deny-empty-key: false
             empty-key-status: 429
 
       routes:
 
-        # â”€â”€ Auth Service â€” tightest limit (brute-force / spam protection) â”€â”€â”€
+        # Auth Service — tightest limit (brute-force / spam protection)
         - id: auth-service
           uri: lb://auth-service
           predicates:
-            - Path=/api/auth/**
+            - Path=/api/v1/auth/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -46,11 +43,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Razorpay Webhook â€” high limit, no JWT, never block Razorpay â”€â”€â”€â”€â”€
+        # Razorpay Webhook — high limit, no JWT, never block Razorpay
         - id: payment-webhook
           uri: lb://payment-service
           predicates:
-            - Path=/api/payments/webhook/**
+            - Path=/api/v1/payments/webhook/**
           filters:
             - name: RequestRateLimiter
               args:
@@ -59,11 +56,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Order Service â€” strict (order spam prevention) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Order Service — strict (order spam prevention)
         - id: order-service
           uri: lb://order-service
           predicates:
-            - Path=/api/orders/**
+            - Path=/api/v1/orders/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -73,11 +70,25 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Inventory Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Order SSE stream — relaxed limit (long-lived connections, not transactions)
+        - id: order-service-sse
+          uri: lb://order-service
+          predicates:
+            - Path=/api/v1/orders/*/status-stream
+          filters:
+            - JwtAuthFilter
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
+
+        # Inventory Service — standard
         - id: inventory-service
           uri: lb://inventory-service
           predicates:
-            - Path=/api/inventory/**
+            - Path=/api/v1/inventory/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -87,11 +98,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Payment Service â€” strict (financial operations) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Payment Service — strict (financial operations)
         - id: payment-service
           uri: lb://payment-service
           predicates:
-            - Path=/api/payments/**
+            - Path=/api/v1/payments/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -101,11 +112,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Shipping Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Shipping Service — standard
         - id: shipping-service
           uri: lb://shipping-service
           predicates:
-            - Path=/api/shipping/**
+            - Path=/api/v1/shipping/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -115,11 +126,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Notification Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Notification Service — standard
         - id: notification-service
           uri: lb://notification-service
           predicates:
-            - Path=/api/notifications/**
+            - Path=/api/v1/notifications/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -129,11 +140,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ User Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # User Service — standard
         - id: user-service
           uri: lb://user-service
           predicates:
-            - Path=/api/users/**
+            - Path=/api/v1/users/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -143,11 +154,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Product Service â€” relaxed (high read traffic expected) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Product Service — relaxed (high read traffic expected)
         - id: product-service
           uri: lb://product-service
           predicates:
-            - Path=/api/products/**
+            - Path=/api/v1/products/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -157,11 +168,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Cart Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Cart Service — standard
         - id: cart-service
           uri: lb://cart-service
           predicates:
-            - Path=/api/cart/**
+            - Path=/api/v1/cart/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -171,11 +182,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Wishlist Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Wishlist Service — standard
         - id: wishlist-service
           uri: lb://wishlist-service
           predicates:
-            - Path=/api/wishlist/**
+            - Path=/api/v1/wishlist/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -185,11 +196,11 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Seller Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Seller Service — standard
         - id: seller-service
           uri: lb://seller-service
           predicates:
-            - Path=/api/seller/**
+            - Path=/api/v1/seller/**
           filters:
             - JwtAuthFilter
             - name: RequestRateLimiter
@@ -199,13 +210,16 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Seller Admin â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Seller Admin — ADMIN role required
         - id: seller-admin
           uri: lb://seller-service
           predicates:
-            - Path=/api/admin/sellers/**
+            - Path=/api/v1/admin/sellers/**
           filters:
             - JwtAuthFilter
+            - name: RoleAuthorizationFilter
+              args:
+                roles: ROLE_ADMIN
             - name: RequestRateLimiter
               args:
                 rate-limiter: "#{@standardLimiter}"
@@ -213,23 +227,122 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
-        # â”€â”€ Logging Service â€” standard â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+        # Logging Service — ADMIN role required (sensitive log data)
         - id: logging-service
           uri: lb://logging-service
           predicates:
-            - Path=/api/logs/**
+            - Path=/api/v1/logs/**
           filters:
             - JwtAuthFilter
+            - name: RoleAuthorizationFilter
+              args:
+                roles: ROLE_ADMIN
             - name: RequestRateLimiter
               args:
                 rate-limiter: "#{@standardLimiter}"
                 key-resolver: "#{@ipKeyResolver}"
                 deny-empty-key: false
                 empty-key-status: 429
+
+        # OpenAPI docs proxy routes (no JWT, no rate limit — internal dev tool)
+        - id: order-service-docs
+          uri: lb://order-service
+          predicates:
+            - Path=/v3/api-docs/order-service
+          filters:
+            - RewritePath=/v3/api-docs/order-service, /v3/api-docs
+
+        - id: inventory-service-docs
+          uri: lb://inventory-service
+          predicates:
+            - Path=/v3/api-docs/inventory-service
+          filters:
+            - RewritePath=/v3/api-docs/inventory-service, /v3/api-docs
+
+        - id: payment-service-docs
+          uri: lb://payment-service
+          predicates:
+            - Path=/v3/api-docs/payment-service
+          filters:
+            - RewritePath=/v3/api-docs/payment-service, /v3/api-docs
+
+        - id: shipping-service-docs
+          uri: lb://shipping-service
+          predicates:
+            - Path=/v3/api-docs/shipping-service
+          filters:
+            - RewritePath=/v3/api-docs/shipping-service, /v3/api-docs
+
+        - id: notification-service-docs
+          uri: lb://notification-service
+          predicates:
+            - Path=/v3/api-docs/notification-service
+          filters:
+            - RewritePath=/v3/api-docs/notification-service, /v3/api-docs
+
+        - id: auth-service-docs
+          uri: lb://auth-service
+          predicates:
+            - Path=/v3/api-docs/auth-service
+          filters:
+            - RewritePath=/v3/api-docs/auth-service, /v3/api-docs
+
+        - id: user-service-docs
+          uri: lb://user-service
+          predicates:
+            - Path=/v3/api-docs/user-service
+          filters:
+            - RewritePath=/v3/api-docs/user-service, /v3/api-docs
+
+        - id: product-service-docs
+          uri: lb://product-service
+          predicates:
+            - Path=/v3/api-docs/product-service
+          filters:
+            - RewritePath=/v3/api-docs/product-service, /v3/api-docs
+
+        - id: cart-service-docs
+          uri: lb://cart-service
+          predicates:
+            - Path=/v3/api-docs/cart-service
+          filters:
+            - RewritePath=/v3/api-docs/cart-service, /v3/api-docs
+
+        - id: wishlist-service-docs
+          uri: lb://wishlist-service
+          predicates:
+            - Path=/v3/api-docs/wishlist-service
+          filters:
+            - RewritePath=/v3/api-docs/wishlist-service, /v3/api-docs
+
+        - id: seller-service-docs
+          uri: lb://seller-service
+          predicates:
+            - Path=/v3/api-docs/seller-service
+          filters:
+            - RewritePath=/v3/api-docs/seller-service, /v3/api-docs
+
+        - id: logging-service-docs
+          uri: lb://logging-service
+          predicates:
+            - Path=/v3/api-docs/logging-service
+          filters:
+            - RewritePath=/v3/api-docs/logging-service, /v3/api-docs
+
+        - id: analytics-service-docs
+          uri: lb://analytics-service
+          predicates:
+            - Path=/v3/api-docs/analytics-service
+          filters:
+            - RewritePath=/v3/api-docs/analytics-service, /v3/api-docs
 
 app:
   jwt:
     secret: ${JWT_SECRET:22a0de5355c2b9acf34fff4392a5e9439f59d26f1f0fba6012629bc0290a576c}
+
+  # Kafka — used by LogPublisher for structured access logging
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
 
 eureka:
   client:
@@ -238,10 +351,42 @@ eureka:
   instance:
     prefer-ip-address: true
 
+# OpenAPI aggregation — Swagger UI at http://localhost:8080/swagger-ui.html
+# Aggregates API docs from all downstream services into one UI
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    urls:
+      - name: order-service
+        url: /v3/api-docs/order-service
+      - name: inventory-service
+        url: /v3/api-docs/inventory-service
+      - name: payment-service
+        url: /v3/api-docs/payment-service
+      - name: shipping-service
+        url: /v3/api-docs/shipping-service
+      - name: notification-service
+        url: /v3/api-docs/notification-service
+      - name: auth-service
+        url: /v3/api-docs/auth-service
+      - name: user-service
+        url: /v3/api-docs/user-service
+      - name: product-service
+        url: /v3/api-docs/product-service
+      - name: cart-service
+        url: /v3/api-docs/cart-service
+      - name: wishlist-service
+        url: /v3/api-docs/wishlist-service
+      - name: seller-service
+        url: /v3/api-docs/seller-service
+      - name: logging-service
+        url: /v3/api-docs/logging-service
+      - name: analytics-service
+        url: /v3/api-docs/analytics-service
+  api-docs:
+    enabled: true
+
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
     org.springframework.data.redis: WARN
-
-
-

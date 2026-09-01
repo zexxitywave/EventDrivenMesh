@@ -1,4 +1,4 @@
-package com.hacisimsek.auth.config;
+﻿package com.hacisimsek.auth.config;
 import com.hacisimsek.auth.security.CustomUserDetailsService;
 import com.hacisimsek.auth.security.JwtAuthenticationFilter;
 import com.hacisimsek.auth.security.oauth2.OAuth2AuthenticationFailureHandler;
@@ -58,26 +58,30 @@ public class SecurityConfig {
             .authorizeHttpRequests(auth -> auth
                     // Public endpoints
                     .requestMatchers(
-                            "/api/auth/register",
-                            "/api/auth/login",
-                            "/api/auth/refresh",
-                            "/api/auth/verify-email",
-                            "/api/auth/resend-verification",
-                            "/api/auth/forgot-password",
-                            "/api/auth/reset-password",
-                            "/api/auth/oauth2/**",
+                            "/api/v1/auth/register",
+                            "/api/v1/auth/login",
+                            "/api/v1/auth/refresh",
+                            "/api/v1/auth/verify-email",
+                            "/api/v1/auth/resend-verification",
+                            "/api/v1/auth/forgot-password",
+                            "/api/v1/auth/reset-password",
+                            "/api/v1/auth/oauth2/**",
                             "/oauth2/**",
                             "/login/oauth2/**",
-                            "/actuator/**"
+                            "/actuator/**",
+                            // Swagger UI
+                            "/swagger-ui.html",
+                            "/swagger-ui/**",
+                            "/v3/api-docs/**"
                     ).permitAll()
                     // Everything else requires authentication
                     .anyRequest().authenticated()
             )
             .oauth2Login(oauth2 -> oauth2
                     .authorizationEndpoint(endpoint ->
-                            endpoint.baseUri("/api/auth/oauth2/authorize"))
+                            endpoint.baseUri("/api/v1/auth/oauth2/authorize"))
                     .redirectionEndpoint(endpoint ->
-                            endpoint.baseUri("/api/auth/oauth2/callback/*"))
+                            endpoint.baseUri("/api/v1/auth/oauth2/callback/*"))
                     .successHandler(oAuth2SuccessHandler)
                     .failureHandler(oAuth2FailureHandler)
             )
