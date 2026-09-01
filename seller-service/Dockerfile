@@ -8,8 +8,7 @@ COPY common-library/src common-library/src
 COPY seller-service/pom.xml seller-service/
 COPY seller-service/src seller-service/src
 
-RUN --mount=type=cache,target=/root/.m2 `
-    ./mvnw -pl common-library,seller-service -am clean package -DskipTests --no-transfer-progress
+RUN mvn -pl common-library,seller-service -am clean package -DskipTests --no-transfer-progress
 
 # -- Stage 2: Runtime --------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine
@@ -22,8 +21,4 @@ COPY --from=builder /build/seller-service/target/*.jar app.jar
 
 EXPOSE 8091
 
-ENTRYPOINT ["java", `
-  "-XX:+UseContainerSupport", `
-  "-XX:MaxRAMPercentage=75.0", `
-  "-Djava.security.egd=file:/dev/./urandom", `
-  "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

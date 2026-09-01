@@ -8,8 +8,7 @@ COPY common-library/src common-library/src
 COPY shipping-service/pom.xml shipping-service/
 COPY shipping-service/src shipping-service/src
 
-RUN --mount=type=cache,target=/root/.m2 `
-    ./mvnw -pl common-library,shipping-service -am clean package -DskipTests --no-transfer-progress
+RUN mvn -pl common-library,shipping-service -am clean package -DskipTests --no-transfer-progress
 
 # -- Stage 2: Runtime --------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine
@@ -22,8 +21,4 @@ COPY --from=builder /build/shipping-service/target/*.jar app.jar
 
 EXPOSE 8085
 
-ENTRYPOINT ["java", `
-  "-XX:+UseContainerSupport", `
-  "-XX:MaxRAMPercentage=75.0", `
-  "-Djava.security.egd=file:/dev/./urandom", `
-  "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]

@@ -8,8 +8,7 @@ COPY common-library/src common-library/src
 COPY logging-service/pom.xml logging-service/
 COPY logging-service/src logging-service/src
 
-RUN --mount=type=cache,target=/root/.m2 `
-    ./mvnw -pl common-library,logging-service -am clean package -DskipTests --no-transfer-progress
+RUN mvn -pl common-library,logging-service -am clean package -DskipTests --no-transfer-progress
 
 # -- Stage 2: Runtime --------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine
@@ -22,8 +21,4 @@ COPY --from=builder /build/logging-service/target/*.jar app.jar
 
 EXPOSE 8092
 
-ENTRYPOINT ["java", `
-  "-XX:+UseContainerSupport", `
-  "-XX:MaxRAMPercentage=75.0", `
-  "-Djava.security.egd=file:/dev/./urandom", `
-  "-jar", "app.jar"]
+ENTRYPOINT ["java", "-XX:+UseContainerSupport", "-XX:MaxRAMPercentage=75.0", "-Djava.security.egd=file:/dev/./urandom", "-jar", "app.jar"]
