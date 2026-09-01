@@ -3,6 +3,7 @@ package com.hacisimsek.apigateway.filter;
 import com.hacisimsek.common.logging.LogPublisher;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -14,26 +15,8 @@ import reactor.core.publisher.Mono;
 
 import java.util.Map;
 
-/**
- * Global gateway filter that records a structured access log entry for every
- * HTTP request that passes through the gateway.
- *
- * Logged fields:
- *  - method          e.g. POST
- *  - path            e.g. /api/v1/orders
- *  - httpStatus      e.g. 201
- *  - durationMs      end-to-end latency in ms
- *  - userId          from X-User-Id header (set by JwtAuthFilter after auth)
- *  - traceId         from X-Trace-Id header (injected by JwtAuthFilter)
- *  - userAgent       from User-Agent header
- *
- * Logs are published to the "service-logs" Kafka topic via LogPublisher and
- * stored in MongoDB (logging_db) by the logging-service.
- *
- * Order: HIGHEST_PRECEDENCE + 1 — runs after any pre-processing but before routing,
- * so it captures the full round-trip duration including downstream service time.
- */
 @Component
+@ConditionalOnBean(LogPublisher.class)
 @RequiredArgsConstructor
 @Slf4j
 public class AccessLogFilter implements GlobalFilter, Ordered {

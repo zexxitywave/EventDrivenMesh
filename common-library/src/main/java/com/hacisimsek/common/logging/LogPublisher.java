@@ -2,6 +2,7 @@ package com.hacisimsek.common.logging;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
@@ -23,6 +24,7 @@ import java.util.Map;
  * Every service already has one configured in its KafkaConfig.
  */
 @Component
+@ConditionalOnBean(KafkaTemplate.class)
 @RequiredArgsConstructor
 @Slf4j
 public class LogPublisher {
