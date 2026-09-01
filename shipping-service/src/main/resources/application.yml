@@ -35,8 +35,11 @@ spring:
       enable-auto-commit: false
       properties:
         session.timeout.ms: 30000
+#       How long Kafka waits without heartbeats before considering consumer dead
         heartbeat.interval.ms: 10000
+#       How often the consumer sends heartbeats
         max.poll.interval.ms: 300000
+#       Maximum time between poll() calls while processing
     listener:
       ack-mode: record
 

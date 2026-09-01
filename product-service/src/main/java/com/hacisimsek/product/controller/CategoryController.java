@@ -1,4 +1,4 @@
-package com.hacisimsek.product.controller;
+﻿package com.hacisimsek.product.controller;
 
 import com.hacisimsek.product.dto.CategoryRequest;
 import com.hacisimsek.product.model.Category;
@@ -20,7 +20,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/products/categories")
+@RequestMapping("/api/v1/products/categories")
 @RequiredArgsConstructor
 public class CategoryController {
 

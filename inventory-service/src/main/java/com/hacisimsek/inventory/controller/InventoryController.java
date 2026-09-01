@@ -1,4 +1,4 @@
-package com.hacisimsek.inventory.controller;
+﻿package com.hacisimsek.inventory.controller;
 
 import com.hacisimsek.inventory.dto.InventoryItemRequest;
 import com.hacisimsek.inventory.dto.InventoryItemResponse;
@@ -22,7 +22,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/inventory")
+@RequestMapping("/api/v1/inventory")
 @RequiredArgsConstructor
 public class InventoryController {
 
@@ -62,7 +62,7 @@ public class InventoryController {
         return ResponseEntity.ok(inventoryItemService.updateInventoryItem(id, request));
     }
 
-    /** Restock — add units to an existing inventory record */
+    /** Restock â€” add units to an existing inventory record */
     @PostMapping("/{id}/restock")
     public ResponseEntity<InventoryItemResponse> restock(
             @PathVariable UUID id,
@@ -77,7 +77,7 @@ public class InventoryController {
         return ResponseEntity.noContent().build();
     }
 
-    /** Check if a product has sufficient stock — used by order-service before placing an order */
+    /** Check if a product has sufficient stock â€” used by order-service before placing an order */
     @GetMapping("/check")
     public ResponseEntity<Boolean> checkAvailability(
             @RequestParam UUID productId,

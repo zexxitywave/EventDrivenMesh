@@ -42,6 +42,15 @@
 			<artifactId>spring-kafka-test</artifactId>
 			<scope>test</scope>
 		</dependency>
+
+		<!-- Optional: springdoc for OpenApiConfig auto-configuration.
+		     Services that include springdoc-openapi-starter-webmvc-ui will
+		     activate the shared OpenApiConfig automatically via AutoConfiguration.imports -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webmvc-ui</artifactId>
+			<optional>true</optional>
+		</dependency>
 	</dependencies>
 
 </project>

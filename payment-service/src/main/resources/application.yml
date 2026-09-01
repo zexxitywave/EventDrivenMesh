@@ -126,3 +126,9 @@ management:
 #GET http://localhost:8080/api/orders/98c44782-f8ec-4ff0-bf22-e276ffb43a4e
 
 
+
+#
+#  SELECT *
+#  FROM transactions
+#  WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+#  ORDER BY created_at DESC;

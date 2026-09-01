@@ -145,3 +145,15 @@ public class OrderAnalyticsConsumer {
         }
     }
 }
+
+//POST /api/orders
+//      ↓
+//OrderController
+//      ↓
+//OrderService
+//      ↓
+//OrderRepository
+//      ↓
+//PostgreSQL
+//      ↓
+//Kafka Producer

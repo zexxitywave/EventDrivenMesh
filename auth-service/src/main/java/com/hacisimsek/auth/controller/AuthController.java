@@ -1,4 +1,4 @@
-package com.hacisimsek.auth.controller;
+﻿package com.hacisimsek.auth.controller;
 
 import com.hacisimsek.auth.dto.*;
 import com.hacisimsek.auth.service.AuthService;
@@ -9,7 +9,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 @Slf4j
 public class AuthController {
@@ -60,11 +60,19 @@ public class AuthController {
     }
 
     /**
-     * Logout — revokes the refresh token.
+     * Logout â€” revokes the refresh token AND blacklists the access token in Redis.
+     * The access token is passed in the Authorization header (Bearer <token>).
+     * After this call, both tokens are immediately invalid.
      */
     @PostMapping("/logout")
-    public ResponseEntity<ApiResponse> logout(@RequestBody RefreshTokenRequest request) {
-        return ResponseEntity.ok(authService.logout(request.getRefreshToken()));
+    public ResponseEntity<ApiResponse> logout(
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
+            @RequestBody RefreshTokenRequest request) {
+        String accessToken = null;
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            accessToken = authHeader.substring(7);
+        }
+        return ResponseEntity.ok(authService.logout(request.getRefreshToken(), accessToken));
     }
 
     /**
@@ -84,14 +92,14 @@ public class AuthController {
     }
 
     /**
-     * Protected endpoint — get current user info from JWT.
+     * Protected endpoint â€” get current user info from JWT.
      * Example: used by frontend after login to show user profile.
      */
     @GetMapping("/me")
     public ResponseEntity<ApiResponse> getCurrentUser() {
         // In a real app you'd extract the principal from SecurityContextHolder
         // and fetch user details. For now just a placeholder.
-        return ResponseEntity.ok(ApiResponse.ok("User info endpoint — implement as needed"));
+        return ResponseEntity.ok(ApiResponse.ok("User info endpoint â€” implement as needed"));
     }
 
     /**

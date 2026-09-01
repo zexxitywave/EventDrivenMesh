@@ -1,4 +1,4 @@
-package com.hacisimsek.notification.controller;
+﻿package com.hacisimsek.notification.controller;
 
 import com.hacisimsek.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/test")
+@RequestMapping("/api/v1/test")
 @RequiredArgsConstructor
 public class TestController {
 

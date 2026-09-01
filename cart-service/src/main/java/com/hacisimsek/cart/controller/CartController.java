@@ -1,4 +1,4 @@
-package com.hacisimsek.cart.controller;
+﻿package com.hacisimsek.cart.controller;
 
 import com.hacisimsek.cart.dto.AddToCartRequest;
 import com.hacisimsek.cart.dto.UpdateCartItemRequest;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/cart")
+@RequestMapping("/api/v1/cart")
 @RequiredArgsConstructor
 public class CartController {
 

@@ -1,0 +1,2 @@
+com.hacisimsek.common.config.OpenApiConfig
+com.hacisimsek.common.health.KafkaConsumerHealthIndicator

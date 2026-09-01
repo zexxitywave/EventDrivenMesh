@@ -1,10 +1,12 @@
-package com.hacisimsek.product.controller;
+﻿package com.hacisimsek.product.controller;
 
 import com.hacisimsek.product.dto.ProductRequest;
 import com.hacisimsek.product.dto.ProductResponse;
 import com.hacisimsek.product.dto.ProductStatusUpdateRequest;
 import com.hacisimsek.product.model.ProductStatus;
 import com.hacisimsek.product.service.ProductService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -30,13 +32,13 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/products")
+@RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
 public class ProductController {
 
     private final ProductService productService;
 
-    // ── CRUD ──────────────────────────────────────────────────────────────────
+    // â”€â”€ CRUD â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Create a product. Seller UUID is taken from the JWT header injected by API Gateway.
@@ -92,7 +94,7 @@ public class ProductController {
         return ResponseEntity.noContent().build();
     }
 
-    // ── List / Search / Filter with Pagination ────────────────────────────────
+    // â”€â”€ List / Search / Filter with Pagination â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Full-text search with optional filters and pagination.

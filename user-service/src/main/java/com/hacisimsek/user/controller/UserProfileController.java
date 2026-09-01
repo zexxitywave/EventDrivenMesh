@@ -1,4 +1,4 @@
-package com.hacisimsek.user.controller;
+﻿package com.hacisimsek.user.controller;
 
 import com.hacisimsek.user.dto.AddressRequest;
 import com.hacisimsek.user.dto.CreateProfileRequest;
@@ -26,16 +26,16 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/users")
+@RequestMapping("/api/v1/users")
 @RequiredArgsConstructor
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
 
-    // ── Profile Endpoints ─────────────────────────────────────────────────────
+    // â”€â”€ Profile Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
-     * Create profile — called after registration.
+     * Create profile â€” called after registration.
      * The userId comes from the X-User-Id header injected by the API Gateway JWT filter.
      */
     @PostMapping("/profile")
@@ -75,7 +75,7 @@ public class UserProfileController {
         return ResponseEntity.noContent().build();
     }
 
-    // ── Preferences Endpoints ─────────────────────────────────────────────────
+    // â”€â”€ Preferences Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Update preferences (language, currency, notification settings).
@@ -87,7 +87,7 @@ public class UserProfileController {
         return ResponseEntity.ok(userProfileService.updatePreferences(userId, request));
     }
 
-    // ── Address Endpoints ─────────────────────────────────────────────────────
+    // â”€â”€ Address Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     /**
      * Get all addresses for the logged-in user.

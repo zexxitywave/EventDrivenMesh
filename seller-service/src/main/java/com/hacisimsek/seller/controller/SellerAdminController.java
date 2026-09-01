@@ -1,4 +1,4 @@
-package com.hacisimsek.seller.controller;
+﻿package com.hacisimsek.seller.controller;
 
 import com.hacisimsek.seller.dto.SellerProfileResponse;
 import com.hacisimsek.seller.model.VerificationStatus;
@@ -21,13 +21,13 @@ import java.util.UUID;
  * in the API Gateway or a Spring Security filter.
  */
 @RestController
-@RequestMapping("/api/admin/sellers")
+@RequestMapping("/api/v1/admin/sellers")
 @RequiredArgsConstructor
 public class SellerAdminController {
 
     private final SellerService sellerService;
 
-    /** Update seller verification status — VERIFIED, REJECTED, SUSPENDED, etc. */
+    /** Update seller verification status â€” VERIFIED, REJECTED, SUSPENDED, etc. */
     @PatchMapping("/{sellerId}/verify")
     public ResponseEntity<SellerProfileResponse> updateVerification(
             @PathVariable UUID sellerId,

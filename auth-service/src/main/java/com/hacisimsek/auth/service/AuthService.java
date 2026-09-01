@@ -6,6 +6,7 @@ import com.hacisimsek.auth.model.Role;
 import com.hacisimsek.auth.model.User;
 import com.hacisimsek.auth.repository.UserRepository;
 import com.hacisimsek.auth.security.JwtTokenProvider;
+import com.hacisimsek.auth.service.TokenBlacklistService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -32,6 +33,7 @@ public class AuthService {
     private final RefreshTokenService refreshTokenService;
     private final EmailService emailService;
     private final AuthenticationManager authenticationManager;
+    private final TokenBlacklistService tokenBlacklistService;
 
     @Value("${app.email.otp-expiry-minutes}")
     private int otpExpiryMinutes;
@@ -144,8 +146,23 @@ public class AuthService {
     // ── Logout ────────────────────────────────────────────────────────────────
 
     @Transactional
-    public ApiResponse logout(String refreshToken) {
+    public ApiResponse logout(String refreshToken, String accessToken) {
+        // 1. Revoke the refresh token (already implemented)
         refreshTokenService.revokeRefreshToken(refreshToken);
+
+        // 2. Blacklist the access token in Redis so it can't be reused
+        //    before its natural 15-min expiry
+        if (accessToken != null && !accessToken.isBlank()) {
+            try {
+                String jti = jwtTokenProvider.getJtiFromToken(accessToken);
+                java.util.Date expiry = jwtTokenProvider.getExpiryFromToken(accessToken);
+                tokenBlacklistService.blacklist(jti, expiry);
+                log.info("Access token blacklisted on logout (jti={})", jti);
+            } catch (Exception e) {
+                // Don't fail logout if token is already expired or malformed
+                log.warn("Could not blacklist access token on logout: {}", e.getMessage());
+            }
+        }
         return ApiResponse.ok("Logged out successfully");
     }
 
