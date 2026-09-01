@@ -1,23 +1,11 @@
-﻿# -- Stage 1: Build ----------------------------------------------------------
-FROM eclipse-temurin:21-jdk-alpine AS builder
-WORKDIR /build
-
-COPY pom.xml .
-COPY common-library/pom.xml common-library/
-COPY common-library/src common-library/src
-COPY cart-service/pom.xml cart-service/
-COPY cart-service/src cart-service/src
-
-RUN mvn -pl common-library,cart-service -am clean package -DskipTests --no-transfer-progress
-
-# -- Stage 2: Runtime --------------------------------------------------------
-FROM eclipse-temurin:21-jre-alpine
+﻿FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-COPY --from=builder /build/cart-service/target/*.jar app.jar
+# JAR is pre-built by the CI Maven step and downloaded as an artifact
+COPY cart-service/target/*.jar app.jar
 
 EXPOSE 8089
 
