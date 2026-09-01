@@ -1,0 +1,10 @@
+**/.git
+**/.idea
+**/*.iml
+**/target
+!*/target/*.jar
+**/node_modules
+**/.env
+**/run-logs
+**/load-tests
+**/k8s

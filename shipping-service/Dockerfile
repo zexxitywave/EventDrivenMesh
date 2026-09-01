@@ -5,11 +5,11 @@ WORKDIR /build
 COPY pom.xml .
 COPY common-library/pom.xml common-library/
 COPY common-library/src common-library/src
-COPY order-service/pom.xml order-service/
-COPY order-service/src order-service/src
+COPY shipping-service/pom.xml shipping-service/
+COPY shipping-service/src shipping-service/src
 
 RUN --mount=type=cache,target=/root/.m2 `
-    ./mvnw -pl common-library,order-service -am clean package -DskipTests --no-transfer-progress
+    ./mvnw -pl common-library,shipping-service -am clean package -DskipTests --no-transfer-progress
 
 # -- Stage 2: Runtime --------------------------------------------------------
 FROM eclipse-temurin:21-jre-alpine
@@ -18,9 +18,9 @@ WORKDIR /app
 RUN addgroup -S appgroup && adduser -S appuser -G appgroup
 USER appuser
 
-COPY --from=builder /build/order-service/target/*.jar app.jar
+COPY --from=builder /build/shipping-service/target/*.jar app.jar
 
-EXPOSE 8081
+EXPOSE 8085
 
 ENTRYPOINT ["java", `
   "-XX:+UseContainerSupport", `
