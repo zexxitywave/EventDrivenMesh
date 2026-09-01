@@ -1,4 +1,4 @@
-package com.hacisimsek.payment.controller;
+﻿package com.hacisimsek.payment.controller;
 
 import com.hacisimsek.payment.dto.GatewayOrderResponse;
 import com.hacisimsek.payment.dto.InitiatePaymentRequest;
@@ -24,7 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/payments")
+@RequestMapping("/api/v1/payments")
 @RequiredArgsConstructor
 @Slf4j
 public class PaymentController {
@@ -32,7 +32,7 @@ public class PaymentController {
     private final PaymentService paymentService;
     private final RestTemplate restTemplate;
 
-    /** Initiate a payment — returns gateway order/session for frontend checkout UI. */
+    /** Initiate a payment â€” returns gateway order/session for frontend checkout UI. */
     @PostMapping("/initiate")
     public ResponseEntity<GatewayOrderResponse> initiatePayment(
             @Valid @RequestBody InitiatePaymentRequest request) {

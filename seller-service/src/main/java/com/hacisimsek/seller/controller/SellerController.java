@@ -1,4 +1,4 @@
-package com.hacisimsek.seller.controller;
+﻿package com.hacisimsek.seller.controller;
 
 import com.hacisimsek.seller.dto.OrderSummary;
 import com.hacisimsek.seller.dto.ProductSummary;
@@ -23,7 +23,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/seller")
+@RequestMapping("/api/v1/seller")
 @RequiredArgsConstructor
 public class SellerController {
 
@@ -78,7 +78,7 @@ public class SellerController {
     }
 
     /**
-     * Sales analytics — total orders, revenue, average order value, product count.
+     * Sales analytics â€” total orders, revenue, average order value, product count.
      * Requires VERIFIED status.
      */
     @GetMapping("/analytics")

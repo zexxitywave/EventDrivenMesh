@@ -1,4 +1,4 @@
-package com.hacisimsek.logging.controller;
+﻿package com.hacisimsek.logging.controller;
 
 import com.hacisimsek.logging.dto.LogSearchRequest;
 import com.hacisimsek.logging.dto.LogStatsResponse;
@@ -18,7 +18,7 @@ import java.util.List;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/logs")
+@RequestMapping("/api/v1/logs")
 @RequiredArgsConstructor
 public class LogController {
 
@@ -50,7 +50,7 @@ public class LogController {
         req.setPage(page);
         req.setSize(size);
 
-        // traceId search returns a list — wrap in simple response
+        // traceId search returns a list â€” wrap in simple response
         if (traceId != null && !traceId.isBlank()) {
             List<LogEntry> entries = logService.getByTraceId(traceId);
             return ResponseEntity.ok(new org.springframework.data.domain.PageImpl<>(entries));
@@ -86,7 +86,7 @@ public class LogController {
     }
 
     /**
-     * Get recent ERROR logs — useful for a monitoring dashboard.
+     * Get recent ERROR logs â€” useful for a monitoring dashboard.
      * GET /api/logs/errors/recent?minutes=10
      */
     @GetMapping("/errors/recent")

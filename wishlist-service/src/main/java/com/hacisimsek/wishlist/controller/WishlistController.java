@@ -1,4 +1,4 @@
-package com.hacisimsek.wishlist.controller;
+﻿package com.hacisimsek.wishlist.controller;
 
 import com.hacisimsek.wishlist.dto.AddToWishlistRequest;
 import com.hacisimsek.wishlist.dto.WishlistItemResponse;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/wishlist")
+@RequestMapping("/api/v1/wishlist")
 @RequiredArgsConstructor
 public class WishlistController {
 

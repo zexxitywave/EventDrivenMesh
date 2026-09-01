@@ -1,4 +1,4 @@
-package com.hacisimsek.logging.controller;
+﻿package com.hacisimsek.logging.controller;
 
 import com.hacisimsek.logging.model.AlertRule;
 import com.hacisimsek.logging.service.AlertService;
@@ -21,7 +21,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/logs/alerts")
+@RequestMapping("/api/v1/logs/alerts")
 @RequiredArgsConstructor
 public class AlertController {
 

@@ -1,4 +1,4 @@
-package com.hacisimsek.payment.controller;
+﻿package com.hacisimsek.payment.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,13 +23,13 @@ import java.util.stream.Collectors;
 /**
  * Receives webhook events pushed by Razorpay to your server.
  *
- * Razorpay Dashboard → Settings → Webhooks → Add new webhook:
+ * Razorpay Dashboard â†’ Settings â†’ Webhooks â†’ Add new webhook:
  *   URL:    https://<your-domain>/api/payments/webhook/razorpay
  *   Events: payment.captured, payment.failed, refund.created
  *   Secret: value of RAZORPAY_WEBHOOK_SECRET env var
  *
  * IMPORTANT: This endpoint is intentionally excluded from JWT auth in the
- * API Gateway / Security config — Razorpay calls it directly, not the user.
+ * API Gateway / Security config â€” Razorpay calls it directly, not the user.
  * Security is provided solely by HMAC-SHA256 signature verification.
  *
  * Spring must receive the raw bytes (not a parsed object) so the signature
@@ -37,7 +37,7 @@ import java.util.stream.Collectors;
  * and convert to String only after verification passes.
  */
 @RestController
-@RequestMapping("/api/payments/webhook")
+@RequestMapping("/api/v1/payments/webhook")
 @RequiredArgsConstructor
 @Slf4j
 public class WebhookController {
@@ -45,7 +45,7 @@ public class WebhookController {
     private final PaymentService paymentService;
     private final ObjectMapper objectMapper;
 
-    /** All gateway adapters — used to look up the Razorpay adapter by type. */
+    /** All gateway adapters â€” used to look up the Razorpay adapter by type. */
     private final List<PaymentGatewayAdapter> gatewayAdapters;
 
     /**
@@ -56,9 +56,9 @@ public class WebhookController {
      *   X-Razorpay-Signature: <HMAC-SHA256 hex digest>
      *
      * Response contract:
-     *   200 OK   → event acknowledged (Razorpay will not retry)
-     *   400      → signature invalid  (logged, no retry by Razorpay for bad sig)
-     *   500      → processing error   (Razorpay WILL retry — safe to throw on transient errors)
+     *   200 OK   â†’ event acknowledged (Razorpay will not retry)
+     *   400      â†’ signature invalid  (logged, no retry by Razorpay for bad sig)
+     *   500      â†’ processing error   (Razorpay WILL retry â€” safe to throw on transient errors)
      */
     @PostMapping(
             value = "/razorpay",
@@ -73,24 +73,24 @@ public class WebhookController {
         log.info("[Webhook] Razorpay event received, bodyLength={}, signaturePresent={}",
                 rawBody.length, signature != null);
 
-        // ── 1. Verify HMAC signature ──────────────────────────────────────────
+        // â”€â”€ 1. Verify HMAC signature â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         PaymentGatewayAdapter razorpayAdapter = resolveAdapter(Payment.PaymentGateway.RAZORPAY);
         boolean signatureValid = razorpayAdapter.verifyWebhookSignature(bodyString, signature);
 
         if (!signatureValid) {
-            log.error("[Webhook] Razorpay signature verification FAILED — rejecting event");
+            log.error("[Webhook] Razorpay signature verification FAILED â€” rejecting event");
             return ResponseEntity
                     .status(HttpStatus.BAD_REQUEST)
                     .body(Map.of("status", "error", "message", "Invalid signature"));
         }
 
-        // ── 2. Parse event type ───────────────────────────────────────────────
+        // â”€â”€ 2. Parse event type â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         String eventType;
         try {
             JsonNode root = objectMapper.readTree(bodyString);
             eventType = root.path("event").asText();
             if (eventType.isBlank()) {
-                log.warn("[Webhook] No 'event' field in payload — ignoring");
+                log.warn("[Webhook] No 'event' field in payload â€” ignoring");
                 return ResponseEntity.ok(Map.of("status", "ignored", "reason", "missing event field"));
             }
         } catch (Exception e) {
@@ -100,7 +100,7 @@ public class WebhookController {
                     .body(Map.of("status", "error", "message", "Invalid JSON payload"));
         }
 
-        // ── 3. Delegate to service ────────────────────────────────────────────
+        // â”€â”€ 3. Delegate to service â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
         try {
             paymentService.handleWebhookEvent(eventType, bodyString);
             log.info("[Webhook] Event '{}' processed successfully", eventType);
@@ -110,11 +110,11 @@ public class WebhookController {
             log.error("[Webhook] Error processing event '{}': {}", eventType, e.getMessage(), e);
             return ResponseEntity
                     .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(Map.of("status", "error", "message", "Processing failed — will retry"));
+                    .body(Map.of("status", "error", "message", "Processing failed â€” will retry"));
         }
     }
 
-    // ── Helper ────────────────────────────────────────────────────────────────
+    // â”€â”€ Helper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
     private PaymentGatewayAdapter resolveAdapter(Payment.PaymentGateway gateway) {
         Map<Payment.PaymentGateway, PaymentGatewayAdapter> index = gatewayAdapters.stream()

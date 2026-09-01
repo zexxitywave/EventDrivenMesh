@@ -1,4 +1,4 @@
-package com.hacisimsek.shipping.controller;
+﻿package com.hacisimsek.shipping.controller;
 
 import com.hacisimsek.shipping.model.Shipment;
 import com.hacisimsek.shipping.service.ShippingService;
@@ -9,7 +9,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/shipping")
+@RequestMapping("/api/v1/shipping")
 @RequiredArgsConstructor
 public class ShippingController {
 

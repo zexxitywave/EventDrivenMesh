@@ -1,4 +1,4 @@
-package com.hacisimsek.notification.controller;
+﻿package com.hacisimsek.notification.controller;
 
 import com.hacisimsek.notification.model.Notification;
 import com.hacisimsek.notification.repository.NotificationRepository;
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @RestController
-@RequestMapping("/api/notifications")
+@RequestMapping("/api/v1/notifications")
 @RequiredArgsConstructor
 @Slf4j
 public class NotificationController {
@@ -80,9 +80,9 @@ public class NotificationController {
      * GET /api/notifications/invoice/{orderId}
      *
      * Response:
-     *   200 application/pdf  — invoice bytes
-     *   404                  — no ORDER_PLACED notification found for this order
-     *   422                  — notification exists but PDF was not generated
+     *   200 application/pdf  â€” invoice bytes
+     *   404                  â€” no ORDER_PLACED notification found for this order
+     *   422                  â€” notification exists but PDF was not generated
      */
     @GetMapping("/invoice/{orderId}")
     public ResponseEntity<byte[]> downloadInvoice(@PathVariable UUID orderId) {

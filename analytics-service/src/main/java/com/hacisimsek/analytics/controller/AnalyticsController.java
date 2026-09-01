@@ -1,4 +1,4 @@
-package com.hacisimsek.analytics.controller;
+﻿package com.hacisimsek.analytics.controller;
 
 import com.hacisimsek.analytics.model.OrderAnalytics;
 import com.hacisimsek.analytics.repository.OrderAnalyticsRepository;
@@ -14,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping("/api/analytics")
+@RequestMapping("/api/v1/analytics")
 @RequiredArgsConstructor
 public class AnalyticsController {
 
