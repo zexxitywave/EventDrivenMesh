@@ -31,6 +31,8 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
         LEFT JOIN FETCH p.category
         WHERE p.status = :status
     """)
+//    The main reason we used JOIN FETCH in your ProductRepository is to prevent
+//    the N+1 query problem when your code needs Product and its Category.
     Page<Product> findByStatus(@Param("status") ProductStatus status, Pageable pageable);
 
     @Query("""

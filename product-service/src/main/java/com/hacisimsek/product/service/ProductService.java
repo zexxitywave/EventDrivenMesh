@@ -90,7 +90,8 @@ public class ProductService {
             product.setCategory(category);
         }
 
-        return toResponse(productRepository.save(product));
+        Product updated = productRepository.save(product);
+        return toResponse(updated);
     }
 
     @Transactional

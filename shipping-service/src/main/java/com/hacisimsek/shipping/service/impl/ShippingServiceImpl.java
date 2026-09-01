@@ -71,6 +71,14 @@ public class ShippingServiceImpl implements ShippingService {
                     paymentEvent.getCustomerEmail(),
                     savedShipment.getTrackingNumber()
             );
+//            ShipmentProcessedEvent shipmentEvent = ShipmentProcessedEvent.builder()
+//                    .correlationId(paymentEvent.getCorrelationId())
+//                    .orderId(paymentEvent.getOrderId())
+//                    .shipmentId(savedShipment.getId())
+//                    .customerId(savedShipment.getCustomerId())
+//                    .customerEmail(paymentEvent.getCustomerEmail())
+//                    .trackingNumber(savedShipment.getTrackingNumber())
+//                    .build();
 
             kafkaTemplate.send("shipping-events", shipmentEvent);
             log.info("Order shipped successfully. Order ID: {}, Tracking: {}",

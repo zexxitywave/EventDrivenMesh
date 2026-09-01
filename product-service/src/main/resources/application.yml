@@ -1,4 +1,4 @@
-﻿server:
+server:
   port: 8088
 
 spring:
@@ -10,11 +10,14 @@ spring:
     username: ${DB_USER:postgres}
     password: ${DB_PASSWORD:postgres}
     driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 10
+      minimum-idle: 2
 
   jpa:
     hibernate:
       ddl-auto: update
-    show-sql: true
+    show-sql: false
     properties:
       hibernate:
         format_sql: true
@@ -27,16 +30,18 @@ eureka:
   instance:
     prefer-ip-address: true
 
-logging:
-  level:
-    com.hacisimsek.product: DEBUG
-
 management:
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: health,info,prometheus,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    tags:
+      application: ${spring.application.name}
 
-
-
-
+logging:
+  level:
+    com.hacisimsek.product: INFO
