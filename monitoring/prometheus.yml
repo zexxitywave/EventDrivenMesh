@@ -4,6 +4,11 @@
   external_labels:
     project: zexxity-ecommerce
 
+alerting:
+  alertmanagers:
+    - static_configs:
+        - targets: [ alertmanager:9093 ]
+
 rule_files:
   - /etc/prometheus/alert-rules.yml
 
@@ -13,35 +18,133 @@ scrape_configs:
     static_configs:
       - targets: [ localhost:9090 ]
 
-  # â”€â”€ Order Service (port 8081) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  # ── Core saga services ─────────────────────────────────────────────────────
+  # host.docker.internal resolves to the host machine from inside Docker.
+  # Replace with actual service hostnames when running in Docker Compose or K8s.
+
   - job_name: order-service
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 192.168.1.4:8081 ]
+      - targets: [ host.docker.internal:8081 ]
         labels:
           application: order-service
 
-  # â”€â”€ Inventory Service (port 8082) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   - job_name: inventory-service
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 192.168.1.4:8082 ]
+      - targets: [ host.docker.internal:8082 ]
         labels:
           application: inventory-service
 
-  # â”€â”€ Payment Service (port 8083) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
   - job_name: payment-service
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 192.168.1.4:8083 ]
+      - targets: [ host.docker.internal:8083 ]
         labels:
           application: payment-service
 
-  # â”€â”€ Shipping Service (port 8085) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+  - job_name: notification-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8084 ]
+        labels:
+          application: notification-service
+
   - job_name: shipping-service
     metrics_path: /actuator/prometheus
     static_configs:
-      - targets: [ 192.168.1.4:8085 ]
+      - targets: [ host.docker.internal:8085 ]
         labels:
           application: shipping-service
 
+  # ── Auth & user-facing services ────────────────────────────────────────────
+
+  - job_name: auth-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8086 ]
+        labels:
+          application: auth-service
+
+  - job_name: user-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8087 ]
+        labels:
+          application: user-service
+
+  - job_name: product-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8088 ]
+        labels:
+          application: product-service
+
+  - job_name: cart-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8089 ]
+        labels:
+          application: cart-service
+
+  - job_name: wishlist-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8090 ]
+        labels:
+          application: wishlist-service
+
+  - job_name: seller-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8091 ]
+        labels:
+          application: seller-service
+
+  # ── Observability services ─────────────────────────────────────────────────
+
+  - job_name: logging-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8092 ]
+        labels:
+          application: logging-service
+
+  - job_name: analytics-service
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8093 ]
+        labels:
+          application: analytics-service
+
+  - job_name: api-gateway
+    metrics_path: /actuator/prometheus
+    static_configs:
+      - targets: [ host.docker.internal:8080 ]
+        labels:
+          application: api-gateway
+
+  # ── Kafka consumer lag ────────────────────────────────────────────────────
+  # kafka-lag-exporter exposes per consumer-group lag as Prometheus metrics.
+  # Key metric: kafka_consumer_group_lag{group, topic, partition}
+  - job_name: kafka-lag-exporter
+    static_configs:
+      - targets: [ kafka-lag-exporter:8000 ]
+        labels:
+          application: kafka-lag-exporter
+
+  # ── Kafka consumer lag ────────────────────────────────────────────────────
+  # kafka-lag-exporter exposes per consumer-group lag as Prometheus metrics.
+  # Key metric: kafka_consumer_group_lag{group, topic, partition}
+  - job_name: kafka-lag-exporter
+    static_configs:
+      - targets: [ kafka-lag-exporter:8000 ]
+        labels:
+          application: kafka-lag-exporter
+
+  # ── Alertmanager ──────────────────────────────────────────────────────────
+  - job_name: alertmanager
+    static_configs:
+      - targets: [ alertmanager:9093 ]
+        labels:
+          application: alertmanager

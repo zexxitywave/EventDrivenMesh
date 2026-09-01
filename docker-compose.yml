@@ -116,6 +116,32 @@ services:
       - grafana_data:/var/lib/grafana
       - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
 
+  # ── Kafka Lag Monitoring ───────────────────────────────────────────────────
+  # kafka-lag-exporter exposes consumer group lag as Prometheus metrics
+  kafka-lag-exporter:
+    image: lightbend/kafka-lag-exporter:0.8.2
+    container_name: kafka-lag-exporter
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    depends_on:
+      - kafka
+    volumes:
+      - ./monitoring/kafka-lag-exporter.conf:/opt/docker/conf/application.conf
+
+  # ── Alertmanager ──────────────────────────────────────────────────────────
+  alertmanager:
+    image: prom/alertmanager:v0.27.0
+    container_name: alertmanager
+    restart: unless-stopped
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+    command:
+      - '--config.file=/etc/alertmanager/alertmanager.yml'
+      - '--storage.path=/alertmanager'
+
 volumes:
   kafka_data:
   postgres_data:
@@ -123,4 +149,3 @@ volumes:
   mongodb_data:
   prometheus_data:
   grafana_data:
-
