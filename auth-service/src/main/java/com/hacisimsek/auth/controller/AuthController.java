@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.auth.controller;
+package com.hacisimsek.auth.controller;
 
 import com.hacisimsek.auth.dto.*;
 import com.hacisimsek.auth.service.AuthService;

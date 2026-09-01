@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.shipping.controller;
+package com.hacisimsek.shipping.controller;
 
 import com.hacisimsek.shipping.model.Shipment;
 import com.hacisimsek.shipping.service.ShippingService;

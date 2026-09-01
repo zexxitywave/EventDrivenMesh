@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.analytics.controller;
+package com.hacisimsek.analytics.controller;
 
 import com.hacisimsek.analytics.model.OrderAnalytics;
 import com.hacisimsek.analytics.repository.OrderAnalyticsRepository;

@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.wishlist.controller;
+package com.hacisimsek.wishlist.controller;
 
 import com.hacisimsek.wishlist.dto.AddToWishlistRequest;
 import com.hacisimsek.wishlist.dto.WishlistItemResponse;

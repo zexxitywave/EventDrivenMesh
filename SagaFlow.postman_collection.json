@@ -1,4 +1,4 @@
-﻿{
+{
   "info": {
     "name": "EventDrivenMesh - Order Saga Flow",
     "description": "Clean 11-step end-to-end Order Saga flow. Run via Collection Runner in order.",

@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.payment.controller;
+package com.hacisimsek.payment.controller;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;

@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.logging.controller;
+package com.hacisimsek.logging.controller;
 
 import com.hacisimsek.logging.model.AlertRule;
 import com.hacisimsek.logging.service.AlertService;

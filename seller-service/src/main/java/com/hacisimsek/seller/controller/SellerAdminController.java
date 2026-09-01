@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.seller.controller;
+package com.hacisimsek.seller.controller;
 
 import com.hacisimsek.seller.dto.SellerProfileResponse;
 import com.hacisimsek.seller.model.VerificationStatus;

@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.payment.controller;
+package com.hacisimsek.payment.controller;
 
 import com.hacisimsek.payment.dto.GatewayOrderResponse;
 import com.hacisimsek.payment.dto.InitiatePaymentRequest;

@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.notification.controller;
+package com.hacisimsek.notification.controller;
 
 import com.hacisimsek.notification.model.Notification;
 import com.hacisimsek.notification.repository.NotificationRepository;

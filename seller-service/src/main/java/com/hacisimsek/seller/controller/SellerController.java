@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.seller.controller;
+package com.hacisimsek.seller.controller;
 
 import com.hacisimsek.seller.dto.OrderSummary;
 import com.hacisimsek.seller.dto.ProductSummary;

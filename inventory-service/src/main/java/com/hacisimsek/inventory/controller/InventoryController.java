@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.inventory.controller;
+package com.hacisimsek.inventory.controller;
 
 import com.hacisimsek.inventory.dto.InventoryItemRequest;
 import com.hacisimsek.inventory.dto.InventoryItemResponse;

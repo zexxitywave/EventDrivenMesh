@@ -1,4 +1,4 @@
-﻿package com.hacisimsek.product.controller;
+package com.hacisimsek.product.controller;
 
 import com.hacisimsek.product.dto.ProductRequest;
 import com.hacisimsek.product.dto.ProductResponse;
