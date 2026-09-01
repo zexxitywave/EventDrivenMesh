@@ -49,6 +49,25 @@
 			<version>${jjwt.version}</version>
 			<scope>runtime</scope>
 		</dependency>
+
+		<!-- OpenAPI / Swagger UI (WebFlux variant for reactive gateway) -->
+		<dependency>
+			<groupId>org.springdoc</groupId>
+			<artifactId>springdoc-openapi-starter-webflux-ui</artifactId>
+		</dependency>
+
+		<!-- common-library — for LogPublisher (structured access logging) -->
+		<dependency>
+			<groupId>com.hacisimsek</groupId>
+			<artifactId>common-library</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+
+		<!-- Kafka — required by LogPublisher in common-library -->
+		<dependency>
+			<groupId>org.springframework.kafka</groupId>
+			<artifactId>spring-kafka</artifactId>
+		</dependency>
 	</dependencies>
 
 	<build>
