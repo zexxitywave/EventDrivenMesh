@@ -1,7 +1,6 @@
 package com.hacisimsek.auth.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,8 +21,19 @@ public class JwtTokenProvider {
     private long accessTokenExpirationMs;
 
     private SecretKey getSigningKey() {
-        byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
+        // JWT_SECRET is stored as a hex string — matches api-gateway hex decoding
+        byte[] keyBytes = hexStringToByteArray(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
+    }
+
+    private byte[] hexStringToByteArray(String hex) {
+        int len = hex.length();
+        byte[] data = new byte[len / 2];
+        for (int i = 0; i < len; i += 2) {
+            data[i / 2] = (byte) ((Character.digit(hex.charAt(i), 16) << 4)
+                    + Character.digit(hex.charAt(i + 1), 16));
+        }
+        return data;
     }
 
     public String generateAccessToken(UUID userId, String email, String role) {
@@ -31,6 +41,7 @@ public class JwtTokenProvider {
         Date expiry = new Date(now.getTime() + accessTokenExpirationMs);
 
         return Jwts.builder()
+                .id(UUID.randomUUID().toString())   // jti claim — unique token ID for blacklisting
                 .subject(userId.toString())
                 .claim("email", email)
                 .claim("role", role)
@@ -76,6 +87,16 @@ public class JwtTokenProvider {
 
     public String getRoleFromToken(String token) {
         return parseToken(token).get("role", String.class);
+    }
+
+    /** Returns the jti (JWT ID) claim — used for blacklisting on logout */
+    public String getJtiFromToken(String token) {
+        return parseToken(token).getId();
+    }
+
+    /** Returns the expiry Date — used to set Redis TTL on blacklist entry */
+    public Date getExpiryFromToken(String token) {
+        return parseToken(token).getExpiration();
     }
 
     public long getAccessTokenExpirationMs() {
