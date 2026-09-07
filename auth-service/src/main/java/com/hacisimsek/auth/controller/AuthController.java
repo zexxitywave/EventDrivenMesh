@@ -1,6 +1,8 @@
-package com.hacisimsek.auth.controller;
+﻿package com.hacisimsek.auth.controller;
 
 import com.hacisimsek.auth.dto.*;
+import com.hacisimsek.auth.model.User;
+import com.hacisimsek.auth.repository.UserRepository;
 import com.hacisimsek.auth.service.AuthService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -15,6 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final UserRepository userRepository;
 
     /**
      * Register a new user with email + password.
@@ -60,7 +63,7 @@ public class AuthController {
     }
 
     /**
-     * Logout â€” revokes the refresh token AND blacklists the access token in Redis.
+     * Logout Ã¢â‚¬â€ revokes the refresh token AND blacklists the access token in Redis.
      * The access token is passed in the Authorization header (Bearer <token>).
      * After this call, both tokens are immediately invalid.
      */
@@ -92,14 +95,27 @@ public class AuthController {
     }
 
     /**
-     * Protected endpoint â€” get current user info from JWT.
+     * Protected endpoint Ã¢â‚¬â€ get current user info from JWT.
      * Example: used by frontend after login to show user profile.
      */
     @GetMapping("/me")
-    public ResponseEntity<ApiResponse> getCurrentUser() {
-        // In a real app you'd extract the principal from SecurityContextHolder
-        // and fetch user details. For now just a placeholder.
-        return ResponseEntity.ok(ApiResponse.ok("User info endpoint â€” implement as needed"));
+    public ResponseEntity<?> getCurrentUser(
+            @RequestHeader(value = "X-User-Id", required = false) String userId) {
+
+        if (userId != null && !userId.isBlank()) {
+            return userRepository.findById(java.util.UUID.fromString(userId))
+                    .map(user -> ResponseEntity.ok((Object) java.util.Map.of(
+                            "userId",   user.getId(),
+                            "name",     user.getName(),
+                            "email",    user.getEmail(),
+                            "role",     user.getRole().name(),
+                            "provider", user.getAuthProvider().name(),
+                            "verified", user.isEmailVerified()
+                    )))
+                    .orElse(ResponseEntity.notFound().build());
+        }
+        return ResponseEntity.badRequest().body(
+                java.util.Map.of("success", false, "message", "User ID not found in request"));
     }
 
     /**
