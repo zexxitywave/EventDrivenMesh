@@ -55,6 +55,7 @@ public class OrderSagaOrchestrator {
     }
 
     public void onInventoryFailed(UUID orderId, UUID correlationId, String reason) {
+        // No money taken — simply cancel the order. Inventory never reserved so no rollback needed.
         processEvent(orderId, correlationId, SagaEvent.INVENTORY_FAILED,
                 Order.OrderStatus.CANCELLED,
                 "inventory-service", "Inventory reservation failed: " + reason);
@@ -68,12 +69,14 @@ public class OrderSagaOrchestrator {
     }
 
     public void onPaymentFailed(UUID orderId, UUID correlationId, String reason) {
+        // Payment never captured — cancel the order.
+        // Inventory compensation: InventorySagaHandler listens to payment-events
+        // and calls cancelReservation() automatically.
         processEvent(orderId, correlationId, SagaEvent.PAYMENT_FAILED,
-                Order.OrderStatus.FAILED,
+                Order.OrderStatus.CANCELLED,
                 "payment-service", "Payment failed: " + reason);
-        // Compensation is handled by inventory-service which listens to payment-events
-        // (already implemented in InventorySagaHandler)
-        log.warn("[Orchestrator] Order {} FAILED — payment failed: {}", orderId, reason);
+        log.warn("[Orchestrator] Order {} CANCELLED — payment failed: {}, inventory will be released automatically",
+                orderId, reason);
     }
 
     public void onShipmentCreated(UUID orderId, UUID correlationId, String trackingNumber) {
@@ -83,10 +86,16 @@ public class OrderSagaOrchestrator {
     }
 
     public void onShipmentFailed(UUID orderId, UUID correlationId, String reason) {
+        // Payment was already captured — mark as FAILED (not CANCELLED).
+        // Compensation chain:
+        //   1. inventory-service: listens to shipping-events → releases stock
+        //   2. payment-service:   listens to shipping-events → auto-refund
+        //   3. notification-service: listens to shipping-events → emails customer
         processEvent(orderId, correlationId, SagaEvent.SHIPMENT_FAILED,
                 Order.OrderStatus.FAILED,
                 "shipping-service", "Shipment failed: " + reason);
-        log.warn("[Orchestrator] Order {} FAILED — shipment failed: {}", orderId, reason);
+        log.warn("[Orchestrator] Order {} FAILED — shipment failed: {}, auto-refund and stock release triggered",
+                orderId, reason);
     }
 
     // ── Core state machine processing ─────────────────────────────────────────

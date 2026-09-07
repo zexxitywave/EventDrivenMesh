@@ -94,10 +94,10 @@ public class OrderSagaStateMachineConfig
                 .event(SagaEvent.PAYMENT_COMPLETED)
                 .and()
 
-            // Payment failed → fail order + compensate inventory
+            // Payment failed → cancel order (inventory released by InventorySagaHandler)
             .withExternal()
                 .source(Order.OrderStatus.PAYMENT_PROCESSING)
-                .target(Order.OrderStatus.FAILED)
+                .target(Order.OrderStatus.CANCELLED)
                 .event(SagaEvent.PAYMENT_FAILED)
                 .and()
 

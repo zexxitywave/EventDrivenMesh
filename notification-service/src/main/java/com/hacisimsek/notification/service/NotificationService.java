@@ -21,6 +21,8 @@ public interface NotificationService {
     void sendPaymentFailedNotification(UUID orderId, UUID customerId, String email);
     void sendOrderShippedNotification(UUID orderId, UUID customerId, String email, String trackingNumber);
     void sendOrderDeliveredNotification(UUID orderId, UUID customerId, String email);
+    void sendShipmentFailedNotification(UUID orderId, UUID customerId, String email, String reason);
+    void sendRefundProcessedNotification(UUID orderId, UUID customerId, String email, java.math.BigDecimal amount);
 
     // ── Auth-triggered notifications ──────────────────────────────────────────
     void sendOtpNotification(UUID recipientId, String email, String otp);

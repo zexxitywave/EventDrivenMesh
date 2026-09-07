@@ -31,13 +31,37 @@ public class ShippingServiceImpl implements ShippingService {
     private static final String SERVICE_NAME = "shipping-service";
     private static final String[] CARRIERS = {"DHL", "FedEx", "UPS", "USPS"};
 
+    @org.springframework.beans.factory.annotation.Value("${shipping.force-failure:false}")
+    private boolean forceFailure;
+
     @Override
     @Transactional
     public void processShipping(PaymentProcessedEvent paymentEvent) {
         log.info("Processing shipping for order: {}", paymentEvent.getOrderId());
 
-        // In a real application, we would retrieve shipping address from order service
-        // For this example, we'll create a shipment with minimal information
+        // ── Debug: force failure to test saga compensation ───────────────────
+        // Set shipping.force-failure=true in application.yml or as env var
+        // to simulate a shipping failure and observe the full saga rollback.
+        if (forceFailure) {
+            log.warn("[DEBUG] force-failure=true — simulating shipment failure for order: {}",
+                    paymentEvent.getOrderId());
+
+            logPublisher.error(SERVICE_NAME,
+                    paymentEvent.getCorrelationId() != null ? paymentEvent.getCorrelationId().toString() : null,
+                    "Shipment FORCE FAILED for order: " + paymentEvent.getOrderId(),
+                    Map.of("orderId", paymentEvent.getOrderId().toString(),
+                           "reason", "force-failure flag enabled for saga testing"));
+
+            ShipmentFailedEvent failedEvent = new ShipmentFailedEvent(
+                    paymentEvent.getCorrelationId(),
+                    paymentEvent.getOrderId(),
+                    paymentEvent.getCustomerId(),
+                    paymentEvent.getCustomerEmail(),
+                    "Simulated shipment failure (force-failure=true)"
+            );
+            kafkaTemplate.send("shipping-events", failedEvent);
+            return;
+        }
 
         try {
             // Create the shipment record
@@ -119,6 +143,8 @@ public class ShippingServiceImpl implements ShippingService {
             ShipmentFailedEvent failedEvent = new ShipmentFailedEvent(
                     paymentEvent.getCorrelationId(),
                     paymentEvent.getOrderId(),
+                    paymentEvent.getCustomerId(),
+                    paymentEvent.getCustomerEmail(),
                     "Failed to process shipment: " + e.getMessage()
             );
 

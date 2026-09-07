@@ -1,12 +1,9 @@
 package com.hacisimsek.notification.service.impl;
 
-import com.hacisimsek.common.event.order.OrderCreatedEvent;
-import com.hacisimsek.notification.model.Notification;
-import com.hacisimsek.notification.repository.NotificationRepository;
-import com.hacisimsek.notification.service.InvoicePdfService;
-import com.hacisimsek.notification.service.NotificationService;
-import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.UUID;
+
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.mail.javamail.JavaMailSender;
@@ -15,9 +12,14 @@ import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
-import java.util.List;
-import java.util.UUID;
+import com.hacisimsek.common.event.order.OrderCreatedEvent;
+import com.hacisimsek.notification.model.Notification;
+import com.hacisimsek.notification.repository.NotificationRepository;
+import com.hacisimsek.notification.service.InvoicePdfService;
+import com.hacisimsek.notification.service.NotificationService;
+
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 
 @Service
 @RequiredArgsConstructor
@@ -165,6 +167,40 @@ public class NotificationServiceImpl implements NotificationService {
                 """.formatted(orderId);
         buildAndSend(customerId, orderId, email, subject, message,
                 Notification.NotificationType.ORDER_DELIVERED, null);
+    }
+
+    @Override
+    public void sendShipmentFailedNotification(UUID orderId, UUID customerId, String email, String reason) {
+        String subject = "Shipment Failed — Refund Initiated";
+        String message = """
+                <html><body style="font-family:Arial,sans-serif;color:#0f172a;">
+                <h2 style="color:#dc2626;">Shipment Failed</h2>
+                <p>Unfortunately, we were unable to ship your order <strong>%s</strong>.</p>
+                <p><strong>Reason:</strong> %s</p>
+                <p>We have automatically initiated a <strong>full refund</strong> for your order.
+                   The amount will be credited to your original payment method within 5-7 business days.</p>
+                <p>We apologise for the inconvenience. If you have any questions,
+                   contact us at support@zexxity.online</p>
+                </body></html>
+                """.formatted(orderId, reason != null ? reason : "Shipment could not be processed");
+        buildAndSend(customerId, orderId, email, subject, message,
+                Notification.NotificationType.PAYMENT_FAILED, null);
+    }
+
+    @Override
+    public void sendRefundProcessedNotification(UUID orderId, UUID customerId, String email,
+                                                 java.math.BigDecimal amount) {
+        String subject = "Refund Processed — ₹" + (amount != null ? amount.toPlainString() : "");
+        String message = """
+                <html><body style="font-family:Arial,sans-serif;color:#0f172a;">
+                <h2 style="color:#16a34a;">Refund Processed</h2>
+                <p>Your refund of <strong>₹%s</strong> for order <strong>%s</strong> has been processed.</p>
+                <p>The amount will be credited to your original payment method within 5-7 business days.</p>
+                <p>If you have any questions, contact us at support@zexxity.online</p>
+                </body></html>
+                """.formatted(amount != null ? amount.toPlainString() : "N/A", orderId);
+        buildAndSend(customerId, orderId, email, subject, message,
+                Notification.NotificationType.PAYMENT_SUCCESS, null);
     }
 
     // ── OTP ───────────────────────────────────────────────────────────────────
