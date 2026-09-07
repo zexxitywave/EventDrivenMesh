@@ -70,6 +70,22 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
+
+#                When the gateway sees lb://order-service, it:
+#
+#                Asks Eureka — "where is order-service running?"
+#                Gets back the list of instances (IP + port)
+#                Spring Cloud LoadBalancer picks one (round-robin by default)
+#                Routes the request there
+
+
+#                Eureka Server
+#
+#                inventory-service
+#                ├── Instance 1 → 192.168.1.10:8081
+#                ├── Instance 2 → 192.168.1.11:8081
+#                └── Instance 3 → 192.168.1.12:8081
+
         # Order SSE stream — relaxed limit (long-lived connections, not transactions)
         - id: order-service-sse
           uri: lb://order-service
@@ -83,6 +99,27 @@ spring:
                 key-resolver: "#{@ipKeyResolver}"
                 deny-empty-key: false
                 empty-key-status: 429
+#                Client
+#                │
+#                ▼
+#                API Gateway
+#                │
+#                │  Path matches /api/v1/inventory/**
+#                │
+#                ▼
+#                "Need inventory-service"
+#                │
+#                │ asks service discovery (Eureka)
+#                ▼
+#                Eureka
+#                │
+#                │ returns available instances
+#                ▼
+#                Load Balancer
+#                │
+#                │ chooses an instance
+#                ▼
+#                Inventory Service instance
 
         # Inventory Service — standard
         - id: inventory-service

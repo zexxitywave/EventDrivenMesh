@@ -16,7 +16,6 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
-
 import java.util.HashMap;
 import java.util.Map;
 
@@ -50,6 +49,23 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.setBatchListener(true);
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.BATCH);
+//        The offsets for the batch are committed after the listener successfully processes the batch.
+//        Kafka
+//  │
+//  │ multiple records
+//  ▼
+//        Spring Kafka
+//  │
+//  │ batch
+//  ▼
+//        Your @KafkaListener
+//  │
+//  │ process batch
+//  ▼
+//        SUCCESS
+//  │
+//  ▼
+//        ACK / commit offset
         return factory;
     }
 
@@ -64,7 +80,8 @@ public class KafkaConfig {
         config.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class);
         config.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class);
         config.put(ProducerConfig.ACKS_CONFIG, "all");           // wait for all replicas
-        config.put(ProducerConfig.RETRIES_CONFIG, 3);            // retry on transient failures
+        config.put(ProducerConfig.RETRIES_CONFIG, 3);
+        // retry on transient failures  || If sending a message fails temporarily, the Kafka producer will retry the send up to 3 times.
         config.put(ProducerConfig.ENABLE_IDEMPOTENCE_CONFIG, true); // exactly-once delivery
         return new DefaultKafkaProducerFactory<>(config);
     }

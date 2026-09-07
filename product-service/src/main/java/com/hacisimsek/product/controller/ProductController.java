@@ -52,6 +52,17 @@ public class ProductController {
                 .map(request -> productService.createProduct(sellerId, request))
                 .toList();
 
+//        for (ProductRequest request : requests) {
+//        ...
+//        }
+
+
+//        Java Stream API is a feature in Java that allows you to process
+//        collections of data in a simple, declarative way, without manually writing loops.
+
+
+
+
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(products);
     }
@@ -113,6 +124,11 @@ public class ProductController {
             @RequestParam(defaultValue = "20") int size,
             @RequestParam(defaultValue = "createdAt") String sortBy,
             @RequestParam(defaultValue = "desc") String sortDir) {
+
+
+//        GET /api/products?keyword=phone&categoryId=123&status=ACTIVE
+//                &minPrice=100&maxPrice=500&brand=Samsung
+//                &page=0&size=20&sortBy=price&sortDir=asc
 
         Sort sort = sortDir.equalsIgnoreCase("asc")
                 ? Sort.by(sortBy).ascending()

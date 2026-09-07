@@ -90,6 +90,22 @@ public class ShippingServiceImpl implements ShippingService {
                            "shipmentId", savedShipment.getId().toString(),
                            "trackingNumber", savedShipment.getTrackingNumber(),
                            "carrier", savedShipment.getCarrierName()));
+//┌─────────────────────────────────────────────┐
+//│ level: INFO                                 │
+//│ service: shipping-service                   │
+//│ correlationId: corr-123                     │
+//│                                             │
+//│ message:                                    │
+//│ "Shipment created for order: ORD-1001       │
+//│  | tracking: TRK-987654"                    │
+//│                                             │
+//│ metadata:                                   │
+//│   orderId:       ORD-1001                   │
+//│   shipmentId:    SHIP-5001                  │
+//│   trackingNumber: TRK-987654                │
+//│   carrier:       DHL                        │
+//└─────────────────────────────────────────────┘
+
 
         } catch (Exception e) {
             log.error("Failed to process shipping for order: {}", paymentEvent.getOrderId(), e);

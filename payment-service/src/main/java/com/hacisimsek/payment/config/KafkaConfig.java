@@ -73,6 +73,7 @@ public class KafkaConfig {
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
         // Retry twice with 2s gap, then skip — prevents poison-pill messages from looping
+        // 2-second gap + 2 retries + then skip/recover the failed record.
         factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 2)));
         return factory;
     }

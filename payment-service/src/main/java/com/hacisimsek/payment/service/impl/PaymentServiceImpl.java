@@ -44,7 +44,6 @@ public class PaymentServiceImpl implements PaymentService {
     private final LogPublisher logPublisher;
     private final Counter paymentsProcessedCounter;
     private final Counter paymentsFailedCounter;
-
     private static final String PAYMENT_TOPIC = "payment-events";
     private static final String DEFAULT_CURRENCY = "INR";
     private static final String SERVICE_NAME = "payment-service";
@@ -72,6 +71,8 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    // @Transactional defines a transaction boundary. It ensures that the database operations inside that boundary are treated as a single unit of work:
+    // if they all succeed, they're committed; if the transaction fails, the changes are rolled back
     public void processPayment(InventoryReservedEvent event) {
         log.info("Saga: processing payment for order={}", event.getOrderId());
 
@@ -327,11 +328,27 @@ public class PaymentServiceImpl implements PaymentService {
             JsonNode root = objectMapper.readTree(webhookPayload);
 
             switch (eventType) {
+// root
+// │
+// └── payload
+//      │
+//      └── payment
+//           │
+//           └── entity
+//                │
+//                ├── id
+//                ├── order_id
+//                ├── amount
+//                └── status
 
                 case "payment.captured" -> {
                     JsonNode entity = root.path("payload").path("payment").path("entity");
                     String gatewayPaymentId = entity.path("id").asText();
                     String gatewayOrderId   = entity.path("order_id").asText();
+
+                    //Your code receives the entire JSON as:
+
+                    //String webhookPayload
 
                     paymentRepository.findByGatewayOrderId(gatewayOrderId).ifPresentOrElse(payment -> {
                         if (payment.getStatus() == Payment.PaymentStatus.COMPLETED) {

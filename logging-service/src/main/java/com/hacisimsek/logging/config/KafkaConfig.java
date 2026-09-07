@@ -23,6 +23,7 @@ public class KafkaConfig {
     /**
      * Logging service consumes all events (service-logs, order-events,
      * payment-events, shipping-events) from the single Kafka broker on port 9092.
+     * A producer factory is needed when this service itself sends messages to Kafka.
      */
     @Bean
     public ConsumerFactory<String, Object> consumerFactory() {

@@ -15,6 +15,7 @@ import org.springframework.context.annotation.Primary;
  *   requestedTokens — tokens consumed per request (always 1 here)
  *
  * Rule of thumb: burstCapacity = replenishRate * 2  (allow 2s worth of burst)
+ * HTTP 429 Too Many Requests
  *
  * ┌─────────────────┬───────────────┬───────────────┬──────────────────────────────────┐
  * │ Bean name       │ replenishRate │ burstCapacity │ Used for                         │

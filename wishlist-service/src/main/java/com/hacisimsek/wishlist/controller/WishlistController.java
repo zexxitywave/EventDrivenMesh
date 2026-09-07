@@ -26,6 +26,8 @@ import java.util.UUID;
 public class WishlistController {
 
     private final WishlistService wishlistService;
+    //Wishlist-service only has ProducerFactory + KafkaTemplate because it publishes
+    // events when a user adds/removes wishlist items (e.g. wishlist-events topic) — but it never listens to any Kafka topic.
 
     /** Add a product to the authenticated user's wishlist. Returns 409 on duplicate. */
     @PostMapping("/add")

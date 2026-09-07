@@ -19,7 +19,7 @@ import java.util.UUID;
 @AllArgsConstructor
 public class InventoryReservation {
     @Id
-    private UUID id;
+    private UUID id; // ugg6-hh7f-hh5s-hydy
     private UUID orderId;
     private UUID correlationId;
     private List<ReservationItem> items;

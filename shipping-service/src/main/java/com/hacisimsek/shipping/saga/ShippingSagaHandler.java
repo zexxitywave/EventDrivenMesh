@@ -13,6 +13,7 @@ import org.springframework.stereotype.Component;
 public class ShippingSagaHandler {
 
     private final ShippingService shippingService;
+    // Shipping is triggered by a successful payment.
 
     @KafkaListener(
             topics = "payment-events",

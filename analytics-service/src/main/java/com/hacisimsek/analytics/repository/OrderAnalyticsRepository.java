@@ -9,6 +9,11 @@ import java.util.List;
 
 @Repository
 public interface OrderAnalyticsRepository extends JpaRepository<OrderAnalytics, Long> {
+    //A JPA Repository is an interface that lets you interact with a database without writing most SQL queries yourself.
+    //userRepository.save(user);        // INSERT / UPDATE
+    //userRepository.findById(1L);      // SELECT by ID
+    //userRepository.findAll();        // SELECT all
+    //userRepository.deleteById(1L);   // DELETE
 
     // Total revenue across all orders
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM OrderAnalytics o")

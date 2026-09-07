@@ -37,6 +37,7 @@ public class UserProfileController {
     /**
      * Create profile â€” called after registration.
      * The userId comes from the X-User-Id header injected by the API Gateway JWT filter.
+     * The User Service needs to know which user is making the request.
      */
     @PostMapping("/profile")
     public ResponseEntity<UserProfile> createProfile(
@@ -45,7 +46,7 @@ public class UserProfileController {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(userProfileService.createProfile(userId, request));
     }
-//
+///   // 
     /**
      * Get my profile.
      */

@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.UUID;
 
 @Data
+// The @Data annotation is part of the Lombok library
+// and is used to generate various getter, setter, constructor, and equals, hashCode, and toString methods for a class.
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor

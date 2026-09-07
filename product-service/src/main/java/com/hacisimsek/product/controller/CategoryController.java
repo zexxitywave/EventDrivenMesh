@@ -22,6 +22,16 @@ import java.util.UUID;
 @RestController
 @RequestMapping("/api/v1/products/categories")
 @RequiredArgsConstructor
+// With @RequiredArgsConstructor, the constructor is automatically generated, reducing the amount of code you need to write.
+// Using @NoArgsConstructor
+// This constructor will have default values for all non-final, non-static, and non-transient instance fields
+// @NoArgsConstructor
+//    public MyClass() {
+//        this.name = "";
+//        this.age = 0;
+//        this.isActive = false;
+//        this.address = "";
+//    }
 public class CategoryController {
 
     private final CategoryService categoryService;

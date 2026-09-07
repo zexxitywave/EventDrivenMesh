@@ -79,4 +79,12 @@ public class CategoryService {
     private String toSlug(String name) {
         return name.toLowerCase().replaceAll("[^a-z0-9]+", "-").replaceAll("^-|-$", "");
     }
+
+//    Category name                  Slug
+//------------------------------------------------
+//    Electronics                    electronics
+//    Mobile Phones                  mobile-phones
+//    Men's Fashion                  mens-fashion
+//    Home & Kitchen                 home-kitchen
+//    Sports & Fitness               sports-fitness
 }

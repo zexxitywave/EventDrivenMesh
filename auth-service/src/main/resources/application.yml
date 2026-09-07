@@ -34,15 +34,18 @@ spring:
 
   mail:
     host: ${MAIL_HOST:smtp.resend.com}
-    port: ${MAIL_PORT:465}
+    port: ${MAIL_PORT:587}
     username: ${MAIL_USERNAME:resend}
     password: ${MAIL_PASSWORD}
     properties:
       mail:
         smtp:
           auth: true
+          starttls:
+            enable: true      # port 587 uses STARTTLS — start plain then upgrade to TLS
+            required: true
           ssl:
-            enable: true
+            enable: false     # ssl.enable=true is for port 465 (SSL/TLS), NOT 587
 
   data:
     redis:
