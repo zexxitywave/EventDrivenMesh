@@ -72,3 +72,11 @@ management:
         http.server.requests: true
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
+
+# ── Debug / Testing ───────────────────────────────────────────────────────────
+# Set to true to simulate a shipping failure and observe the full saga rollback:
+#   - order status → FAILED
+#   - inventory stock released (compensation via InventorySagaHandler)
+#   - notification sent to customer
+shipping:
+  force-failure: true

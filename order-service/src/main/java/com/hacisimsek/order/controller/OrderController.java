@@ -31,7 +31,7 @@ public class OrderController {
 
     @PostMapping
     @ResponseStatus(HttpStatus.CREATED)
-    @Operation(summary = "Create a new order", description = "Starts the order saga (inventory â†’ payment â†’ shipping)")
+    @Operation(summary = "Create a new order", description = "Starts the order saga (inventory -> payment -> shipping)")
     public OrderResponse createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         return orderService.createOrder(orderRequest);
     }
@@ -55,7 +55,7 @@ public class OrderController {
     }
 
     /**
-     * Event Sourcing audit trail â€” full immutable history of an order.
+     * Event Sourcing audit trail - full immutable history of one order.
      */
     @GetMapping("/{orderId}/history")
     @Operation(
@@ -67,22 +67,31 @@ public class OrderController {
     }
 
     /**
-     * SSE endpoint â€” streams real-time order status updates to the client.
+     * Get all events tied to a saga correlation ID.
+     * Use this to trace the entire saga across all services.
+     * Example: GET /api/v1/orders/correlation/82e5adf2-dc86-4d09-b42f-e62ca9f7c129
+     */
+    @GetMapping("/correlation/{correlationId}")
+    @Operation(
+        summary = "Get all saga events by correlation ID",
+        description = "Returns all order events tied to a saga correlation ID — traces the full saga from order creation to final state"
+    )
+    public List<OrderEvent> getEventsByCorrelationId(@PathVariable UUID correlationId) {
+        return orderEventService.getByCorrelationId(correlationId);
+    }
+
+    /**
+     * SSE endpoint - streams real-time order status updates to the client.
      *
      * Usage (JavaScript):
-     * <pre>
-     *   const es = new EventSource('/api/orders/{orderId}/status-stream');
-     *   es.addEventListener('status-update', e => console.log(JSON.parse(e.data)));
-     *   es.addEventListener('complete', () => es.close());
-     * </pre>
+     * const es = new EventSource('/api/v1/orders/{orderId}/status-stream');
+     * es.addEventListener('status-update', e => console.log(JSON.parse(e.data)));
+     * es.addEventListener('complete', () => es.close());
      *
      * Events emitted:
-     *   connected     â€” immediately on subscription
-     *   status-update â€” on every saga step (INVENTORY_RESERVED, PAYMENT_COMPLETED, SHIPPED, etc.)
-     *   complete      â€” when the order reaches a terminal state (stream then closes)
-     *
-     * The connection is held open for up to 5 minutes. If no terminal state is
-     * reached by then, the client should reconnect and poll {@link #getOrderById}.
+     *   connected     - immediately on subscription
+     *   status-update - on every saga step (INVENTORY_RESERVED, PAYMENT_COMPLETED, SHIPPED, etc.)
+     *   complete      - when the order reaches a terminal state (stream then closes)
      */
     @GetMapping(value = "/{orderId}/status-stream", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
     @Operation(
