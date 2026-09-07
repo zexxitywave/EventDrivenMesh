@@ -1,7 +1,6 @@
 ﻿package com.hacisimsek.auth.controller;
 
 import com.hacisimsek.auth.dto.*;
-import com.hacisimsek.auth.model.User;
 import com.hacisimsek.auth.repository.UserRepository;
 import com.hacisimsek.auth.service.AuthService;
 import jakarta.validation.Valid;
@@ -109,7 +108,7 @@ public class AuthController {
                             "name",     user.getName(),
                             "email",    user.getEmail(),
                             "role",     user.getRole().name(),
-                            "provider", user.getAuthProvider().name(),
+                            "provider", user.getProvider().name(),
                             "verified", user.isEmailVerified()
                     )))
                     .orElse(ResponseEntity.notFound().build());
