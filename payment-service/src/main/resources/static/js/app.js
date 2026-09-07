@@ -45,7 +45,7 @@ async function loadOrder() {
 
     try {
         // Proxy endpoint in payment-service — avoids CORS & JWT header issues from the browser
-        const response = await fetch(`/api/payments/orders/${orderId}`);
+        const response = await fetch(`/api/v1/payments/orders/${orderId}`);
 
         if (response.status === 404) {
             lookupError.textContent = "Order not found. Please check the Order ID.";
@@ -118,7 +118,7 @@ async function initiatePayment() {
     setStatus("Creating payment order...");
 
     try {
-        const initResponse = await fetch("/api/payments/initiate", {
+        const initResponse = await fetch("/api/v1/payments/initiate", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -193,7 +193,7 @@ async function initiatePayment() {
 
 async function verifyPayment(gatewayOrder, razorpayResponse) {
     try {
-        const verifyResponse = await fetch("/api/payments/verify", {
+        const verifyResponse = await fetch("/api/v1/payments/verify", {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({

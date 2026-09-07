@@ -73,14 +73,14 @@ public class PaymentController {
     }
 
     /**
-     * Proxy endpoint used by the checkout UI.
-     * Fetches order details from order-service via Eureka load balancing
-     * so the browser never needs to cross origins or deal with JWT headers.
+     * Proxy endpoint used by the checkout UI (served at /api/payments/orders/{orderId}
+     * without /v1 prefix so the static HTML doesn't need updating).
+     * Fetches order details from order-service via Eureka load balancing.
      */
     @GetMapping("/orders/{orderId}")
     public ResponseEntity<Map> getOrderForCheckout(@PathVariable UUID orderId) {
         try {
-            String url = "http://order-service/api/orders/" + orderId;
+            String url = "http://order-service/api/v1/orders/" + orderId;
             Map order = restTemplate.getForObject(url, Map.class);
             return ResponseEntity.ok(order);
         } catch (HttpClientErrorException.NotFound e) {
