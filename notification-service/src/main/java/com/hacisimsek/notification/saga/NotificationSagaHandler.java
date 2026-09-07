@@ -29,11 +29,28 @@ public class NotificationSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handleOrderEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        log.debug("Received order event: {}", event != null ? event.getClass().getSimpleName() : "null");
-
         if (event instanceof OrderCreatedEvent e) {
-            log.info("ORDER_PLACED event for order: {}, email: {}", e.getOrderId(), e.getCustomerEmail());
+            log.info("ORDER_PLACED for order: {}", e.getOrderId());
             notificationService.sendOrderPlacedNotification(e);
+        }
+    }
+
+    // ── Inventory events ──────────────────────────────────────────────────────
+
+    @KafkaListener(topics = "inventory-events", groupId = "notification-service-group",
+            containerFactory = "kafkaListenerContainerFactory")
+    public void handleInventoryEvents(ConsumerRecord<String, Object> record) {
+        Object event = record.value();
+        if (event instanceof InventoryReservationFailedEvent e) {
+            log.warn("INVENTORY_FAILED for order: {} — notifying customer", e.getOrderId());
+            // Only send email if we have the customer's email address
+            if (e.getCustomerEmail() != null && !e.getCustomerEmail().isBlank()) {
+                notificationService.sendOrderCancelledNotification(
+                        e.getOrderId(),
+                        e.getCustomerId(),
+                        e.getCustomerEmail(),
+                        e.getReason() != null ? e.getReason() : "Item out of stock");
+            }
         }
     }
 

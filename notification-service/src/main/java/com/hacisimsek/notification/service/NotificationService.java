@@ -1,10 +1,10 @@
 package com.hacisimsek.notification.service;
 
-import com.hacisimsek.common.event.order.OrderCreatedEvent;
-import com.hacisimsek.notification.model.Notification;
-
 import java.util.List;
 import java.util.UUID;
+
+import com.hacisimsek.common.event.order.OrderCreatedEvent;
+import com.hacisimsek.notification.model.Notification;
 
 public interface NotificationService {
 
@@ -21,6 +21,7 @@ public interface NotificationService {
     void sendPaymentFailedNotification(UUID orderId, UUID customerId, String email);
     void sendOrderShippedNotification(UUID orderId, UUID customerId, String email, String trackingNumber);
     void sendOrderDeliveredNotification(UUID orderId, UUID customerId, String email);
+    void sendOrderCancelledNotification(UUID orderId, UUID customerId, String email, String reason);
     void sendShipmentFailedNotification(UUID orderId, UUID customerId, String email, String reason);
     void sendRefundProcessedNotification(UUID orderId, UUID customerId, String email, java.math.BigDecimal amount);
 

@@ -104,6 +104,8 @@ public class InventoryServiceImpl implements InventoryService {
             publishInventoryEvent(new InventoryReservationFailedEvent(
                     orderCreatedEvent.getCorrelationId(),
                     orderCreatedEvent.getOrderId(),
+                    orderCreatedEvent.getCustomerId(),
+                    orderCreatedEvent.getCustomerEmail(),
                     insufficientItemsMessage.toString()
             ));
             reservationFailedCounter.increment();

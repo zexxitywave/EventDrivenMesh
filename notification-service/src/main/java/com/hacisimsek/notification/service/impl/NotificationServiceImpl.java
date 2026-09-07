@@ -170,6 +170,21 @@ public class NotificationServiceImpl implements NotificationService {
     }
 
     @Override
+    public void sendOrderCancelledNotification(UUID orderId, UUID customerId, String email, String reason) {
+        String subject = "Order Cancelled";
+        String message = """
+                <html><body style="font-family:Arial,sans-serif;">
+                <h2 style="color:#dc2626;">Order Cancelled</h2>
+                <p>Your order <strong>%s</strong> has been cancelled.</p>
+                <p><strong>Reason:</strong> %s</p>
+                <p>No payment was taken. If you have any questions contact support@zexxity.online</p>
+                </body></html>
+                """.formatted(orderId, reason != null ? reason : "Item out of stock");
+        buildAndSend(customerId, orderId, email, subject, message,
+                Notification.NotificationType.PAYMENT_FAILED, null);
+    }
+
+    @Override
     public void sendShipmentFailedNotification(UUID orderId, UUID customerId, String email, String reason) {
         String subject = "Shipment Failed — Refund Initiated";
         String message = """
