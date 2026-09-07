@@ -21,6 +21,9 @@ spring:
         spring.json.trusted.packages: "com.hacisimsek.*"
         spring.json.use.type.headers: false
         spring.json.value.default.type: java.util.Map
+        # Keep type headers so LogEventConsumer can read __TypeId__
+        # to extract the event class name (OrderCreatedEvent, PaymentFailedEvent, etc.)
+        # We still deserialize to Map — we only READ the header for the name, not for class loading
         session.timeout.ms: 30000
         heartbeat.interval.ms: 10000
         max.poll.interval.ms: 300000

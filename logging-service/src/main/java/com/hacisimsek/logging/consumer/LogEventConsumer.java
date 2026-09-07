@@ -118,16 +118,25 @@ public class LogEventConsumer {
     @SuppressWarnings("unchecked")
     private void saveEventLog(String defaultService, String topic, ConsumerRecord<String, Object> record) {
         try {
-            Map<String, Object> payload = (Map<String, Object>) record.value();
+            Object rawValue = record.value();
+
+            // Guard: value must be a Map (deserialized from JSON)
+            if (!(rawValue instanceof Map)) {
+                log.warn("[LogConsumer] Skipping non-Map record on topic={} type={}",
+                        topic, rawValue != null ? rawValue.getClass().getSimpleName() : "null");
+                return;
+            }
+
+            Map<String, Object> payload = (Map<String, Object>) rawValue;
 
             // Derive type from __TypeId__ header or payload fields
             String eventType = extractEventType(record, payload);
             boolean isFailure = eventType.toLowerCase().contains("failed")
                     || eventType.toLowerCase().contains("fail");
 
-            String orderId    = getString(payload, "orderId", null);
-            String customerId = getString(payload, "customerId", null);
-            String correlationId = getString(payload, "correlationId", null);
+            String orderId       = extractStringValue(payload, "orderId");
+            String customerId    = extractStringValue(payload, "customerId");
+            String correlationId = extractStringValue(payload, "correlationId");
 
             String message = "[" + topic.toUpperCase() + "] " + eventType
                     + (orderId    != null ? " | orderId="    + orderId    : "")
@@ -145,22 +154,43 @@ public class LogEventConsumer {
 
             logService.save(entry);
         } catch (Exception e) {
-            log.warn("Failed to process {} record: {}", topic, e.getMessage());
+            log.warn("Failed to process {} record at offset {}: {}",
+                    topic, record.offset(), e.getMessage());
         }
     }
 
+    /**
+     * Safely extracts a string value from a Map field.
+     * Handles cases where UUID fields may be stored as String or nested Map.
+     */
+    private String extractStringValue(Map<String, Object> payload, String key) {
+        Object val = payload.get(key);
+        if (val == null) return null;
+        // UUID serialized as string
+        if (val instanceof String s) return s.isBlank() ? null : s;
+        // Some deserializers wrap UUIDs as maps - just use toString
+        return val.toString();
+    }
+
     private String extractEventType(ConsumerRecord<String, Object> record, Map<String, Object> payload) {
-        // Try __TypeId__ Kafka header first
+        // Try __TypeId__ Kafka header first — set by all producers via ADD_TYPE_INFO_HEADERS=true
         if (record.headers() != null) {
             var typeHeader = record.headers().lastHeader("__TypeId__");
             if (typeHeader != null) {
                 String fullClass = new String(typeHeader.value());
                 int dot = fullClass.lastIndexOf('.');
-                return dot >= 0 ? fullClass.substring(dot + 1) : fullClass;
+                String typeName = dot >= 0 ? fullClass.substring(dot + 1) : fullClass;
+                log.debug("[LogConsumer] __TypeId__ header found: {} -> {}", fullClass, typeName);
+                return typeName;
             }
         }
         // Fall back to payload field
-        return getString(payload, "eventType", "UnknownEvent");
+        String fromPayload = getString(payload, "eventType", null);
+        if (fromPayload != null) return fromPayload;
+
+        log.debug("[LogConsumer] No __TypeId__ header and no eventType field in payload — keys: {}",
+                payload.keySet());
+        return "UnknownEvent";
     }
 
     private String getString(Map<String, Object> map, String key, String defaultVal) {
