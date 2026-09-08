@@ -1,7 +1,8 @@
-console.log("app.js loaded");
+﻿console.log("app.js loaded");
 
 // ── State ──────────────────────────────────────────────────────────────────
 let currentOrder = null;
+let _pollTimer   = null;   // active polling timer handle
 
 // ── DOM refs ───────────────────────────────────────────────────────────────
 const lookupSection   = document.getElementById("lookupSection");
@@ -20,8 +21,8 @@ document.getElementById("backBtn").addEventListener("click", showLookup);
 const TERMINAL_PAID_STATUSES = ["SHIPPED", "COMPLETED", "PAYMENT_COMPLETED"];
 // Statuses where order failed — no payment possible
 const TERMINAL_FAILED_STATUSES = ["FAILED", "CANCELLED"];
-// Statuses where we are still waiting for inventory — too early to pay
-const PENDING_SAGA_STATUSES = ["INVENTORY_CHECKING"];
+// Statuses where saga is still in-flight — too early to pay, keep polling
+const PENDING_SAGA_STATUSES = ["PENDING", "INVENTORY_CHECKING"];
 
 // ── Step 1 — Load order ────────────────────────────────────────────────────
 async function loadOrder() {
@@ -100,43 +101,68 @@ function renderOrderSummary() {
 
     // ── Guard: disable Pay Now based on order status ───────────────────────
     if (TERMINAL_PAID_STATUSES.includes(status)) {
-        // Already paid — hide button, show success message
+        stopPolling();
         payBtn.style.display = "none";
         setStatus("✅ Payment already completed for this order.", "success");
         return;
     }
 
     if (TERMINAL_FAILED_STATUSES.includes(status)) {
-        // Order failed/cancelled — cannot pay
+        stopPolling();
         payBtn.style.display = "none";
         setStatus("❌ This order has been " + status.toLowerCase() + ". No payment is possible.", "error");
         return;
     }
 
     if (PENDING_SAGA_STATUSES.includes(status)) {
-        // Saga still processing inventory — too early
+        // Saga still processing — keep polling every 3s until it advances
+        payBtn.style.display = "";
         payBtn.disabled = true;
         payBtn.textContent = "Waiting for inventory...";
-        setStatus("⏳ Inventory check in progress. Please wait a moment and reload.", "warn");
-        // Auto-poll every 3 seconds until status changes
-        setTimeout(async () => {
-            try {
-                const r = await fetch(`/api/v1/payments/orders/${currentOrder.orderId}`);
-                if (r.ok) {
-                    const updated = await r.json();
-                    currentOrder = { ...updated, _customerId: currentOrder._customerId };
-                    renderOrderSummary();
-                }
-            } catch (e) { /* ignore */ }
-        }, 3000);
+        setStatus("⏳ Inventory check in progress. Auto-checking every 3 seconds...", "warn");
+        schedulePoll();
         return;
     }
 
-    // Status is INVENTORY_RESERVED or PAYMENT_PROCESSING — enable Pay Now
+    // INVENTORY_RESERVED or PAYMENT_PROCESSING — ready for payment
+    stopPolling();
     payBtn.style.display = "";
     payBtn.disabled = false;
     payBtn.textContent = "Pay Now";
     statusDiv.textContent = "";
+}
+
+// ── Polling ────────────────────────────────────────────────────────────────
+function schedulePoll() {
+    stopPolling(); // clear any existing timer before scheduling a new one
+    _pollTimer = setTimeout(pollOrderStatus, 3000);
+}
+
+function stopPolling() {
+    if (_pollTimer !== null) {
+        clearTimeout(_pollTimer);
+        _pollTimer = null;
+    }
+}
+
+async function pollOrderStatus() {
+    _pollTimer = null;
+    if (!currentOrder) return;
+
+    try {
+        const r = await fetch(`/api/v1/payments/orders/${currentOrder.orderId}`);
+        if (r.ok) {
+            const updated = await r.json();
+            currentOrder = { ...updated, _customerId: currentOrder._customerId };
+            renderOrderSummary(); // re-renders and schedules next poll if still pending
+        } else {
+            // Transient error — try again
+            schedulePoll();
+        }
+    } catch (e) {
+        // Network hiccup — try again
+        schedulePoll();
+    }
 }
 
 // ── Step 2 — Initiate & verify payment ────────────────────────────────────
@@ -293,6 +319,7 @@ function showOrderSection() {
 }
 
 function showLookup() {
+    stopPolling();
     orderSection.classList.add("hidden");
     lookupSection.classList.remove("hidden");
     statusDiv.textContent = "";

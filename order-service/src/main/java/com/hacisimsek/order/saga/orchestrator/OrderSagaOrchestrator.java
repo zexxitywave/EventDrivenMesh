@@ -13,15 +13,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 /**
- * Central Saga Orchestrator — drives the order lifecycle.
+ * Central Saga Orchestrator - drives the order lifecycle.
  *
  * Directly updates order status on each saga outcome.
- * No state machine dependency — keeps it simple and crash-safe.
+ * No state machine dependency - keeps it simple and crash-safe.
  *
  * Compensation chain on failure:
- *   InventoryFailed  → CANCELLED  (no rollback needed, nothing taken)
- *   PaymentFailed    → CANCELLED  (inventory released by InventorySagaHandler)
- *   ShipmentFailed   → FAILED     (inventory released + auto-refund by PaymentSagaHandler)
+ *   InventoryFailed  -> CANCELLED  (no rollback needed, nothing taken)
+ *   PaymentFailed    -> CANCELLED  (inventory released by InventorySagaHandler)
+ *   ShipmentFailed   -> FAILED     (inventory released + auto-refund by PaymentSagaHandler)
  */
 @Service
 @RequiredArgsConstructor
@@ -33,50 +33,52 @@ public class OrderSagaOrchestrator {
     private final OrderService orderService;
     private final LogPublisher logPublisher;
 
-    // ── Forward flow ──────────────────────────────────────────────────────────
+    // Forward flow
 
     public void onInventoryReserved(UUID orderId, UUID correlationId) {
+        // Step 1: mark inventory as reserved
         updateStatus(orderId, correlationId, Order.OrderStatus.INVENTORY_RESERVED,
                 "inventory-service", "Inventory reserved");
+
+        // Step 2: immediately advance to PAYMENT_PROCESSING so the frontend
+        // knows the order is now awaiting manual payment via the checkout UI.
+        // (saga-auto-process=false means payment-service will NOT auto-process;
+        //  the customer must pay via /api/v1/payments/initiate on the frontend.)
+        updateStatus(orderId, correlationId, Order.OrderStatus.PAYMENT_PROCESSING,
+                "inventory-service", "Advancing to payment - awaiting customer checkout");
     }
 
     public void onPaymentCompleted(UUID orderId, UUID correlationId, UUID paymentId) {
         updateStatus(orderId, correlationId, Order.OrderStatus.PAYMENT_COMPLETED,
-                "payment-service", "Payment completed — paymentId=" + paymentId);
+                "payment-service", "Payment completed - paymentId=" + paymentId);
     }
 
     public void onShipmentCreated(UUID orderId, UUID correlationId, String trackingNumber) {
         updateStatus(orderId, correlationId, Order.OrderStatus.SHIPPED,
-                "shipping-service", "Order shipped — tracking=" + trackingNumber);
+                "shipping-service", "Order shipped - tracking=" + trackingNumber);
     }
 
-    // ── Compensation ──────────────────────────────────────────────────────────
+    // Compensation
 
     public void onInventoryFailed(UUID orderId, UUID correlationId, String reason) {
-        // No money taken, no stock reserved — simply cancel
         updateStatus(orderId, correlationId, Order.OrderStatus.CANCELLED,
                 "inventory-service", "Inventory failed: " + reason);
-        log.warn("[Saga] Order {} CANCELLED — inventory unavailable: {}", orderId, reason);
+        log.warn("[Saga] Order {} CANCELLED - inventory unavailable: {}", orderId, reason);
     }
 
     public void onPaymentFailed(UUID orderId, UUID correlationId, String reason) {
-        // Payment never captured — cancel the order
-        // Inventory is automatically released by InventorySagaHandler (listens to payment-events)
         updateStatus(orderId, correlationId, Order.OrderStatus.CANCELLED,
                 "payment-service", "Payment failed: " + reason);
-        log.warn("[Saga] Order {} CANCELLED — payment failed: {}", orderId, reason);
+        log.warn("[Saga] Order {} CANCELLED - payment failed: {}", orderId, reason);
     }
 
     public void onShipmentFailed(UUID orderId, UUID correlationId, String reason) {
-        // Payment already captured — mark FAILED (not CANCELLED)
-        // Auto-refund triggered by PaymentSagaHandler (listens to shipping-events)
-        // Inventory released by InventorySagaHandler (listens to shipping-events)
         updateStatus(orderId, correlationId, Order.OrderStatus.FAILED,
                 "shipping-service", "Shipment failed: " + reason);
-        log.warn("[Saga] Order {} FAILED — shipment failed, auto-refund triggered: {}", orderId, reason);
+        log.warn("[Saga] Order {} FAILED - shipment failed, auto-refund triggered: {}", orderId, reason);
     }
 
-    // ── Internal ──────────────────────────────────────────────────────────────
+    // Internal
 
     private void updateStatus(UUID orderId, UUID correlationId,
                                Order.OrderStatus newStatus,
@@ -85,7 +87,7 @@ public class OrderSagaOrchestrator {
             Order.OrderStatus prev = orderService.getOrderById(orderId).getStatus();
             orderService.updateOrderStatus(orderId, newStatus);
 
-            log.info("[Saga] Order {} | {} → {} | by={}",
+            log.info("[Saga] Order {} | {} -> {} | by={}",
                     orderId, prev, newStatus, triggeredBy);
 
             logPublisher.info(SERVICE_NAME,
@@ -98,7 +100,9 @@ public class OrderSagaOrchestrator {
                             "triggeredBy", triggeredBy
                     ));
         } catch (Exception e) {
-            log.error("[Saga] Failed to update order {} to {}: {}", orderId, newStatus, e.getMessage());
+            log.error("[Saga] Failed to update order {} to {}: {}", orderId, newStatus, e.getMessage(), e);
+            throw new RuntimeException(
+                    "[Saga] Status update failed for order " + orderId + " -> " + newStatus, e);
         }
     }
 }

@@ -46,7 +46,17 @@ public class EventJsonDeserializer implements Deserializer<Object> {
         }
 
         try {
-            Class<?> eventType = Class.forName(className);
+            // Use the Thread Context ClassLoader (TCCL) so the resolved Class<?>
+            // is the same instance that was loaded by the Spring Boot application
+            // classloader at startup.  The single-arg Class.forName() resolves via
+            // the *caller's* classloader (Kafka's internal thread), which is a
+            // different ClassLoader instance — making every instanceof check fail
+            // even though the class name and bytecode are identical.
+            ClassLoader cl = Thread.currentThread().getContextClassLoader();
+            if (cl == null) {
+                cl = EventJsonDeserializer.class.getClassLoader();
+            }
+            Class<?> eventType = Class.forName(className, true, cl);
             return objectMapper.readValue(data, eventType);
         } catch (ClassNotFoundException | IOException ex) {
             throw new IllegalArgumentException("Failed to deserialize Kafka event type: " + className, ex);

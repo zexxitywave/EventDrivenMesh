@@ -1,13 +1,10 @@
 package com.hacisimsek.order.config;
 
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
-import org.apache.kafka.common.header.Header;
-import org.apache.kafka.common.header.Headers;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -20,11 +17,10 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonSerializer;
-import org.springframework.util.ClassUtils;
+import org.springframework.util.backoff.FixedBackOff;
 
-import com.fasterxml.jackson.databind.JavaType;
-import com.fasterxml.jackson.databind.type.TypeFactory;
 import com.hacisimsek.common.kafka.EventJsonDeserializer;
 
 @Configuration
@@ -76,6 +72,13 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
+
+        // Retry twice with a 2-second gap, then log and skip the record.
+        // Without this, deserialization or listener exceptions are silently swallowed.
+        DefaultErrorHandler errorHandler = new DefaultErrorHandler(new FixedBackOff(2000L, 2));
+        errorHandler.addNotRetryableExceptions(IllegalArgumentException.class);
+        factory.setCommonErrorHandler(errorHandler);
+
         return factory;
     }
 }

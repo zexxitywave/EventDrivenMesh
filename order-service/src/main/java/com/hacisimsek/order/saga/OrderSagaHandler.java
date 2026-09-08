@@ -14,12 +14,7 @@ import org.springframework.stereotype.Component;
 
 /**
  * Kafka listeners for the Order Saga.
- *
- * This class is now a thin adapter layer — it receives Kafka events and
- * immediately delegates to the {@link OrderSagaOrchestrator} which owns
- * all the state machine logic and compensation decisions.
- *
- * All business logic that was previously inline here has moved to the orchestrator.
+ * Thin adapter: receives events, delegates to OrderSagaOrchestrator.
  */
 @Component
 @RequiredArgsConstructor
@@ -28,28 +23,39 @@ public class OrderSagaHandler {
 
     private final OrderSagaOrchestrator orchestrator;
 
-    // ── Inventory events ──────────────────────────────────────────────────────
+    // Inventory events
 
     @KafkaListener(topics = "inventory-events", groupId = "order-service-group",
             containerFactory = "kafkaListenerContainerFactory")
     public void handleInventoryEvents(Object event) {
-        log.debug("Received inventory event: {}", event.getClass().getSimpleName());
+        log.info("[SagaHandler] Received inventory event: type={}",
+                event != null ? event.getClass().getName() : "null");
 
         if (event instanceof InventoryReservedEvent e) {
+            log.info("[SagaHandler] Matched InventoryReservedEvent for order={}", e.getOrderId());
             orchestrator.onInventoryReserved(e.getOrderId(), e.getCorrelationId());
 
         } else if (event instanceof InventoryReservationFailedEvent e) {
+            log.info("[SagaHandler] Matched InventoryReservationFailedEvent for order={}", e.getOrderId());
             orchestrator.onInventoryFailed(e.getOrderId(), e.getCorrelationId(),
                     e.getReason() != null ? e.getReason() : "unknown");
+
+        } else {
+            log.warn("[SagaHandler] No match for inventory event type={} — instanceof checks failed. " +
+                     "ClassLoader: {}, InventoryReservedEvent loader: {}",
+                    event != null ? event.getClass().getName() : "null",
+                    event != null ? event.getClass().getClassLoader() : "N/A",
+                    InventoryReservedEvent.class.getClassLoader());
         }
     }
 
-    // ── Payment events ────────────────────────────────────────────────────────
+    // Payment events
 
     @KafkaListener(topics = "payment-events", groupId = "order-service-group",
             containerFactory = "kafkaListenerContainerFactory")
     public void handlePaymentEvents(Object event) {
-        log.debug("Received payment event: {}", event.getClass().getSimpleName());
+        log.info("[SagaHandler] Received payment event: type={}",
+                event != null ? event.getClass().getName() : "null");
 
         if (event instanceof PaymentProcessedEvent e) {
             orchestrator.onPaymentCompleted(e.getOrderId(), e.getCorrelationId(), e.getPaymentId());
@@ -57,15 +63,20 @@ public class OrderSagaHandler {
         } else if (event instanceof PaymentFailedEvent e) {
             orchestrator.onPaymentFailed(e.getOrderId(), e.getCorrelationId(),
                     e.getReason() != null ? e.getReason() : "unknown");
+
+        } else {
+            log.warn("[SagaHandler] Unhandled payment event type: {}",
+                    event != null ? event.getClass().getName() : "null");
         }
     }
 
-    // ── Shipping events ───────────────────────────────────────────────────────
+    // Shipping events
 
     @KafkaListener(topics = "shipping-events", groupId = "order-service-group",
             containerFactory = "kafkaListenerContainerFactory")
     public void handleShippingEvents(Object event) {
-        log.debug("Received shipping event: {}", event.getClass().getSimpleName());
+        log.info("[SagaHandler] Received shipping event: type={}",
+                event != null ? event.getClass().getName() : "null");
 
         if (event instanceof ShipmentProcessedEvent e) {
             orchestrator.onShipmentCreated(e.getOrderId(), e.getCorrelationId(), e.getTrackingNumber());
@@ -73,6 +84,10 @@ public class OrderSagaHandler {
         } else if (event instanceof ShipmentFailedEvent e) {
             orchestrator.onShipmentFailed(e.getOrderId(), e.getCorrelationId(),
                     e.getReason() != null ? e.getReason() : "unknown");
+
+        } else {
+            log.warn("[SagaHandler] Unhandled shipping event type: {}",
+                    event != null ? event.getClass().getName() : "null");
         }
     }
 }
