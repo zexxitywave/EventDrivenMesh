@@ -1,5 +1,6 @@
 package com.hacisimsek.payment.saga;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.payment.dto.RefundRequest;
@@ -18,8 +19,12 @@ import org.springframework.stereotype.Component;
 @Slf4j
 public class PaymentSagaHandler {
 
+    private static final String INVENTORY_RESERVED = InventoryReservedEvent.class.getName();
+    private static final String SHIPMENT_FAILED    = ShipmentFailedEvent.class.getName();
+
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
+    private final ObjectMapper objectMapper;
 
     /**
      * When false: saga stops at INVENTORY_RESERVED and waits for the customer
@@ -37,20 +42,22 @@ public class PaymentSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handleInventoryEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        if (event instanceof InventoryReservedEvent inventoryReservedEvent) {
+        String type = event != null ? event.getClass().getName() : null;
+        if (INVENTORY_RESERVED.equals(type)) {
+            InventoryReservedEvent inventoryReservedEvent =
+                    objectMapper.convertValue(event, InventoryReservedEvent.class);
             if (sagaAutoProcess) {
                 log.info("saga-auto-process=true — auto-processing payment for order: {}",
                         inventoryReservedEvent.getOrderId());
                 paymentService.processPayment(inventoryReservedEvent);
             } else {
-                log.info("saga-auto-process=false — waiting for manual payment for order: {}. " +
+                log.info("saga-auto-process=false — preparing manual payment for order: {}. " +
                         "Call POST /api/v1/payments/initiate to proceed.",
                         inventoryReservedEvent.getOrderId());
-                // Do nothing — customer will initiate payment manually via Razorpay
+                paymentService.preparePayment(inventoryReservedEvent);
             }
         } else {
-            log.debug("Ignoring non-InventoryReservedEvent on inventory-events: {}",
-                    event != null ? event.getClass().getSimpleName() : "null");
+            log.debug("Ignoring non-InventoryReservedEvent on inventory-events: {}", type);
         }
     }
 
@@ -66,7 +73,10 @@ public class PaymentSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handleShippingEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        if (event instanceof ShipmentFailedEvent shipmentFailedEvent) {
+        String type = event != null ? event.getClass().getName() : null;
+        if (SHIPMENT_FAILED.equals(type)) {
+            ShipmentFailedEvent shipmentFailedEvent =
+                    objectMapper.convertValue(event, ShipmentFailedEvent.class);
             log.warn("ShipmentFailedEvent received for order: {} — initiating auto-refund",
                     shipmentFailedEvent.getOrderId());
             processAutoRefund(shipmentFailedEvent);
