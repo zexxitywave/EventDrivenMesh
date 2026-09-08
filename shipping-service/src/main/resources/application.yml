@@ -79,4 +79,5 @@ management:
 #   - inventory stock released (compensation via InventorySagaHandler)
 #   - notification sent to customer
 shipping:
-  force-failure: true
+  force-failure: false
+#
