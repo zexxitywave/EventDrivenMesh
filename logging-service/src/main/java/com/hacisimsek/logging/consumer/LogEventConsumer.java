@@ -1,5 +1,7 @@
 package com.hacisimsek.logging.consumer;
 
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.logging.model.LogEntry;
 import com.hacisimsek.logging.service.LogService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +10,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.util.Map;
 
@@ -19,8 +22,10 @@ import java.util.Map;
  * - inventory-events: business events auto-converted to log entries
  * - shipping-events : business events auto-converted to log entries
  *
- * All records are deserialized as Map<String,Object> — no shared DTOs needed.
- * This keeps the logging service fully decoupled from other services' class hierarchies.
+ * Records arrive as raw bytes (headers on the wire include __TypeId__, which
+ * Spring's JsonDeserializer would strip). We keep the headers and parse the JSON
+ * payload into a Map ourselves — fully decoupled from other services' class
+ * hierarchies, and able to report the real event type in each log entry.
  */
 @Component
 @RequiredArgsConstructor
@@ -29,13 +34,17 @@ public class LogEventConsumer {
 
     private final LogService logService;
 
+    private final ObjectMapper objectMapper = new ObjectMapper()
+            .findAndRegisterModules()
+            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+
     // ── Explicit service log events ───────────────────────────────────────────
 
     @KafkaListener(topics = "service-logs", groupId = "logging-service-group",
             containerFactory = "kafkaListenerContainerFactory")
-    public void consumeServiceLogs(ConsumerRecord<String, Object> record) {
+    public void consumeServiceLogs(ConsumerRecord<String, byte[]> record) {
         try {
-            LogEntry entry = parseServiceLog(record);
+            LogEntry entry = parseServiceLog(toPayload(record));
             logService.save(entry);
         } catch (Exception e) {
             log.warn("Failed to process service-logs record: {}", e.getMessage());
@@ -46,37 +55,47 @@ public class LogEventConsumer {
 
     @KafkaListener(topics = "order-events", groupId = "logging-service-group",
             containerFactory = "kafkaListenerContainerFactory")
-    public void consumeOrderEvents(ConsumerRecord<String, Object> record) {
+    public void consumeOrderEvents(ConsumerRecord<String, byte[]> record) {
         saveEventLog("order-service", "order-events", record);
     }
 
     @KafkaListener(topics = "payment-events", groupId = "logging-service-group",
             containerFactory = "kafkaListenerContainerFactory")
-    public void consumePaymentEvents(ConsumerRecord<String, Object> record) {
+    public void consumePaymentEvents(ConsumerRecord<String, byte[]> record) {
         saveEventLog("payment-service", "payment-events", record);
     }
 
     @KafkaListener(topics = "inventory-events", groupId = "logging-service-group",
             containerFactory = "kafkaListenerContainerFactory")
-    public void consumeInventoryEvents(ConsumerRecord<String, Object> record) {
+    public void consumeInventoryEvents(ConsumerRecord<String, byte[]> record) {
         saveEventLog("inventory-service", "inventory-events", record);
     }
 
     @KafkaListener(topics = "shipping-events", groupId = "logging-service-group",
             containerFactory = "kafkaListenerContainerFactory")
-    public void consumeShippingEvents(ConsumerRecord<String, Object> record) {
+    public void consumeShippingEvents(ConsumerRecord<String, byte[]> record) {
         saveEventLog("shipping-service", "shipping-events", record);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
 
+    @SuppressWarnings("unchecked")
+    private Map<String, Object> toPayload(ConsumerRecord<String, byte[]> record) {
+        if (record.value() == null) {
+            return Map.of();
+        }
+        try {
+            return objectMapper.readValue(record.value(), Map.class);
+        } catch (Exception ex) {
+            throw new IllegalArgumentException("Cannot parse event payload", ex);
+        }
+    }
+
     /**
      * Parses an explicit service-log event.
      * Expected payload keys: serviceName, level, message, traceId, metadata, timestamp
      */
-    @SuppressWarnings("unchecked")
-    private LogEntry parseServiceLog(ConsumerRecord<String, Object> record) {
-        Map<String, Object> payload = (Map<String, Object>) record.value();
+    private LogEntry parseServiceLog(Map<String, Object> payload) {
 
         String serviceName = getString(payload, "serviceName", "unknown");
         String levelStr    = getString(payload, "level", "INFO");
@@ -115,19 +134,9 @@ public class LogEventConsumer {
      * Converts a business event from any topic into an INFO log entry.
      * Errors/failures are detected by class name containing "Failed".
      */
-    @SuppressWarnings("unchecked")
-    private void saveEventLog(String defaultService, String topic, ConsumerRecord<String, Object> record) {
+    private void saveEventLog(String defaultService, String topic, ConsumerRecord<String, byte[]> record) {
         try {
-            Object rawValue = record.value();
-
-            // Guard: value must be a Map (deserialized from JSON)
-            if (!(rawValue instanceof Map)) {
-                log.warn("[LogConsumer] Skipping non-Map record on topic={} type={}",
-                        topic, rawValue != null ? rawValue.getClass().getSimpleName() : "null");
-                return;
-            }
-
-            Map<String, Object> payload = (Map<String, Object>) rawValue;
+            Map<String, Object> payload = toPayload(record);
 
             // Derive type from __TypeId__ header or payload fields
             String eventType = extractEventType(record, payload);
@@ -166,18 +175,16 @@ public class LogEventConsumer {
     private String extractStringValue(Map<String, Object> payload, String key) {
         Object val = payload.get(key);
         if (val == null) return null;
-        // UUID serialized as string
         if (val instanceof String s) return s.isBlank() ? null : s;
-        // Some deserializers wrap UUIDs as maps - just use toString
         return val.toString();
     }
 
-    private String extractEventType(ConsumerRecord<String, Object> record, Map<String, Object> payload) {
+    private String extractEventType(ConsumerRecord<String, byte[]> record, Map<String, Object> payload) {
         // Try __TypeId__ Kafka header first — set by all producers via ADD_TYPE_INFO_HEADERS=true
         if (record.headers() != null) {
             var typeHeader = record.headers().lastHeader("__TypeId__");
             if (typeHeader != null) {
-                String fullClass = new String(typeHeader.value());
+                String fullClass = new String(typeHeader.value(), StandardCharsets.UTF_8);
                 int dot = fullClass.lastIndexOf('.');
                 String typeName = dot >= 0 ? fullClass.substring(dot + 1) : fullClass;
                 log.debug("[LogConsumer] __TypeId__ header found: {} -> {}", fullClass, typeName);
