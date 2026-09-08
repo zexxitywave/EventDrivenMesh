@@ -2,6 +2,7 @@ package com.hacisimsek.notification.saga;
 
 import java.util.UUID;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservationFailedEvent;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
@@ -22,7 +23,15 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class NotificationSagaHandler {
 
+    private static final String ORDER_CREATED        = OrderCreatedEvent.class.getName();
+    private static final String INVENTORY_FAILED     = InventoryReservationFailedEvent.class.getName();
+    private static final String PAYMENT_PROCESSED    = PaymentProcessedEvent.class.getName();
+    private static final String PAYMENT_FAILED       = PaymentFailedEvent.class.getName();
+    private static final String SHIPMENT_PROCESSED   = ShipmentProcessedEvent.class.getName();
+    private static final String SHIPMENT_FAILED      = ShipmentFailedEvent.class.getName();
+
     private final NotificationService notificationService;
+    private final ObjectMapper objectMapper;
 
     // ── Order events ──────────────────────────────────────────────────────────
 
@@ -30,7 +39,9 @@ public class NotificationSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handleOrderEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        if (event instanceof OrderCreatedEvent e) {
+        String type = event != null ? event.getClass().getName() : null;
+        if (ORDER_CREATED.equals(type)) {
+            OrderCreatedEvent e = objectMapper.convertValue(event, OrderCreatedEvent.class);
             log.info("ORDER_PLACED for order: {}", e.getOrderId());
             notificationService.sendOrderPlacedNotification(e);
         }
@@ -42,9 +53,11 @@ public class NotificationSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handleInventoryEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        if (event instanceof InventoryReservationFailedEvent e) {
+        String type = event != null ? event.getClass().getName() : null;
+        if (INVENTORY_FAILED.equals(type)) {
+            InventoryReservationFailedEvent e =
+                    objectMapper.convertValue(event, InventoryReservationFailedEvent.class);
             log.warn("INVENTORY_FAILED for order: {} — notifying customer", e.getOrderId());
-            // Only send email if we have the customer's email address
             if (e.getCustomerEmail() != null && !e.getCustomerEmail().isBlank()) {
                 notificationService.sendOrderCancelledNotification(
                         e.getOrderId(),
@@ -61,16 +74,19 @@ public class NotificationSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handlePaymentEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        log.debug("Received payment event: {}", event != null ? event.getClass().getSimpleName() : "null");
+        String type = event != null ? event.getClass().getName() : null;
+        log.debug("Received payment event type: {}", type);
 
-        if (event instanceof PaymentProcessedEvent e) {
+        if (PAYMENT_PROCESSED.equals(type)) {
+            PaymentProcessedEvent e = objectMapper.convertValue(event, PaymentProcessedEvent.class);
             log.info("PAYMENT_SUCCESS event for order: {}, email: {}", e.getOrderId(), e.getCustomerEmail());
             notificationService.sendPaymentSuccessNotification(
                     e.getOrderId(),
                     e.getCustomerId() != null ? e.getCustomerId() : UUID.randomUUID(),
                     e.getCustomerEmail());
 
-        } else if (event instanceof PaymentFailedEvent e) {
+        } else if (PAYMENT_FAILED.equals(type)) {
+            PaymentFailedEvent e = objectMapper.convertValue(event, PaymentFailedEvent.class);
             log.info("PAYMENT_FAILED event for order: {}, email: {}", e.getOrderId(), e.getCustomerEmail());
             notificationService.sendPaymentFailedNotification(
                     e.getOrderId(),
@@ -85,9 +101,11 @@ public class NotificationSagaHandler {
             containerFactory = "kafkaListenerContainerFactory")
     public void handleShippingEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
-        log.debug("Received shipping event: {}", event != null ? event.getClass().getSimpleName() : "null");
+        String type = event != null ? event.getClass().getName() : null;
+        log.debug("Received shipping event type: {}", type);
 
-        if (event instanceof ShipmentProcessedEvent e) {
+        if (SHIPMENT_PROCESSED.equals(type)) {
+            ShipmentProcessedEvent e = objectMapper.convertValue(event, ShipmentProcessedEvent.class);
             log.info("ORDER_SHIPPED event for order: {}", e.getOrderId());
             notificationService.sendOrderShippedNotification(
                     e.getOrderId(),
@@ -95,8 +113,8 @@ public class NotificationSagaHandler {
                     e.getCustomerEmail(),
                     e.getTrackingNumber());
 
-        } else if (event instanceof ShipmentFailedEvent e) {
-            // Shipment failed — notify customer that order failed and refund is being processed
+        } else if (SHIPMENT_FAILED.equals(type)) {
+            ShipmentFailedEvent e = objectMapper.convertValue(event, ShipmentFailedEvent.class);
             log.warn("SHIPMENT_FAILED event for order: {}, reason: {}", e.getOrderId(), e.getReason());
             notificationService.sendShipmentFailedNotification(
                     e.getOrderId(),
