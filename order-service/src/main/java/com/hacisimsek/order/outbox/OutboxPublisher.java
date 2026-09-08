@@ -52,8 +52,15 @@ public class OutboxPublisher {
 
         for (OutboxEvent event : pending) {
             try {
-                // Deserialize the stored JSON payload back to the original event class
-                Class<?> eventClass = Class.forName(event.getEventType());
+                // Deserialize the stored JSON payload back to the original event class.
+                // Use the Thread Context ClassLoader (TCCL) — the same strategy as
+                // EventJsonDeserializer — so the resolved Class<?> is the same instance
+                // that Spring Boot loaded at startup.  The bare two-arg Class.forName()
+                // resolves via the *caller's* classloader (the scheduler thread), which
+                // can differ from the app classloader and cause subtle type mismatches.
+                ClassLoader cl = Thread.currentThread().getContextClassLoader();
+                if (cl == null) cl = getClass().getClassLoader();
+                Class<?> eventClass = Class.forName(event.getEventType(), true, cl);
                 Object eventPayload = objectMapper.readValue(event.getPayload(), eventClass);
 
                 // Synchronous send — waits for broker ACK (or throws on timeout/error)
