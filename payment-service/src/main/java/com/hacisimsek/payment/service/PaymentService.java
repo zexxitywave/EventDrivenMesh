@@ -16,6 +16,13 @@ public interface PaymentService {
     /** Called by saga — auto-processes payment for saga-driven orders. */
     void processPayment(InventoryReservedEvent event);
 
+    /**
+     * Called by the saga when saga-auto-process is false: creates a PENDING
+     * payment row carrying the saga correlation ID, so a later /initiate
+     * completes it and the correlation keeps flowing through the whole chain.
+     */
+    void preparePayment(InventoryReservedEvent event);
+
     /** Initiate a payment session — returns gateway order/session for frontend. */
     GatewayOrderResponse initiatePayment(InitiatePaymentRequest request);
 

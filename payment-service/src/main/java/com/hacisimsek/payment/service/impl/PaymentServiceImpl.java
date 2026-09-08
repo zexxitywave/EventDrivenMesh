@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -139,8 +140,39 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Override
     @Transactional
+    public void preparePayment(InventoryReservedEvent event) {
+        UUID orderId = event.getOrderId();
+        if (paymentRepository.findByOrderId(orderId).isPresent()) {
+            log.info("preparePayment: payment already exists for order={} — leaving as-is", orderId);
+            return;
+        }
+
+        Payment payment = Payment.builder()
+                .orderId(orderId)
+                .customerId(event.getCustomerId())
+                .correlationId(event.getCorrelationId())
+                .customerEmail(event.getCustomerEmail())
+                .amount(event.getTotalAmount() != null ? event.getTotalAmount() : BigDecimal.valueOf(100))
+                .status(Payment.PaymentStatus.PENDING)
+                .gateway(Payment.PaymentGateway.RAZORPAY) // default — /initiate may override
+                .paymentMethod("PENDING_INITIATE")
+                .build();
+        paymentRepository.save(payment);
+
+        log.info("preparePayment: created PENDING payment {} for order={} with correlationId={}",
+                payment.getId(), orderId, event.getCorrelationId());
+    }
+
+    @Override
+    @Transactional
     public GatewayOrderResponse initiatePayment(InitiatePaymentRequest request) {
-        paymentRepository.findByOrderId(request.getOrderId()).ifPresent(existing -> {
+        Payment.PaymentGateway gateway = request.getGateway() != null
+                ? request.getGateway() : Payment.PaymentGateway.RAZORPAY;
+
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(request.getOrderId());
+        Payment payment = null;
+        if (existingPayment.isPresent()) {
+            Payment existing = existingPayment.get();
             // Already fully paid — hard block
             if (existing.getStatus() == Payment.PaymentStatus.COMPLETED
                     || existing.getStatus() == Payment.PaymentStatus.REFUNDED) {
@@ -148,30 +180,47 @@ public class PaymentServiceImpl implements PaymentService {
                     "Payment already completed for order: " + request.getOrderId()
                     + " | txn: " + existing.getTransactionId());
             }
-            // PENDING means a Razorpay order was already created — return the existing one
-            // so the frontend can open the Razorpay popup without creating a duplicate order
+            // PENDING with a gateway order already created — resume the existing
+            // session so the frontend re-opens the checkout popup without
+            // creating a duplicate gateway order.
             if (existing.getStatus() == Payment.PaymentStatus.PENDING
                     && existing.getGatewayOrderId() != null) {
-                throw new PaymentAlreadyExistsException(
-                    "PENDING:" + existing.getId()
-                    + "|" + existing.getGatewayOrderId());
+                log.info("Resuming existing PENDING payment {} for order {} — gateway order {}",
+                        existing.getId(), request.getOrderId(), existing.getGatewayOrderId());
+                return resumePayment(existing);
             }
-            // FAILED — allow retry by falling through (new payment will be created below)
-        });
-        Payment.PaymentGateway gateway = request.getGateway() != null
-                ? request.getGateway() : Payment.PaymentGateway.RAZORPAY;
+            // PENDING with no gateway order yet — either pre-prepared by the saga
+            // (preparePayment carries the correlationId) or a partial run from an
+            // earlier request. Complete it now instead of discarding it so the
+            // correlation ID keeps flowing through the saga.
+            if (existing.getStatus() == Payment.PaymentStatus.PENDING) {
+                log.info("Completing pre-prepared PENDING payment {} for order {}",
+                        existing.getId(), request.getOrderId());
+                existing.setGateway(gateway);
+                existing.setAmount(request.getAmount());
+                if (request.getPaymentMethod() != null) {
+                    existing.setPaymentMethod(request.getPaymentMethod());
+                }
+                payment = existing;
+            }
+            // FAILED — retry below with a fresh payment, carrying correlation forward
+        }
 
-        Payment payment = Payment.builder()
-                .orderId(request.getOrderId())
-                .customerId(request.getCustomerId())
-                .customerEmail(request.getCustomerEmail())
-                .amount(request.getAmount())
-                .status(Payment.PaymentStatus.PENDING)
-                .gateway(gateway)
-                .paymentMethod(request.getPaymentMethod())
-                .build();
-
-        payment = paymentRepository.save(payment);
+        if (payment == null) {
+            UUID correlationId = existingPayment.isPresent()
+                    ? existingPayment.get().getCorrelationId() : null;
+            payment = Payment.builder()
+                    .orderId(request.getOrderId())
+                    .customerId(request.getCustomerId())
+                    .customerEmail(request.getCustomerEmail())
+                    .correlationId(correlationId)
+                    .amount(request.getAmount())
+                    .status(Payment.PaymentStatus.PENDING)
+                    .gateway(gateway)
+                    .paymentMethod(request.getPaymentMethod())
+                    .build();
+            payment = paymentRepository.save(payment);
+        }
 
         PaymentGatewayAdapter adapter = resolveAdapter(gateway);
         GatewayOrderResult result = adapter.createOrder(payment.getId(), request.getAmount(), DEFAULT_CURRENCY);
@@ -431,6 +480,18 @@ public class PaymentServiceImpl implements PaymentService {
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private GatewayOrderResponse resumePayment(Payment existing) {
+        PaymentGatewayAdapter adapter = resolveAdapter(existing.getGateway());
+        return GatewayOrderResponse.builder()
+                .paymentId(existing.getId())
+                .gatewayOrderId(existing.getGatewayOrderId())
+                .gatewayKey(adapter.getPublicKey())
+                .amount(existing.getAmount())
+                .currency(DEFAULT_CURRENCY)
+                .status(Payment.PaymentStatus.PENDING.name())
+                .build();
+    }
 
     private PaymentGatewayAdapter resolveAdapter(Payment.PaymentGateway gateway) {
         Map<Payment.PaymentGateway, PaymentGatewayAdapter> index = gatewayAdapters.stream()
