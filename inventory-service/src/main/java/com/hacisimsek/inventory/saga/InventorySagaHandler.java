@@ -6,6 +6,7 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.order.OrderCreatedEvent;
 import com.hacisimsek.common.event.payment.PaymentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
@@ -22,8 +23,16 @@ public class InventorySagaHandler {
 
     private static final String SERVICE_NAME = "inventory-service";
 
+    // Class-name constants — compared against event.getClass().getName() to avoid
+    // classloader-identity issues where instanceof silently returns false even
+    // though the class name and bytecode are identical (TCCL vs. app classloader).
+    private static final String ORDER_CREATED = OrderCreatedEvent.class.getName();
+    private static final String PAYMENT_FAILED = PaymentFailedEvent.class.getName();
+    private static final String SHIPMENT_FAILED = ShipmentFailedEvent.class.getName();
+
     private final InventoryService inventoryService;
     private final LogPublisher logPublisher;
+    private final ObjectMapper objectMapper;
 
     // ── Forward flow: reserve stock when a new order arrives ─────────────────
 
@@ -34,18 +43,19 @@ public class InventorySagaHandler {
     public void handleOrderEvents(ConsumerRecord<String, Object> record) {
 
         Object event = record.value();
-        log.debug("Received order event: {}", event != null ? event.getClass().getSimpleName() : "null");
+        String type = event != null ? event.getClass().getName() : null;
+        log.info("[InventorySagaHandler] order-events type={}", type);
 
-        try {
-            if (event instanceof OrderCreatedEvent orderCreatedEvent) {
-                log.info("Processing OrderCreatedEvent for order: {}", orderCreatedEvent.getOrderId());
-                inventoryService.reserveInventory(orderCreatedEvent);
-            } else {
-                log.warn("Unhandled event type on order-events: {}",
-                        event != null ? event.getClass().getName() : "null");
-            }
-        } catch (Exception e) {
-            log.error("Error processing order event", e);
+        if (ORDER_CREATED.equals(type)) {
+            // Use objectMapper.convertValue so we get a properly typed object even
+            // if the deserializer returned a LinkedHashMap or a different CL instance.
+            OrderCreatedEvent orderCreatedEvent = objectMapper.convertValue(event, OrderCreatedEvent.class);
+            log.info("Processing OrderCreatedEvent for order: {}", orderCreatedEvent.getOrderId());
+            // Let exceptions propagate — DefaultErrorHandler will retry then DLQ.
+            // Swallowing here would ACK the message as success and lose it forever.
+            inventoryService.reserveInventory(orderCreatedEvent);
+        } else {
+            log.warn("Unhandled event type on order-events: {}", type);
         }
     }
 
@@ -62,9 +72,11 @@ public class InventorySagaHandler {
     public void handlePaymentEvents(ConsumerRecord<String, Object> record) {
 
         Object event = record.value();
-        log.debug("Received payment event: {}", event != null ? event.getClass().getSimpleName() : "null");
+        String type = event != null ? event.getClass().getName() : null;
+        log.debug("[InventorySagaHandler] payment-events type={}", type);
 
-        if (event instanceof PaymentFailedEvent paymentFailedEvent) {
+        if (PAYMENT_FAILED.equals(type)) {
+            PaymentFailedEvent paymentFailedEvent = objectMapper.convertValue(event, PaymentFailedEvent.class);
             log.warn("Payment failed for order: {} — releasing reserved inventory. Reason: {}",
                     paymentFailedEvent.getOrderId(), paymentFailedEvent.getReason());
             try {
@@ -112,9 +124,11 @@ public class InventorySagaHandler {
     public void handleShippingEvents(ConsumerRecord<String, Object> record) {
 
         Object event = record.value();
-        log.debug("Received shipping event: {}", event != null ? event.getClass().getSimpleName() : "null");
+        String type = event != null ? event.getClass().getName() : null;
+        log.debug("[InventorySagaHandler] shipping-events type={}", type);
 
-        if (event instanceof ShipmentFailedEvent shipmentFailedEvent) {
+        if (SHIPMENT_FAILED.equals(type)) {
+            ShipmentFailedEvent shipmentFailedEvent = objectMapper.convertValue(event, ShipmentFailedEvent.class);
             log.warn("Shipment failed for order: {} — releasing reserved inventory. Reason: {}",
                     shipmentFailedEvent.getOrderId(), shipmentFailedEvent.getReason());
             try {
