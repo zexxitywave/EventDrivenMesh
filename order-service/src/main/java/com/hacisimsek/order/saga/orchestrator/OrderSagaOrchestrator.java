@@ -12,17 +12,6 @@ import com.hacisimsek.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
-/**
- * Central Saga Orchestrator - drives the order lifecycle.
- *
- * Directly updates order status on each saga outcome.
- * No state machine dependency - keeps it simple and crash-safe.
- *
- * Compensation chain on failure:
- *   InventoryFailed  -> CANCELLED  (no rollback needed, nothing taken)
- *   PaymentFailed    -> CANCELLED  (inventory released by InventorySagaHandler)
- *   ShipmentFailed   -> FAILED     (inventory released + auto-refund by PaymentSagaHandler)
- */
 @Service
 @RequiredArgsConstructor
 @Slf4j
@@ -33,76 +22,61 @@ public class OrderSagaOrchestrator {
     private final OrderService orderService;
     private final LogPublisher logPublisher;
 
-    // Forward flow
-
     public void onInventoryReserved(UUID orderId, UUID correlationId) {
-        // Step 1: mark inventory as reserved
-        updateStatus(orderId, correlationId, Order.OrderStatus.INVENTORY_RESERVED,
-                "inventory-service", "Inventory reserved");
-
-        // Step 2: immediately advance to PAYMENT_PROCESSING so the frontend
-        // knows the order is now awaiting manual payment via the checkout UI.
-        // (saga-auto-process=false means payment-service will NOT auto-process;
-        //  the customer must pay via /api/v1/payments/initiate on the frontend.)
-        updateStatus(orderId, correlationId, Order.OrderStatus.PAYMENT_PROCESSING,
-                "inventory-service", "Advancing to payment - awaiting customer checkout");
+        log.info("[Orchestrator] onInventoryReserved called for order={}", orderId);
+        try {
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.INVENTORY_RESERVED);
+            log.info("[Orchestrator] set INVENTORY_RESERVED OK for order={}", orderId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.PAYMENT_PROCESSING);
+            log.info("[Orchestrator] set PAYMENT_PROCESSING OK for order={}", orderId);
+        } catch (Exception e) {
+            log.error("[Orchestrator] FAILED onInventoryReserved for order={} — {}: {}",
+                    orderId, e.getClass().getName(), e.getMessage(), e);
+        }
     }
 
     public void onPaymentCompleted(UUID orderId, UUID correlationId, UUID paymentId) {
-        updateStatus(orderId, correlationId, Order.OrderStatus.PAYMENT_COMPLETED,
-                "payment-service", "Payment completed - paymentId=" + paymentId);
+        log.info("[Orchestrator] onPaymentCompleted order={}", orderId);
+        try {
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.PAYMENT_COMPLETED);
+        } catch (Exception e) {
+            log.error("[Orchestrator] FAILED onPaymentCompleted order={}: {}", orderId, e.getMessage(), e);
+        }
     }
 
     public void onShipmentCreated(UUID orderId, UUID correlationId, String trackingNumber) {
-        updateStatus(orderId, correlationId, Order.OrderStatus.SHIPPED,
-                "shipping-service", "Order shipped - tracking=" + trackingNumber);
+        log.info("[Orchestrator] onShipmentCreated order={}", orderId);
+        try {
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.SHIPPED);
+        } catch (Exception e) {
+            log.error("[Orchestrator] FAILED onShipmentCreated order={}: {}", orderId, e.getMessage(), e);
+        }
     }
 
-    // Compensation
-
     public void onInventoryFailed(UUID orderId, UUID correlationId, String reason) {
-        updateStatus(orderId, correlationId, Order.OrderStatus.CANCELLED,
-                "inventory-service", "Inventory failed: " + reason);
-        log.warn("[Saga] Order {} CANCELLED - inventory unavailable: {}", orderId, reason);
+        log.warn("[Orchestrator] onInventoryFailed order={} reason={}", orderId, reason);
+        try {
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED);
+        } catch (Exception e) {
+            log.error("[Orchestrator] FAILED onInventoryFailed order={}: {}", orderId, e.getMessage(), e);
+        }
     }
 
     public void onPaymentFailed(UUID orderId, UUID correlationId, String reason) {
-        updateStatus(orderId, correlationId, Order.OrderStatus.CANCELLED,
-                "payment-service", "Payment failed: " + reason);
-        log.warn("[Saga] Order {} CANCELLED - payment failed: {}", orderId, reason);
+        log.warn("[Orchestrator] onPaymentFailed order={} reason={}", orderId, reason);
+        try {
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED);
+        } catch (Exception e) {
+            log.error("[Orchestrator] FAILED onPaymentFailed order={}: {}", orderId, e.getMessage(), e);
+        }
     }
 
     public void onShipmentFailed(UUID orderId, UUID correlationId, String reason) {
-        updateStatus(orderId, correlationId, Order.OrderStatus.FAILED,
-                "shipping-service", "Shipment failed: " + reason);
-        log.warn("[Saga] Order {} FAILED - shipment failed, auto-refund triggered: {}", orderId, reason);
-    }
-
-    // Internal
-
-    private void updateStatus(UUID orderId, UUID correlationId,
-                               Order.OrderStatus newStatus,
-                               String triggeredBy, String details) {
+        log.warn("[Orchestrator] onShipmentFailed order={} reason={}", orderId, reason);
         try {
-            Order.OrderStatus prev = orderService.getOrderById(orderId).getStatus();
-            orderService.updateOrderStatus(orderId, newStatus);
-
-            log.info("[Saga] Order {} | {} -> {} | by={}",
-                    orderId, prev, newStatus, triggeredBy);
-
-            logPublisher.info(SERVICE_NAME,
-                    correlationId != null ? correlationId.toString() : null,
-                    "[Saga] " + details,
-                    Map.of(
-                            "orderId", orderId.toString(),
-                            "from", prev.name(),
-                            "to", newStatus.name(),
-                            "triggeredBy", triggeredBy
-                    ));
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.FAILED);
         } catch (Exception e) {
-            log.error("[Saga] Failed to update order {} to {}: {}", orderId, newStatus, e.getMessage(), e);
-            throw new RuntimeException(
-                    "[Saga] Status update failed for order " + orderId + " -> " + newStatus, e);
+            log.error("[Orchestrator] FAILED onShipmentFailed order={}: {}", orderId, e.getMessage(), e);
         }
     }
 }
