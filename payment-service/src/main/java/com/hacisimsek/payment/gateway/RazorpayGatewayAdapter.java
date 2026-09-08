@@ -35,6 +35,11 @@ public class RazorpayGatewayAdapter implements PaymentGatewayAdapter {
     }
 
     @Override
+    public String getPublicKey() {
+        return keyId;
+    }
+
+    @Override
     public GatewayOrderResult createOrder(UUID internalPaymentId, BigDecimal amount, String currency) {
         try {
             RazorpayClient client = new RazorpayClient(keyId, keySecret);

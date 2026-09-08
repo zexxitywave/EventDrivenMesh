@@ -36,6 +36,11 @@ public class StripeGatewayAdapter implements PaymentGatewayAdapter {
     }
 
     @Override
+    public String getPublicKey() {
+        return publishableKey;
+    }
+
+    @Override
     public GatewayOrderResult createOrder(UUID internalPaymentId, BigDecimal amount, String currency) {
         log.info("[Stripe] Creating PaymentIntent for payment={}, amount={} {}", internalPaymentId, amount, currency);
 

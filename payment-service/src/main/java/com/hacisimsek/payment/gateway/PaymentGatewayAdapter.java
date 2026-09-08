@@ -15,6 +15,14 @@ public interface PaymentGatewayAdapter {
     Payment.PaymentGateway getGateway();
 
     /**
+     * Public (non-secret) key the browser needs to open the gateway checkout.
+     * Used when resuming an already-created gateway order (existing PENDING payment).
+     */
+    default String getPublicKey() {
+        return null;
+    }
+
+    /**
      * Create an order/session on the gateway side.
      * Returns the gateway's order/session ID which the frontend uses to open the payment UI.
      */
