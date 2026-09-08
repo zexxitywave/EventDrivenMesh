@@ -132,18 +132,21 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(savedOrder);
 
         // Append ORDER_CREATED event to the immutable event log
-        orderEventService.append(
-                savedOrder.getId(), correlationId,
-                OrderEvent.EventType.ORDER_CREATED,
-                null, Order.OrderStatus.PENDING,
-                "order-service", "Order created with " + itemDtos.size() + " item(s)");
+        try {
+            orderEventService.append(
+                    savedOrder.getId(), correlationId,
+                    OrderEvent.EventType.ORDER_CREATED,
+                    null, Order.OrderStatus.PENDING,
+                    "order-service", "Order created with " + itemDtos.size() + " item(s)");
 
-        // Append INVENTORY_CHECKING event
-        orderEventService.append(
-                savedOrder.getId(), correlationId,
-                OrderEvent.EventType.INVENTORY_CHECKING,
-                Order.OrderStatus.PENDING, Order.OrderStatus.INVENTORY_CHECKING,
-                "order-service", "Saga started — checking inventory");
+            orderEventService.append(
+                    savedOrder.getId(), correlationId,
+                    OrderEvent.EventType.INVENTORY_CHECKING,
+                    Order.OrderStatus.PENDING, Order.OrderStatus.INVENTORY_CHECKING,
+                    "order-service", "Saga started — checking inventory");
+        } catch (Exception e) {
+            log.warn("Event sourcing append failed for order {} — continuing: {}", savedOrder.getId(), e.getMessage());
+        }
 
         // Push initial status to any SSE subscriber
         orderStatusEmitter.push(savedOrder.getId(), Order.OrderStatus.INVENTORY_CHECKING.name(), false);
@@ -183,13 +186,17 @@ public class OrderServiceImpl implements OrderService {
         orderRepository.save(order);
         log.info("Updated order {} status to {}", orderId, status);
 
-        // Append transition event to the immutable event log
-        OrderEvent.EventType eventType = resolveEventType(status);
-        orderEventService.append(
-                orderId, null,
-                eventType,
-                previousStatus, status,
-                "saga", null);
+        // Append to event log — wrapped so a failure here never blocks the saga
+        try {
+            OrderEvent.EventType eventType = resolveEventType(status);
+            orderEventService.append(
+                    orderId, null,
+                    eventType,
+                    previousStatus, status,
+                    "saga", null);
+        } catch (Exception e) {
+            log.warn("Event sourcing append failed for order {} — saga continues: {}", orderId, e.getMessage());
+        }
 
         // Push real-time status update via SSE
         boolean terminal = isTerminalStatus(status);
