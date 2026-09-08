@@ -9,6 +9,7 @@ import com.hacisimsek.payment.service.PaymentService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
@@ -20,6 +21,14 @@ public class PaymentSagaHandler {
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
 
+    /**
+     * When false: saga stops at INVENTORY_RESERVED and waits for the customer
+     * to manually initiate payment via /api/v1/payments/initiate (Razorpay flow).
+     * When true: saga auto-processes via MOCK immediately (testing/demo mode).
+     */
+    @Value("${payment.saga-auto-process:false}")
+    private boolean sagaAutoProcess;
+
     // ── Forward: reserve inventory → initiate payment ─────────────────────────
 
     @KafkaListener(
@@ -29,8 +38,16 @@ public class PaymentSagaHandler {
     public void handleInventoryEvents(ConsumerRecord<String, Object> record) {
         Object event = record.value();
         if (event instanceof InventoryReservedEvent inventoryReservedEvent) {
-            log.info("Processing InventoryReservedEvent for order: {}", inventoryReservedEvent.getOrderId());
-            paymentService.processPayment(inventoryReservedEvent);
+            if (sagaAutoProcess) {
+                log.info("saga-auto-process=true — auto-processing payment for order: {}",
+                        inventoryReservedEvent.getOrderId());
+                paymentService.processPayment(inventoryReservedEvent);
+            } else {
+                log.info("saga-auto-process=false — waiting for manual payment for order: {}. " +
+                        "Call POST /api/v1/payments/initiate to proceed.",
+                        inventoryReservedEvent.getOrderId());
+                // Do nothing — customer will initiate payment manually via Razorpay
+            }
         } else {
             log.debug("Ignoring non-InventoryReservedEvent on inventory-events: {}",
                     event != null ? event.getClass().getSimpleName() : "null");

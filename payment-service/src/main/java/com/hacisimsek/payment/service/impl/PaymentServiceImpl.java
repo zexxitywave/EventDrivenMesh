@@ -140,21 +140,23 @@ public class PaymentServiceImpl implements PaymentService {
     @Override
     @Transactional
     public GatewayOrderResponse initiatePayment(InitiatePaymentRequest request) {
-        // ── Idempotency guard — prevent duplicate payments for the same order ──
         paymentRepository.findByOrderId(request.getOrderId()).ifPresent(existing -> {
-            if (existing.getStatus() == Payment.PaymentStatus.COMPLETED) {
+            // Already fully paid — hard block
+            if (existing.getStatus() == Payment.PaymentStatus.COMPLETED
+                    || existing.getStatus() == Payment.PaymentStatus.REFUNDED) {
                 throw new PaymentAlreadyExistsException(
                     "Payment already completed for order: " + request.getOrderId()
-                    + " | paymentId: " + existing.getId()
                     + " | txn: " + existing.getTransactionId());
             }
-            if (existing.getStatus() == Payment.PaymentStatus.PENDING) {
+            // PENDING means a Razorpay order was already created — return the existing one
+            // so the frontend can open the Razorpay popup without creating a duplicate order
+            if (existing.getStatus() == Payment.PaymentStatus.PENDING
+                    && existing.getGatewayOrderId() != null) {
                 throw new PaymentAlreadyExistsException(
-                    "Payment already in progress for order: " + request.getOrderId()
-                    + " | paymentId: " + existing.getId()
-                    + " | gatewayOrderId: " + existing.getGatewayOrderId()
-                    + " — use existing gatewayOrderId to complete payment.");
+                    "PENDING:" + existing.getId()
+                    + "|" + existing.getGatewayOrderId());
             }
+            // FAILED — allow retry by falling through (new payment will be created below)
         });
         Payment.PaymentGateway gateway = request.getGateway() != null
                 ? request.getGateway() : Payment.PaymentGateway.RAZORPAY;

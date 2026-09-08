@@ -55,6 +55,9 @@ payment:
   stripe:
     secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
     publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
+  # true  = saga auto-processes via MOCK (no browser needed)
+  # false = saga waits for manual Razorpay payment via /initiate endpoint
+  saga-auto-process: false
 
 
 

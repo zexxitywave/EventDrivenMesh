@@ -2,6 +2,7 @@ package com.hacisimsek.notification.saga;
 
 import java.util.UUID;
 
+import com.hacisimsek.common.event.inventory.InventoryReservationFailedEvent;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
