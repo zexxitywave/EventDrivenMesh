@@ -1,11 +1,13 @@
 package com.hacisimsek.notification.service.impl;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ByteArrayResource;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.scheduling.annotation.Async;
@@ -14,6 +16,7 @@ import org.springframework.stereotype.Service;
 
 import com.hacisimsek.common.event.order.OrderCreatedEvent;
 import com.hacisimsek.notification.model.Notification;
+import com.hacisimsek.notification.model.NotificationDeadLetter;
 import com.hacisimsek.notification.repository.NotificationRepository;
 import com.hacisimsek.notification.service.InvoicePdfService;
 import com.hacisimsek.notification.service.NotificationService;
@@ -29,12 +32,19 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationRepository notificationRepository;
     private final JavaMailSender mailSender;
     private final InvoicePdfService invoicePdfService;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${app.notification.from-email}")
     private String fromEmail;
 
     @Value("${app.notification.max-retry-attempts:3}")
     private int maxRetryAttempts;
+
+    @Value("${app.notification.retry-base-delay-minutes:10}")
+    private int retryBaseDelayMinutes;
+
+    @Value("${app.notification.dlq-topic:notification-dlq}")
+    private String dlqTopic;
 
     // ── Order Placed ──────────────────────────────────────────────────────────
 
@@ -282,23 +292,28 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Scheduled(fixedDelay = 300_000)
     public void retryFailedNotifications() {
-        List<Notification> failed = notificationRepository
-                .findByStatus(Notification.NotificationStatus.RETRY_PENDING);
+        LocalDateTime now = LocalDateTime.now();
+        List<Notification> failed = new ArrayList<>();
+        // Backoff-aware candidates (nextAttemptAt passed) plus legacy rows written
+        // before backoff scheduling existed (nextAttemptAt = null).
+        failed.addAll(notificationRepository.findByStatusAndNextAttemptAtLessThanEqual(
+                Notification.NotificationStatus.RETRY_PENDING, now));
+        failed.addAll(notificationRepository.findByStatusAndNextAttemptAtIsNull(
+                Notification.NotificationStatus.RETRY_PENDING));
         if (failed.isEmpty()) return;
 
         log.info("Retrying {} failed notifications", failed.size());
         failed.forEach(notification -> {
-            if (notification.getRetryCount() >= maxRetryAttempts) {
+            if (notification.getRecipientEmail() == null) {
+                publishToDlq(notification, "no recipient email to deliver", "NO_RECIPIENT");
                 notification.setStatus(Notification.NotificationStatus.FAILED);
+                notification.setNextAttemptAt(null);
                 notification.setUpdatedAt(LocalDateTime.now());
                 notificationRepository.save(notification);
-                log.warn("Notification {} permanently failed after {} retries",
-                        notification.getId(), notification.getRetryCount());
+                log.warn("Notification {} permanently failed — no recipient email", notification.getId());
                 return;
             }
-            if (notification.getRecipientEmail() != null) {
-                sendEmail(notification);
-            }
+            sendEmail(notification);
         });
     }
 
@@ -358,16 +373,126 @@ public class NotificationServiceImpl implements NotificationService {
 
             notification.setStatus(Notification.NotificationStatus.SENT);
             notification.setSentAt(LocalDateTime.now());
+            notification.setNextAttemptAt(null);
+            notification.setErrorMessage(null);
             notification.setUpdatedAt(LocalDateTime.now());
             notificationRepository.save(notification);
             log.info("Email sent to: {}", notification.getRecipientEmail());
 
         } catch (jakarta.mail.MessagingException | org.springframework.mail.MailException e) {
-            log.error("Failed to send email to {}: {}", notification.getRecipientEmail(), e.getMessage());
-            notification.setRetryCount(notification.getRetryCount() + 1);
-            notification.setStatus(Notification.NotificationStatus.RETRY_PENDING);
+            String error = e.getMessage() != null ? e.getMessage() : e.toString();
+            log.error("Failed to send email to {}: {}", notification.getRecipientEmail(), error);
+
+            int attempt = notification.getRetryCount() + 1;
+            notification.setRetryCount(attempt);
+            notification.setErrorMessage(error);
             notification.setUpdatedAt(LocalDateTime.now());
+
+            // Classify the failure: permanent rejection (bad address) vs transient
+            // (provider quota / SMTP hiccup). Only permanent and exhausted-transient
+            // failures go to the DLQ; transient ones keep a backoff schedule.
+            boolean quota = isQuotaFailure(error);
+            if (isPermanentFailure(error)) {
+                publishToDlq(notification, error, "PERMANENT");
+                notification.setStatus(Notification.NotificationStatus.FAILED);
+                notification.setNextAttemptAt(null);
+                log.warn("Notification {} permanently failed (permanent rejection): {}",
+                        notification.getId(), error);
+            } else {
+                int cap = quota ? maxRetryAttempts * 2 + 1 : maxRetryAttempts;
+                int backoff = quota ? quotaBackoffMinutes(attempt) : backoffMinutes(attempt);
+                if (attempt >= cap) {
+                    publishToDlq(notification, error, "TRANSIENT_EXHAUSTED");
+                    notification.setStatus(Notification.NotificationStatus.FAILED);
+                    notification.setNextAttemptAt(null);
+                    log.warn("Notification {} permanently failed after {} retries",
+                            notification.getId(), attempt);
+                } else {
+                    notification.setStatus(Notification.NotificationStatus.RETRY_PENDING);
+                    notification.setNextAttemptAt(LocalDateTime.now().plusMinutes(backoff));
+                    log.info("Notification {} retry #{} scheduled in ~{} min (transient, quota={})",
+                            notification.getId(), attempt, backoff, quota);
+                }
+            }
             notificationRepository.save(notification);
+        }
+    }
+
+    // ── Retry Classification & DLQ Helpers ───────────────────────────────────
+
+    /**
+     * Transient infra failures that should be retried later instead of failing hard.
+     * Resend's "550 You have reached your daily email sending quota." is the main
+     * offender — it matches {@code quota} and gets a long, bounded retry ladder.
+     */
+    private boolean isQuotaFailure(String errorMessage) {
+        String m = (errorMessage == null ? "" : errorMessage).toLowerCase();
+        return m.contains("quota")
+                || m.contains("daily limit")
+                || m.contains("rate limit")
+                || m.contains("too many")
+                || m.contains("throttl")
+                || m.contains("421");
+    }
+
+    /**
+     * Permanent rejections — retrying can never succeed (bad address, relay denied).
+     * Anything not classified here defaults to transient, so we never drop mail
+     * on an ambiguous SMTP response.
+     */
+    private boolean isPermanentFailure(String errorMessage) {
+        String m = (errorMessage == null ? "" : errorMessage).toLowerCase();
+        if (isQuotaFailure(errorMessage)) {
+            return false;
+        }
+        return m.contains("invalid")
+                || m.contains("user unknown")
+                || m.contains("mailbox unavailable")
+                || m.contains("address rejected")
+                || m.contains("not accepted")
+                || m.contains("relaying disallowed")
+                || m.contains("5.1.1")
+                || m.contains("5.1.3")
+                || m.contains("5.5.4")
+                || m.contains("permanent");
+    }
+
+    /** Exponential backoff for ordinary transient failures: 10, 20, 40, … capped at 4h. */
+    private int backoffMinutes(int attempt) {
+        long mins = (long) retryBaseDelayMinutes * (1L << Math.min(attempt - 1, 4));
+        return (int) Math.min(mins, 240);
+    }
+
+    /** Longer ladder for provider quota: 30, 60, 120, 240, … capped at 6h. */
+    private int quotaBackoffMinutes(int attempt) {
+        long base = Math.max(retryBaseDelayMinutes, 30L);
+        long mins = base * (1L << Math.min(attempt - 1, 4));
+        return (int) Math.min(mins, 360);
+    }
+
+    /**
+     * Publishes an undeliverable notification to the per-service DLQ topic so ops
+     * can inspect/replay it. The DB row is still marked FAILED as the source of truth.
+     */
+    private void publishToDlq(Notification notification, String message, String reason) {
+        NotificationDeadLetter dle = NotificationDeadLetter.builder()
+                .notificationId(notification.getId())
+                .orderId(notification.getOrderId())
+                .recipientId(notification.getRecipientId())
+                .recipientEmail(notification.getRecipientEmail())
+                .subject(notification.getSubject())
+                .type(notification.getType() != null ? notification.getType().name() : null)
+                .retryCount(notification.getRetryCount())
+                .reason(reason + (message != null ? ": " + message : ""))
+                .createdAt(notification.getCreatedAt())
+                .deadLetteredAt(LocalDateTime.now())
+                .build();
+        try {
+            kafkaTemplate.send(dlqTopic, notification.getId().toString(), dle);
+            log.info("[DLQ] Published notification {} to topic '{}' — {}", notification.getId(), dlqTopic, reason);
+        } catch (Exception ex) {
+            log.error("[DLQ] Failed publishing {} to '{}' — row remains FAILED in Mongo: {}",
+                    notification.getId(), dlqTopic, ex.getMessage());
         }
     }
 }
