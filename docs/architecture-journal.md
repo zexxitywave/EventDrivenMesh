@@ -155,3 +155,10 @@ logging-service consumes every event topic and writes a time-bucketed audit trai
 Latency per saga hop is derived from BaseEvent timestamps so bottlenecks surface in logs and metrics.
 
 ---
+
+
+## 23. Auth service
+
+auth-service signs JWTs with role claims that the gateway and downstream services consume on every request.
+
+---
