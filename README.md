@@ -213,7 +213,10 @@ flowchart TB
         BUYER["Buyer · Web / Mobile"]
         SELLER["Seller"]
     end
-    TE --> INVS[inventory-service]
+
+    subgraph EDGE["🛡️ Edge"]
+        GW["API Gateway · JWT · rate-limit · lb://"]
+    end
     TE --> ANS[analytics-service]
     TE --> LGS[logging-service]
 
