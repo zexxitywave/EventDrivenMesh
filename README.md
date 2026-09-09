@@ -229,6 +229,20 @@ flowchart LR
     ANS -.failed events.-> DLQ[order-analytics-dlq]
 ```
 
+### 4. Component Responsibilities
+
+| Service | Role in the HLD | State |
+|---|---|---|
+| `api-gateway` | Entry point · JWT validation · rate limiting · `lb://` routing · identity headers | — |
+| `order-service` | Saga trigger & state tracker — publishes `OrderCreatedEvent`, applies every participant event to the order status machine | `order_db` |
+| `inventory-service` | Stock reservation / release, low-stock alerts | MongoDB `inventory` |
+| `payment-service` | Payment lifecycle — pre-creates the payment on reservation, then `initiate` / `verify` (manual) or auto-process (mock), plus refunds | `payment_db` |
+| `shipping-service` | Creates shipment + tracking number once payment clears | `shipping_db` |
+| `notification-service` | Transactional email (Resend) with PDF invoice, in-app notifications, 3× retry | `notification_db` |
+| `analytics-service` | CQRS projection over `order-events`; summary / top-customers / revenue-per-day; DLQ for poison pills | `analytics_db` |
+| `logging-service` | Aggregates business events + `service-logs` into an indexed, TTL'd (30-day) audit trail | `logging_db` |
+| `service-registry` | Eureka discovery | — |
+
 ---
 
 ## 🔄 Order Saga Flow
