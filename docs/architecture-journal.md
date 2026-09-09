@@ -330,3 +330,10 @@ Tokens, database passwords and SMTP credentials stay out of the repo and come fr
 Resend daily-quota rejections matching a 550 quota message are classified transient and retried on a long ladder instead of failing fast.
 
 ---
+
+
+## 48. Failure classification
+
+Bad addresses and relay denials fail immediately; ambiguous errors default to retryable so mail is never silently dropped.
+
+---
