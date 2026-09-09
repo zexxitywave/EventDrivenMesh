@@ -284,6 +284,8 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --
  2  inventory-service -- InventoryReservedEvent --> [ inventory-events ] --> payment-service
  3  payment-service -- PaymentProcessedEvent --> [ payment-events ] --> shipping-service
  4  shipping-service -- ShipmentProcessedEvent --> [ shipping-events ] --> notification-service
+
+    Same topics double as data planes for:
 ```
 
 ### 4. Component Responsibilities
