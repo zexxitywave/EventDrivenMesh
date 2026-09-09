@@ -1138,7 +1138,7 @@ ecommerce-microservices/
 | Service Discovery | Netflix Eureka |
 | API Gateway | Spring Cloud Gateway |
 | Messaging | Apache Kafka (KRaft, Confluent 7.5.0) |
-| Relational DB | PostgreSQL 16 (7 isolated databases) |
+| Relational DB | PostgreSQL 16 (8 isolated databases) |
 | Document DB | MongoDB (4 databases) |
 | Cache | Redis 7 |
 | Auth | JWT (JJWT 0.12), Spring Security, Google OAuth2 |
