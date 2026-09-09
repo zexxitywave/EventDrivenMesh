@@ -73,10 +73,13 @@ public class OrderServiceImpl implements OrderService {
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        UUID correlationId = UUID.randomUUID();
+
         Order order = Order.builder()
                 .customerId(orderRequest.getCustomerId())
                 .customerEmail(orderRequest.getCustomerEmail())
                 .totalAmount(totalAmount)
+                .correlationId(correlationId)
                 .status(Order.OrderStatus.PENDING)
                 .items(orderItems)
                 .build();
@@ -84,7 +87,6 @@ public class OrderServiceImpl implements OrderService {
         Order savedOrder = orderRepository.save(order);
 
         // ── 2. Build the Kafka event ──────────────────────────────────────────
-        UUID correlationId = UUID.randomUUID();
 
         List<OrderItemDto> itemDtos = savedOrder.getItems().stream()
                 .map(item -> new OrderItemDto(
@@ -249,6 +251,7 @@ public class OrderServiceImpl implements OrderService {
 
         return OrderResponse.builder()
                 .orderId(order.getId())
+                .correlationId(order.getCorrelationId())
                 .customerId(order.getCustomerId())
                 .customerEmail(order.getCustomerEmail())
                 .totalAmount(order.getTotalAmount())
