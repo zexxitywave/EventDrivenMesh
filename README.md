@@ -243,11 +243,14 @@ flowchart TB
     SELLER -- REST /api/v1/** --> GW
     GW --> ORD & INV & PAY & SHP
 
-    PYS -->|PaymentProcessedEvent| PE[payment-events]
-    PE --> ORS
-    PE --> SHS[shipping-service]
-    PE --> NTS[notification-service]
-    PE --> LGS
+    ORD -- OrderCreatedEvent --> OE
+    OE --> INV & ANS & LGS
+
+    INV -- InventoryReservedEvent --> IE
+    IE --> ORD & PAY & LGS
+
+    PAY -- PaymentProcessedEvent --> PE
+    PE --> ORD & SHP & NOT & LGS
 
     SHS -->|ShipmentProcessedEvent| SE[shipping-events]
     SE --> ORS
