@@ -99,3 +99,10 @@ ShippingFailedEvent carries the cause so analytics and notification consumers ca
 notification-service consumes ShippingCompletedEvent, builds an email with the order summary and persists a Notification in Mongo.
 
 ---
+
+
+## 15. Invoice PDF generation
+
+Notification emails carry an invoice PDF generated from order data and attached through JavaMailSender.
+
+---
