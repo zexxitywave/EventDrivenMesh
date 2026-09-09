@@ -309,7 +309,7 @@ This starts:
 | notification-service | `8084` | MongoDB `notification_db` |
 | logging-service | `8092` | MongoDB `logging_db` |
 | analytics-service | `8093` | PostgreSQL `analytics_db` |
-| Kafka UI | `8071` | — |
+| Kafka UI | `8069` | — |
 | Prometheus | `9095` | — |
 | Grafana | `3005` | — |
 
