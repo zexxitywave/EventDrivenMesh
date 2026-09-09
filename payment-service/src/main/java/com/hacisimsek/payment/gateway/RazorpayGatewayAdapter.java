@@ -41,6 +41,12 @@ public class RazorpayGatewayAdapter implements PaymentGatewayAdapter {
 
     @Override
     public GatewayOrderResult createOrder(UUID internalPaymentId, BigDecimal amount, String currency) {
+        if (keyId.isBlank() || keySecret.isBlank()
+                || keyId.contains("placeholder") || keySecret.contains("placeholder")) {
+            log.warn("[Razorpay] Placeholder keys detected — running in dev fallback mode (no real API call). " +
+                    "Set RAZORPAY_KEY_ID/RAZORPAY_KEY_SECRET to enable live Razorpay.");
+            return new GatewayOrderResult("rzp_dev_order_" + internalPaymentId, keyId);
+        }
         try {
             RazorpayClient client = new RazorpayClient(keyId, keySecret);
 

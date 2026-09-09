@@ -1,7 +1,7 @@
 {
   "info": {
     "name": "EventDrivenMesh",
-    "description": "Complete, runnable API collection for the EventDrivenMesh microservices project (Spring Boot + Kafka saga).\n\nBase URL is the API Gateway: http://localhost:8080. All real endpoints live under /api/v1/**.\n\nDEMO CREDENTIALS (already provisioned in auth_db):\n  email    : creditskumar@gmail.com\n  password : Password@123\nRun \"Login\" first to store accessToken / refreshToken / userId into collection variables — the Gateway injects X-User-Id / X-Trace-Id from the JWT automatically.\n\nFor a one-click end-to-end demo, open the \"Saga Flow (run in order)\" folder and use the Collection Runner in order.\n\nNotes:\n  - Analytics has no gateway route; its folder uses directBase (http://localhost:8093).\n  - /api/v1/auth/** has no JWT filter, so \"Get Current User\" sends X-User-Id manually.\n  - Logging and Seller-Admin require a ROLE_ADMIN token.\n  - Product/category names & SKUs are unique — edit bodies before re-running to avoid conflicts.",
+    "description": "Complete, runnable API collection for the EventDrivenMesh microservices project (Spring Boot + Kafka saga).\n\nBase URL is the API Gateway: http://localhost:8080. All real endpoints live under /api/v1/**.\n\nDEMO CREDENTIALS (already provisioned in auth_db):\n  email    : creditskumar@gmail.com\n  password : Test@1234\nRun \"Login\" first to store accessToken / refreshToken / userId into collection variables — the Gateway injects X-User-Id / X-Trace-Id from the JWT automatically.\n\nPAYMENT FLOW (manual initiate — saga waits at PAYMENT_PROCESSING):\n  1. Place an order.\n  2. \"Initiate Payment\" — set {{gateway}} = MOCK (instant dev success) or RAZORPAY (real Razorpay order via your keys from .env).\n  3. \"Verify Payment\" — for RAZORPAY replace {{gatewayPaymentId}} with the real razorpay_payment_id from the checkout popup; leave gatewaySignature empty (dev mode). For MOCK keep defaults.\n  Alternative: hosted checkout UI http://localhost:8083/index.html (Order ID + Customer ID, pick gateway, Pay Now).\n\nFor a one-click end-to-end demo, open the \"Saga Flow (run in order)\" folder and use the Collection Runner in order.\n\nNotes:\n  - Analytics has no gateway route; its folder uses directBase (http://localhost:8093).\n  - /api/v1/auth/** has no JWT filter, so \"Get Current User\" sends X-User-Id manually.\n  - Logging and Seller-Admin require a ROLE_ADMIN token.\n  - Product/category names & SKUs are unique — edit bodies before re-running to avoid conflicts.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
   },
   "variable": [
@@ -23,6 +23,8 @@
     { "key": "correlationId",     "value": "" },
     { "key": "paymentId",         "value": "" },
     { "key": "gatewayOrderId",    "value": "" },
+    { "key": "gateway",           "value": "MOCK" },
+    { "key": "gatewayPaymentId",  "value": "pay_demo_123" },
     { "key": "shipmentId",        "value": "" },
     { "key": "trackingNumber",    "value": "" },
     { "key": "notificationId",    "value": "" }
@@ -56,7 +58,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Password@123\"\n}" }
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Test@1234\"\n}" }
           }
         },
         {
@@ -123,13 +125,14 @@
           }
         },
         {
-          "name": "6. ORDER STATUS  (wait ~8s for saga)",
+          "name": "6. ORDER STATUS  (saga pauses at PAYMENT_PROCESSING)",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Order found', function () { pm.response.to.have.status(200); });",
             "var o = pm.response.json();",
             "pm.collectionVariables.set('orderStatus', o.status);",
             "console.log('Order status:', o.status, '| total:', o.totalAmount);",
-            "console.log('Expected final status: SHIPPED');"
+            "console.log('INFO: saga-auto-process=false, so payment waits for manual initiation.');",
+            "console.log('Next: run 7. INITIATE PAYMENT then 8. VERIFY PAYMENT. Final status after ship: SHIPPED');"
           ]}}],
           "request": {
             "method": "GET",
@@ -138,7 +141,41 @@
           }
         },
         {
-          "name": "7. ORDER HISTORY  (event sourcing)",
+          "name": "7. INITIATE PAYMENT  (gateway: {{gateway}})",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Checkout session ready', function () { pm.response.to.have.status(200); });",
+            "var g = pm.response.json();",
+            "pm.collectionVariables.set('paymentId', g.paymentId);",
+            "pm.collectionVariables.set('gatewayOrderId', g.gatewayOrderId || '');",
+            "console.log('Gateway session:', g.status, '| order:', g.gatewayOrderId, '| key:', (g.gatewayKey||'').substring(0,12) + '...');",
+            "console.log('RAZORPAY optional: open http://localhost:8083/index.html with this Order ID to pay via popup');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/initiate", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","initiate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"customerEmail\": \"{{userEmail}}\",\n  \"amount\": 1.00,\n  \"gateway\": \"{{gateway}}\",\n  \"paymentMethod\": \"CARD\"\n}" },
+            "description": "Pick the gateway via the {{gateway}} collection variable: MOCK (dev) or RAZORPAY (real, uses your .env keys). Captures paymentId + gatewayOrderId for the next step."
+          }
+        },
+        {
+          "name": "8. VERIFY PAYMENT  (PAY NOW -> saga continues)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Payment verified', function () { pm.response.to.have.status(200); });",
+            "var v = pm.response.json();",
+            "console.log('Payment status:', v.status, '| txn:', v.transactionId);",
+            "if (v.status === 'COMPLETED') console.log('Saga continues: payment -> shipping -> notification');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/verify", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","verify"] },
+            "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"gatewayPaymentId\": \"{{gatewayPaymentId}}\",\n  \"gatewayOrderId\": \"{{gatewayOrderId}}\",\n  \"gatewaySignature\": \"\"\n}" },
+            "description": "MOCK: defaults verify instantly. RAZORPAY: set {{gatewayPaymentId}} to the razorpay_payment_id returned by the checkout popup."
+          }
+        },
+        {
+          "name": "9. ORDER HISTORY  (event sourcing)",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "var h = pm.response.json();",
             "pm.test('History returned', function () { pm.response.to.have.status(200); });",
@@ -154,7 +191,7 @@
           }
         },
         {
-          "name": "8. PAYMENT BY ORDER",
+          "name": "10. PAYMENT BY ORDER",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Payment found', function () { pm.response.to.have.status(200); });",
             "var p = pm.response.json();",
@@ -168,7 +205,7 @@
           }
         },
         {
-          "name": "9. SHIPMENT BY ORDER",
+          "name": "11. SHIPMENT BY ORDER",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Shipment found', function () { pm.response.to.have.status(200); });",
             "var s = pm.response.json();",
@@ -183,7 +220,7 @@
           }
         },
         {
-          "name": "10. MY NOTIFICATIONS",
+          "name": "12. MY NOTIFICATIONS",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Notifications listed', function () { pm.response.to.have.status(200); });",
             "var n = pm.response.json();",
@@ -200,7 +237,7 @@
           }
         },
         {
-          "name": "11. DOWNLOAD INVOICE PDF",
+          "name": "13. DOWNLOAD INVOICE PDF",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Invoice returned', function () { pm.response.to.have.status(200); });",
             "var ct = pm.response.headers.get('Content-Type') || '';",
@@ -227,7 +264,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","register"] },
-            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jagdish Kumar\",\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Password@123\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jagdish Kumar\",\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Test@1234\"\n}" },
             "description": "Register a new user. Sends an OTP to the email for verification. No JWT required."
           }
         },
@@ -275,7 +312,7 @@
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
-            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Password@123\"\n}" },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Test@1234\"\n}" },
             "description": "Login. Auto-saves accessToken, refreshToken, userId, email and role."
           }
         },
@@ -991,29 +1028,37 @@
       "description": "Payment initiation, verification, refunds and the Razorpay webhook (payment-service).",
       "item": [
         {
-          "name": "Initiate Payment  (MOCK)",
+          "name": "Initiate Payment  (gateway: {{gateway}})",
           "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
             "pm.test('Payment initiated', function () { pm.response.to.have.status(200); });",
             "var g = pm.response.json();",
             "pm.collectionVariables.set('paymentId', g.paymentId);",
-            "if (g.gatewayOrderId) pm.collectionVariables.set('gatewayOrderId', g.gatewayOrderId);"
+            "if (g.gatewayOrderId) pm.collectionVariables.set('gatewayOrderId', g.gatewayOrderId);",
+            "console.log('Checkout session ready:', g.status, '| gatewayOrderId:', g.gatewayOrderId);",
+            "console.log('RAZORPAY: open the hosted checkout http://localhost:8083/index.html (or use the checkout key below)');"
           ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/v1/payments/initiate", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","initiate"] },
-            "body": { "mode": "raw", "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"customerEmail\": \"{{userEmail}}\",\n  \"amount\": 1.00,\n  \"gateway\": \"MOCK\",\n  \"paymentMethod\": \"CARD\"\n}" },
-            "description": "Creates a gateway order/session for the checkout UI. gateway: RAZORPAY, STRIPE or MOCK (local dev)."
+            "body": { "mode": "raw", "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"customerEmail\": \"{{userEmail}}\",\n  \"amount\": 1.00,\n  \"gateway\": \"{{gateway}}\",\n  \"paymentMethod\": \"CARD\"\n}" },
+            "description": "Creates the gateway checkout session for the current order. Set the collection variable {{gateway}} to:\n  - MOCK    → instant dev success (Verify Payment with defaults).\n  - RAZORPAY → real Razorpay order/session created server-side with your .env keys; the response gatewayKey + gatewayOrderId drive the Razorpay checkout popup (or the hosted UI at http://localhost:8083/index.html). Then Verify Payment with the real razorpay_payment_id.\n  - STRIPE  → same init flow, needs real Stripe keys."
           }
         },
         {
           "name": "Verify Payment",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Payment verified', function () { pm.response.to.have.status(200); });",
+            "var v = pm.response.json();",
+            "console.log('Payment status:', v.status, '| txn:', v.transactionId);",
+            "if (v.status === 'COMPLETED') console.log('Saga continues -> shipping -> notification');"
+          ]}}],
           "request": {
             "method": "POST",
             "header": [{ "key": "Content-Type", "value": "application/json" }],
             "url": { "raw": "{{baseUrl}}/api/v1/payments/verify", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","verify"] },
-            "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"gatewayPaymentId\": \"pay_mock_123\",\n  \"gatewayOrderId\": \"{{gatewayOrderId}}\",\n  \"gatewaySignature\": \"mock_signature\"\n}" },
-            "description": "Verifies the gateway callback signature and captures the payment."
+            "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"gatewayPaymentId\": \"{{gatewayPaymentId}}\",\n  \"gatewayOrderId\": \"{{gatewayOrderId}}\",\n  \"gatewaySignature\": \"\"\n}" },
+            "description": "Captures the payment against the gateway session. MOCK: keep {{gatewayPaymentId}} default. RAZORPAY: set {{gatewayPaymentId}} to the razorpay_payment_id from the checkout popup; gatewaySignature can stay empty (dev-mode skip) or hold the real HMAC signature."
           }
         },
         {
