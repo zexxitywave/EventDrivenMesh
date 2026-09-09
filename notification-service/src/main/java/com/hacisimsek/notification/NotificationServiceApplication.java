@@ -7,7 +7,7 @@ import org.springframework.kafka.annotation.EnableKafka;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = {"com.hacisimsek.notification", "com.hacisimsek.common"})
 @EnableDiscoveryClient
 @EnableKafka
 @EnableAsync
