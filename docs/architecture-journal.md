@@ -113,3 +113,10 @@ Notification emails carry an invoice PDF generated from order data and attached 
 Mongo notifications track PENDING, RETRY_PENDING, SENT and FAILED transitions with a retry counter on each document.
 
 ---
+
+
+## 17. Retry background job
+
+A scheduled job revisits RETRY_PENDING notifications so transient SMTP failures are retried instead of dropped.
+
+---
