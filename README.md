@@ -187,6 +187,18 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 | Resend / AWS SES | Transactional email (notifications, auth OTP), PDF invoices |
 | Google OAuth2 | Federated identity |
 
+### 2. Design Principles
+
+| Principle | How it is applied |
+|---|---|
+| Event-driven, choreographed microservices | **No central saga orchestrator.** Each service reacts to one event and produces the next (`order → inventory → payment → shipping → notification`) |
+| Polyglot persistence | PostgreSQL for transactional state, MongoDB for documents & logs, Redis for ephemeral session cart |
+| Sync only where it pays | REST is confined to the gateway edges and cheap internal lookups (cart→product, cart→inventory, seller→product/order); every state transition is a Kafka event |
+| CQRS | `analytics-service` keeps a dedicated PostgreSQL read model projected from `order-events`, never touching transactional DBs |
+| Idempotent by design | Events carry `eventId`/`correlationId`; analytics de-duplicates on `event_id`; payment rows are keyed by `correlation_id` |
+| Zero-trust at the edge | Gateway validates JWT once and injects `X-User-Id` / `X-User-Email` / `X-User-Role`; downstream services trust these headers |
+| 12-factor config | All credentials via environment (`RAZORPAY_*`, `RESEND_API_KEY`, `MAIL_PASSWORD`, `JWT_SECRET`, …) with sensible dev defaults |
+
 ---
 
 ## 🔄 Order Saga Flow
