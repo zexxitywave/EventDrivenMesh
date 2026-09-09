@@ -310,7 +310,8 @@ This starts:
 | logging-service | `8092` | MongoDB `logging_db` |
 | analytics-service | `8093` | PostgreSQL `analytics_db` |
 | Kafka UI | `8069` | — |
-| Prometheus | `9095` | — |
+| kafka-lag-exporter | `8000` | — |
+| Prometheus | `9091` | — |
 | Grafana | `3005` | — |
 
 All services register with Eureka and are reachable through the API Gateway at `http://localhost:8080`.
