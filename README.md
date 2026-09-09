@@ -217,7 +217,14 @@ flowchart TB
     subgraph EDGE["🛡️ Edge"]
         GW["API Gateway · JWT · rate-limit · lb://"]
     end
-    TE --> ANS[analytics-service]
+
+    subgraph SVC["⚙️ Services"]
+        ORD["order-service"]
+        INV["inventory-service"]
+        PAY["payment-service"]
+        SHP["shipping-service"]
+        NOT["notification-service"]
+    end
     TE --> LGS[logging-service]
 
     INVS -->|InventoryReservedEvent| IE[inventory-events]
