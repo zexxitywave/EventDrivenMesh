@@ -225,3 +225,10 @@ docker-compose runs Kafka with auto topic creation so order-events, inventory-ev
 Provision Mongo for notification and analytics, Postgres for order and payment, and Redis for cart caching.
 
 ---
+
+
+## 33. Container healthchecks
+
+Docker healthchecks gate gateway startup on Eureka and microservice readiness so compose boots deterministically.
+
+---
