@@ -1104,7 +1104,7 @@ ecommerce-microservices/
 ├── docker-compose.yml           # Kafka, PostgreSQL, MongoDB, Redis, Kafka UI
 ├── .env                         # Environment variables
 ├── scripts/
-│   └── create-multiple-postgres-dbs.sh  # Auto-creates 7 PostgreSQL databases
+│   └── create-multiple-postgres-dbs.sh  # Auto-creates 8 PostgreSQL databases
 ├── k8s/                         # Kubernetes manifests (order-service reference)
 ├── monitoring/                  # Prometheus & Grafana config
 │   ├── prometheus.yml           # Scrape configs for all services
