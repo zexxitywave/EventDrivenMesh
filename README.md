@@ -219,7 +219,7 @@ flowchart TB
     end
 
     subgraph SVC["⚙️ Platform Services"]
-        ORD["order-service"]
+        ORD["order-service · saga trigger"]
         INV["inventory-service"]
         PAY["payment-service"]
         SHP["shipping-service"]
