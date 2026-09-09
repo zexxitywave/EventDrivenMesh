@@ -365,3 +365,10 @@ NotificationDeadLetter carries order, recipient, retryCount and reason without t
 The Kafka listener error handler retries then publishes failed records to notification-dlq instead of skipping silently.
 
 ---
+
+
+## 53. DLQ configuration
+
+application.yml gains app.notification.dlq-topic and retry-base-delay-minutes with sensible defaults.
+
+---
