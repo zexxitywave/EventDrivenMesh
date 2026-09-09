@@ -400,3 +400,10 @@ Unclear SMTP responses default to retryable so no mail is dropped on a misclassi
 DLQ records are metadata; the Notification row owns fail state, so replay decisions read status from Mongo, not Kafka.
 
 ---
+
+
+## 58. DLQ replay runbook
+
+Show how ops inspects notification-dlq with kafka-console-consumer and restores a row to RETRY_PENDING for replay.
+
+---
