@@ -58,6 +58,7 @@ through a central API Gateway with JWT authentication.
 - [Order Saga Flow](#-order-saga-flow)
 - [🚀 Quick Start](#-quick-start)
 - [Service Port Reference](#-service-port-reference)
+- [Microservices Catalog](#-microservices-catalog)
 - [Services](#-services)
   - [Service Registry](#1-service-registry)
   - [API Gateway](#2-api-gateway)
@@ -520,6 +521,84 @@ This starts:
 | Alertmanager | `9093` | — |
 
 All services register with Eureka and are reachable through the API Gateway at `http://localhost:8080`.
+
+---
+
+## 🧩 Microservices Catalog
+
+A comprehensive overview of all 16 microservices, their ports, data stores, communication patterns, and core responsibilities.
+
+### Overview
+
+| # | Service | Port | Data Store | Communication | Core Responsibility |
+|---|---|---|---|---|---|
+| 1 | `service-registry` | `8761` | — | Eureka protocol | Service discovery & registration |
+| 2 | `api-gateway` | `8080` | — | REST (lb://) | JWT validation, rate limiting, routing |
+| 3 | `common-library` | — | — | Shared Maven module | Kafka events, DTOs, constants |
+| 4 | `auth-service` | `8086` | PostgreSQL `auth_db` | REST | Registration, login, JWT, OAuth2, OTP |
+| 5 | `user-service` | `8087` | PostgreSQL `user_db` | REST | User profiles, addresses |
+| 6 | `product-service` | `8088` | PostgreSQL `product_db` | REST | Product catalog, categories, search |
+| 7 | `seller-service` | `8091` | PostgreSQL `seller_db` | REST | Merchant profiles, onboarding, verification |
+| 8 | `cart-service` | `8089` | Redis | REST | Ephemeral session cart, add/remove/update items |
+| 9 | `wishlist-service` | `8090` | MongoDB `wishlist_db` | REST | Customer wishlists, saved-for-later |
+| 10 | `order-service` | `8081` | PostgreSQL `order_db` | REST + Kafka | Saga trigger & status tracker |
+| 11 | `inventory-service` | `8082` | MongoDB `inventory` | REST + Kafka | Stock check, reserve, release, alerts |
+| 12 | `payment-service` | `8083` | PostgreSQL `payment_db` | REST + Kafka | Razorpay / Mock payments, refunds, webhooks |
+| 13 | `shipping-service` | `8085` | PostgreSQL `shipping_db` | REST + Kafka | Shipment creation, tracking, courier |
+| 14 | `notification-service` | `8084` | MongoDB `notification_db` | REST + Kafka | Email (Resend), PDF invoice, in-app |
+| 15 | `logging-service` | `8092` | MongoDB `logging_db` | Kafka | Centralized logs, traceId search, 30-day TTL |
+| 16 | `analytics-service` | `8093` | PostgreSQL `analytics_db` | Kafka (batch) | CQRS read model, revenue, trends, DLQ |
+
+### Data Store Breakdown
+
+| Store | Databases | Services |
+|---|---|---|
+| **PostgreSQL 16** | `auth_db`, `user_db`, `product_db`, `seller_db`, `order_db`, `payment_db`, `shipping_db`, `analytics_db` | auth, user, product, seller, order, payment, shipping, analytics |
+| **MongoDB** | `inventory`, `wishlist_db`, `notification_db`, `logging_db` | inventory, wishlist, notification, logging |
+| **Redis** | — | cart |
+
+### Kafka Topic Participation
+
+| Service | Produces | Consumes |
+|---|---|---|
+| `order-service` | `order-events` | `inventory-events`, `payment-events`, `shipping-events` |
+| `inventory-service` | `inventory-events`, `inventory-alerts` | `order-events` |
+| `payment-service` | `payment-events` | `inventory-events` |
+| `shipping-service` | `shipping-events` | `payment-events` |
+| `notification-service` | — | `payment-events`, `shipping-events` |
+| `logging-service` | — | `order-events`, `inventory-events`, `payment-events`, `shipping-events`, `service-logs` |
+| `analytics-service` | `order-analytics-dlq` | `order-events` (batch) |
+
+### Saga Flow (Service Participation)
+
+```
+order-service → inventory-service → payment-service → shipping-service → notification-service
+     │                │                    │                 │                    │
+  OrderCreated    InventoryReserved    PaymentProcessed  ShipmentProcessed   Email + PDF
+     │                │                    │                 │                    │
+  [order-events]  [inventory-events]  [payment-events]  [shipping-events]    (sink)
+```
+
+### Compensation / Failure Path
+
+```
+Stock unavailable  → inventory-service → InventoryReservationFailedEvent  → order-service (CANCELLED)
+Payment failed     → payment-service   → PaymentFailedEvent              → order-service (FAILED)
+Shipping failed    → shipping-service  → ShipmentFailedEvent             → order-service (FAILED)
+Malformed event    → analytics-service → order-analytics-dlq             → (reprocessed later)
+```
+
+### Service Interaction Matrix
+
+| From ↓ / To → | Gateway | Auth | User | Product | Seller | Cart | Wishlist | Order | Inventory | Payment | Shipping | Notification | Logging | Analytics |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| **Gateway** | — | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
+| **Cart** | — | — | — | ✓ | — | — | — | — | ✓ | — | — | — | — | — |
+| **Seller** | — | — | — | ✓ | — | — | — | ✓ | — | — | — | — | — | — |
+| **Wishlist** | — | — | — | ✓ | — | ✓ | — | — | — | — | — | — | — | — |
+| **Order** | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+
+> Arrows indicate **synchronous REST** calls between services. All state transitions flow asynchronously via Kafka events.
 
 ---
 
