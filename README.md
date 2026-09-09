@@ -356,7 +356,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/seller/**` | seller-service | ✅ |
 | `/api/v1/notifications/**` | notification-service | ✅ |
 | `/api/v1/logs/**` | logging-service | ✅ |
-| `/api/analytics/**` | analytics-service | ✅ |
+| `/api/v1/analytics/**` | analytics-service | ✅ |
 
 ---
 
@@ -715,10 +715,10 @@ Dedicated read-side analytics store implementing the **CQRS pattern** — all an
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/analytics/summary` | Total orders, total revenue, unique customers |
-| GET | `/api/analytics/top-customers` | Top customers ranked by spend |
-| GET | `/api/analytics/revenue-per-day` | Daily revenue time series |
-| GET | `/api/analytics/orders` | Paginated order analytics records |
+| GET | `/api/v1/analytics/summary` | Total orders, total revenue, unique customers |
+| GET | `/api/v1/analytics/top-customers` | Top customers ranked by spend |
+| GET | `/api/v1/analytics/revenue-per-day` | Daily revenue time series |
+| GET | `/api/v1/analytics/orders` | Paginated order analytics records |
 
 **Performance Stats** (from load testing)
 
