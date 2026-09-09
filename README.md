@@ -201,7 +201,8 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 
 ### 3. Logical Architecture
 
-Two cooperating planes: a **synchronous REST plane** (gateway + direct internal lookups) and an **asynchronous Kafka plane** (the saga, analytics projection, log aggregation, notification fan-out).
+**Two cooperating planes.** One edge for HTTP, one backbone for events:
+- **Sync plane** — the *entry surface*. The **API Gateway** validates the JWT once, applies rate limits, and routes every request to `/api/v1/**` over Eureka/`lb://`; downstream services trust the injected `X-User-Id` / `X-User-Email` / `X-User-Role` headers. The same plane serves cheap internal reads (`cart`→`product`/`inventory`, `seller`→`product`/`order`).
 
 ```mermaid
 flowchart LR
