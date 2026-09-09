@@ -351,7 +351,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/inventory/**` | inventory-service | ✅ |
 | `/api/v1/shipping/**` | shipping-service | ✅ |
 | `/api/v1/users/**` | user-service | ✅ |
-| `/api/cart/**` | cart-service | ✅ |
+| `/api/v1/cart/**` | cart-service | ✅ |
 | `/api/wishlist/**` | wishlist-service | ✅ |
 | `/api/seller/**` | seller-service | ✅ |
 | `/api/notifications/**` | notification-service | ✅ |
@@ -528,11 +528,11 @@ Session-based cart stored in Redis. Validates stock with inventory-service befor
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/cart` | Get cart (auto-created if empty) |
-| POST | `/api/cart/items` | Add item (validates stock) |
-| PUT | `/api/cart/items/{productId}` | Update quantity |
-| DELETE | `/api/cart/items/{productId}` | Remove item |
-| DELETE | `/api/cart` | Clear cart |
+| GET | `/api/v1/cart` | Get cart (auto-created if empty) |
+| POST | `/api/v1/cart/items` | Add item (validates stock) |
+| PUT | `/api/v1/cart/items/{productId}` | Update quantity |
+| DELETE | `/api/v1/cart/items/{productId}` | Remove item |
+| DELETE | `/api/v1/cart` | Clear cart |
 
 **Redis key:** `cart:{userId}` → serialized `Cart` JSON
 
