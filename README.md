@@ -240,7 +240,7 @@ flowchart TB
     end
 
     BUYER -- /api/v1/** --> GW
-    SELLER -- REST /api/v1/** --> GW
+    SELLER -- /api/v1/** --> GW
     GW --> ORD & INV & PAY & SHP
 
     ORD -- OrderCreatedEvent --> OE
