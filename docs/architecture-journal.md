@@ -190,3 +190,10 @@ cart-service keeps carts in Redis for fast multi-tab reads and a reliable checko
 wishlist-service stores favourites per user and can emit restock-alert events for out-of-stock items.
 
 ---
+
+
+## 28. Seller service
+
+seller-service manages seller profiles and product ingestion that feeds the product-service catalog.
+
+---
