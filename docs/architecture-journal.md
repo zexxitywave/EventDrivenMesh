@@ -176,3 +176,10 @@ user-service exposes profiles plus email preferences that notification-service r
 product-service serves the catalog and aggregates inventory state through Eureka lb:// calls when the gateway asks.
 
 ---
+
+
+## 26. Cart service
+
+cart-service keeps carts in Redis for fast multi-tab reads and a reliable checkout handoff to order-service.
+
+---
