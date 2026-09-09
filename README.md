@@ -143,6 +143,7 @@ graph TB
     KAFKA -- order-events --> ANALYTICS
     ANALYTICS -- order-analytics-dlq --> KAFKA
     KAFKA -- order-events --> LOG
+    KAFKA -- inventory-events --> LOG
 
     WISH -- REST --> CART
     SELLER -- REST --> PRODUCT
