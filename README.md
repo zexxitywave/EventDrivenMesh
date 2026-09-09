@@ -292,6 +292,10 @@ flowchart LR
 | Availability | Zero-downtime rolling updates; `preStop` drain; liveness/readiness probes |
 | Observability | Micrometer → Prometheus → Grafana (8 dashboards), centralized logs, Kafka lag metrics |
 
+### 8. Deployment Topology
+
+Dev/CI: one `docker-compose up -d` provides Kafka (KRaft) `:9095`, PostgreSQL 16 (**8 databases**), MongoDB, Redis, Kafka UI `:8069`, Prometheus `:9091`, Grafana `:3000`, kafka-lag-exporter `:8000`, Alertmanager `:9093`. The platform runs as **15 Spring Boot services** (one Maven module each) plus the shared `common-library`. Production path: containerize each service and apply the `/k8s` manifests (Deployment + Service + HPA) behind an ingress terminating at the gateway.
+
 ---
 
 ## 🔄 Order Saga Flow
