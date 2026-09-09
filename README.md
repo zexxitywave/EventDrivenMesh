@@ -214,7 +214,7 @@ flowchart TB
         SELLER["Seller"]
     end
 
-    subgraph EDGE["🛡️ Edge"]
+    subgraph EDGE["🛡️ Edge · Gateway"]
         GW["API Gateway · JWT · rate-limit · lb://"]
     end
 
