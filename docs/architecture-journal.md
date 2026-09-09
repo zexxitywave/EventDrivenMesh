@@ -36,3 +36,10 @@ Add api-gateway with JWT validation at the edge, per-user rate limiting, and rou
 Create order-service with an OrderCreatedEvent producer on the order-events topic and a REST controller for the order lifecycle.
 
 ---
+
+
+## 6. Checkout triggers the saga
+
+On checkout the order-service publishes OrderCreatedEvent so the saga chain begins: order, inventory, payment, shipping, notification.
+
+---
