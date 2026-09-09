@@ -218,3 +218,10 @@ Requests to /api/v1/** are rate-limited per user to shield the saga from traffic
 docker-compose runs Kafka with auto topic creation so order-events, inventory-events, payment-events and shipping-events exist on startup.
 
 ---
+
+
+## 32. Persistence per service
+
+Provision Mongo for notification and analytics, Postgres for order and payment, and Redis for cart caching.
+
+---
