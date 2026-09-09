@@ -211,7 +211,7 @@ sequenceDiagram
 
 ## 🚀 Quick Start
 
-The fastest way to run Zexxity is with Docker Compose. It spins up Kafka (KRaft), PostgreSQL (7 databases), MongoDB, Redis, and Kafka UI — no manual database setup required.
+The fastest way to run Zexxity is with Docker Compose. It spins up Kafka (KRaft), PostgreSQL (8 databases), MongoDB, Redis, and Kafka UI — no manual database setup required.
 
 ### Prerequisites
 
