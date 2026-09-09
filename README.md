@@ -203,6 +203,7 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 
 **Two cooperating planes.** One edge for HTTP, one backbone for events:
 - **Sync plane** — the *entry surface*. The **API Gateway** validates the JWT once, applies rate limits, and routes every request to `/api/v1/**` over Eureka/`lb://`; downstream services trust the injected `X-User-Id` / `X-User-Email` / `X-User-Role` headers. The same plane serves cheap internal reads (`cart`→`product`/`inventory`, `seller`→`product`/`order`).
+- **Async plane** — the *saga backbone*. No central orchestrator: each service consumes the one event it needs, performs a step, and publishes the event that triggers the next (`order → inventory → payment → shipping → notification`). The bus also feeds the `analytics-service` CQRS read model, the 30-day `logging-service` audit trail, and `notification-service` fan-out.
 
 ```mermaid
 flowchart LR
