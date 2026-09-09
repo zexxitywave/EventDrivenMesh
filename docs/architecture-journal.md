@@ -267,3 +267,10 @@ Explain the synchronous REST plane and the asynchronous Kafka saga plane in the 
 A Mermaid flowchart traces order to inventory to payment to shipping to notification, including compensation edges.
 
 ---
+
+
+## 39. DLQ strategy
+
+Poison events are diverted to per-service DLQ topics, currently order-analytics-dlq and notification-dlq.
+
+---
