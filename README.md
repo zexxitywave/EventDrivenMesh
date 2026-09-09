@@ -208,7 +208,11 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 
 ```mermaid
 flowchart TB
-    ORS[order-service] -->|OrderCreatedEvent| TE[order-events]
+
+    subgraph CLIENTS["🧍 Clients"]
+        BUYER["Buyer · Web / Mobile"]
+        SELLER["Seller"]
+    end
     TE --> INVS[inventory-service]
     TE --> ANS[analytics-service]
     TE --> LGS[logging-service]
