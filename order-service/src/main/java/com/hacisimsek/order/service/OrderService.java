@@ -9,6 +9,13 @@ import java.util.UUID;
 
 public interface OrderService {
     OrderResponse createOrder(OrderRequest orderRequest);
+
+    /**
+     * Creates a batch of orders in one call — each order starts its own saga
+     * (own outbox entry, own correlationId). One failing order rolls back the
+     * whole batch.
+     */
+    List<OrderResponse> createOrders(List<OrderRequest> orderRequests);
     OrderResponse getOrderById(UUID orderId);
     List<OrderResponse> getAllOrders();
     List<OrderResponse> getOrdersByCustomerId(UUID customerId);

@@ -158,6 +158,16 @@ public class OrderServiceImpl implements OrderService {
     }
 
     @Override
+    @Transactional
+    public List<OrderResponse> createOrders(List<OrderRequest> orderRequests) {
+        List<OrderResponse> responses = orderRequests.stream()
+                .map(this::createOrder)
+                .collect(Collectors.toList());
+        log.info("Bulk-created {} orders", responses.size());
+        return responses;
+    }
+
+    @Override
     public OrderResponse getOrderById(UUID orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));

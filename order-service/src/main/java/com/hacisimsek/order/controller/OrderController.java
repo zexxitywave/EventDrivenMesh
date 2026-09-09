@@ -1,5 +1,6 @@
 package com.hacisimsek.order.controller;
 
+import com.hacisimsek.order.dto.BulkOrderRequest;
 import com.hacisimsek.order.dto.OrderRequest;
 import com.hacisimsek.order.dto.OrderResponse;
 import com.hacisimsek.order.eventsourcing.OrderEvent;
@@ -37,6 +38,13 @@ public class OrderController {
     @ResponseStatus(HttpStatus.CREATED)
     public OrderResponse createOrder(@Valid @RequestBody OrderRequest orderRequest) {
         return orderService.createOrder(orderRequest);
+    }
+
+    @PostMapping("/bulk")
+    @ResponseStatus(HttpStatus.CREATED)
+    public List<OrderResponse> createOrders(@Valid @RequestBody BulkOrderRequest bulkOrderRequest) {
+        log.info("Bulk order request received — creating {} orders", bulkOrderRequest.getOrders().size());
+        return orderService.createOrders(bulkOrderRequest.getOrders());
     }
 
     @GetMapping("/{orderId}")
