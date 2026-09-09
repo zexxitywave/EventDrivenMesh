@@ -49,6 +49,8 @@ app:
   notification:
     from-email: noreply@zexxity.online
     max-retry-attempts: 3
+    retry-base-delay-minutes: 10
+    dlq-topic: notification-dlq
 
 eureka:
   client:
