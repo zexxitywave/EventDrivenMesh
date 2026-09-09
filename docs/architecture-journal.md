@@ -106,3 +106,10 @@ notification-service consumes ShippingCompletedEvent, builds an email with the o
 Notification emails carry an invoice PDF generated from order data and attached through JavaMailSender.
 
 ---
+
+
+## 16. Notification model
+
+Mongo notifications track PENDING, RETRY_PENDING, SENT and FAILED transitions with a retry counter on each document.
+
+---
