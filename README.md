@@ -266,6 +266,10 @@ This starts:
 | MongoDB | `27017` | |
 | Redis 7 | `6379` | Persistence enabled |
 | Kafka UI | `8069` | http://localhost:8069 |
+| Prometheus | `9091` | Scrapes all services |
+| Grafana | `3000` | admin / admin |
+| kafka-lag-exporter | `8000` | Consumer lag as Prometheus metrics |
+| Alertmanager | `9093` | Alert routing |
 
 ### 3. Build All Modules
 
