@@ -351,3 +351,10 @@ An indexed nextAttemptAt field makes the retry job pick only due rows, with expo
 Notification rows keep the last errorMessage so FAILED mail can be triaged without grepping service logs.
 
 ---
+
+
+## 51. Notification DLQ payload
+
+NotificationDeadLetter carries order, recipient, retryCount and reason without the attached invoice PDF bytes.
+
+---
