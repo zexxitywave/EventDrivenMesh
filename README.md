@@ -283,6 +283,7 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --
  1  order-service -- OrderCreatedEvent --> [ order-events ]            --> inventory-service
  2  inventory-service -- InventoryReservedEvent --> [ inventory-events ] --> payment-service
  3  payment-service -- PaymentProcessedEvent --> [ payment-events ] --> shipping-service
+ 4  shipping-service -- ShipmentProcessedEvent --> [ shipping-events ] --> notification-service
 ```
 
 ### 4. Component Responsibilities
