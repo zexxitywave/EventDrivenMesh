@@ -144,6 +144,7 @@ graph TB
     ANALYTICS -- order-analytics-dlq --> KAFKA
     KAFKA -- order-events --> LOG
     KAFKA -- inventory-events --> LOG
+    KAFKA -- payment-events --> LOG
 
     WISH -- REST --> CART
     SELLER -- REST --> PRODUCT
