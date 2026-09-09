@@ -178,7 +178,7 @@ sequenceDiagram
     participant SS as Shipping Service
     participant NS as Notification Service
 
-    C->>OS: POST /api/orders
+    C->>OS: POST /api/v1/orders
     OS->>OS: Save Order (PENDING)
     OS-->>IS: OrderCreatedEvent [order-events]
 
@@ -346,7 +346,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 |---|---|---|
 | `/api/v1/auth/**` | auth-service | ❌ |
 | `/api/v1/products/**` GET | product-service | ❌ |
-| `/api/orders/**` | order-service | ✅ |
+| `/api/v1/orders/**` | order-service | ✅ |
 | `/api/payments/**` | payment-service | ✅ |
 | `/api/inventory/**` | inventory-service | ✅ |
 | `/api/shipping/**` | shipping-service | ✅ |
@@ -565,9 +565,9 @@ Creates orders and drives the entire saga by publishing `OrderCreatedEvent` then
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/orders` | Place order — triggers saga |
-| GET | `/api/orders/{orderId}` | Get by ID |
-| GET | `/api/orders/customer/{customerId}` | Orders by customer |
+| POST | `/api/v1/orders` | Place order — triggers saga |
+| GET | `/api/v1/orders/{orderId}` | Get by ID |
+| GET | `/api/v1/orders/customer/{customerId}` | Orders by customer |
 
 **Kafka:** Publishes → `order-events` &nbsp;|&nbsp; Consumes → `inventory-events`, `payment-events`, `shipping-events`
 
@@ -802,7 +802,7 @@ kubectl apply -f k8s/order-hpa.yaml
 ## 🔥 Load Testing Results
 
 Load tests run against **order-service** (port `8081`) directly using **Apache JMeter 5.6.3**.
-Target: `POST /api/orders` — Samsung Galaxy S26, single item per order.
+Target: `POST /api/v1/orders` — Samsung Galaxy S26, single item per order.
 Tool: `load-tests/order-load-test.jmx`
 
 ---
