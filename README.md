@@ -347,7 +347,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/auth/**` | auth-service | ❌ |
 | `/api/v1/products/**` GET | product-service | ❌ |
 | `/api/v1/orders/**` | order-service | ✅ |
-| `/api/payments/**` | payment-service | ✅ |
+| `/api/v1/payments/**` | payment-service | ✅ |
 | `/api/inventory/**` | inventory-service | ✅ |
 | `/api/shipping/**` | shipping-service | ✅ |
 | `/api/users/**` | user-service | ✅ |
@@ -614,11 +614,11 @@ Supports Razorpay, Stripe, and a Mock adapter. Handles automatic saga-driven pay
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/payments/initiate` | Create gateway order |
-| POST | `/api/payments/verify` | Verify signature & capture |
-| POST | `/api/payments/refund` | Full or partial refund |
-| GET | `/api/payments/{paymentId}` | Get payment |
-| GET | `/api/payments/order/{orderId}` | Payment by order |
+| POST | `/api/v1/payments/initiate` | Create gateway order |
+| POST | `/api/v1/payments/verify` | Verify signature & capture |
+| POST | `/api/v1/payments/refund` | Full or partial refund |
+| GET | `/api/v1/payments/{paymentId}` | Get payment |
+| GET | `/api/v1/payments/order/{orderId}` | Payment by order |
 
 **Kafka:** Consumes → `inventory-events` &nbsp;|&nbsp; Publishes → `payment-events`
 
