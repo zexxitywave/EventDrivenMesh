@@ -323,3 +323,10 @@ The gateway allows web and mobile clients to call /api/v1/** from the browser fr
 Tokens, database passwords and SMTP credentials stay out of the repo and come from environment overrides.
 
 ---
+
+
+## 47. Quota-aware retry
+
+Resend daily-quota rejections matching a 550 quota message are classified transient and retried on a long ladder instead of failing fast.
+
+---
