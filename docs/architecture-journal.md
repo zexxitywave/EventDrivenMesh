@@ -169,3 +169,10 @@ auth-service signs JWTs with role claims that the gateway and downstream service
 user-service exposes profiles plus email preferences that notification-service reads before fanning out.
 
 ---
+
+
+## 25. Product catalog
+
+product-service serves the catalog and aggregates inventory state through Eureka lb:// calls when the gateway asks.
+
+---
