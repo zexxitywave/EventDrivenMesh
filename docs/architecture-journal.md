@@ -78,3 +78,10 @@ payment-service consumes inventory-events, processes the charge, then publishes 
 PaymentFailedEvent rolls back the inventory reservation and triggers the buyer notification path.
 
 ---
+
+
+## 12. Shipping fulfillment
+
+shipping-service consumes payment-events, creates the shipment, and publishes ShippingCompletedEvent to close the main saga chain.
+
+---
