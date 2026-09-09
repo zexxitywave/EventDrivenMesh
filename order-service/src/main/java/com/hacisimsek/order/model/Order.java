@@ -27,6 +27,8 @@ public class Order {
     private UUID customerId;
     private BigDecimal totalAmount;
 
+    private UUID correlationId;
+
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
