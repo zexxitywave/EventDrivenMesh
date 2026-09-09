@@ -3,6 +3,7 @@ package com.hacisimsek.notification.config;
 import com.hacisimsek.common.kafka.EventJsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -15,6 +16,7 @@ import org.springframework.kafka.core.DefaultKafkaProducerFactory;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -27,6 +29,9 @@ public class KafkaConfig {
 
     @Value("${spring.kafka.bootstrap-servers}")
     private String bootstrapServers;
+
+    @Value("${app.notification.dlq-topic:notification-dlq}")
+    private String dlqTopic;
 
     // ── Producer ─────────────────────────────────────────────────────────────
 
@@ -71,8 +76,12 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
-        // Retry twice with 2s gap, then skip — prevents poison-pill messages
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 2)));
+        // Listeners retry twice with a 2s gap; a record that still fails is published
+        // to the notification-dlq topic so poison messages are preserved for
+        // inspection/replay instead of being silently dropped.
+        DeadLetterPublishingRecoverer recoverer = new DeadLetterPublishingRecoverer(kafkaTemplate(),
+                (record, exception) -> new TopicPartition(dlqTopic, record.partition()));
+        factory.setCommonErrorHandler(new DefaultErrorHandler(recoverer, new FixedBackOff(2000L, 2)));
         return factory;
     }
 }
