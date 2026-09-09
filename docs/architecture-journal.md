@@ -43,3 +43,10 @@ Create order-service with an OrderCreatedEvent producer on the order-events topi
 On checkout the order-service publishes OrderCreatedEvent so the saga chain begins: order, inventory, payment, shipping, notification.
 
 ---
+
+
+## 7. Saga correlation
+
+Add correlationId propagation on every event envelope so retries, logs and metrics trace an order through each saga hop.
+
+---
