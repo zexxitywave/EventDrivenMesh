@@ -232,3 +232,10 @@ Provision Mongo for notification and analytics, Postgres for order and payment, 
 Docker healthchecks gate gateway startup on Eureka and microservice readiness so compose boots deterministically.
 
 ---
+
+
+## 34. Actuator endpoints
+
+Each service exposes /actuator/health and metrics for docker probes and Prometheus-style scraping.
+
+---
