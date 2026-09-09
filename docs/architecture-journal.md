@@ -15,3 +15,10 @@ Initialize the monorepo layout with one module per service, a shared common-libr
 Introduce common-library holding BaseEvent (eventId, correlationId, timestamp), typed Kafka publishers and consumers, plus the error envelope shared by every REST controller.
 
 ---
+
+
+## 3. Service discovery
+
+Register every service with spring-cloud-netflix-eureka so the gateway resolves lb:// URIs and instances auto-register and heartbeat on boot.
+
+---
