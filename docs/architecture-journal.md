@@ -141,3 +141,10 @@ Projections are keyed by eventId so at-least-once Kafka redelivery never double-
 Records that fail to parse or project are retried briefly, then published to order-analytics-dlq for inspection and replay.
 
 ---
+
+
+## 21. Audit aggregation
+
+logging-service consumes every event topic and writes a time-bucketed audit trail for support and forensics.
+
+---
