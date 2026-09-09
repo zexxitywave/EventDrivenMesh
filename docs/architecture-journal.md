@@ -260,3 +260,10 @@ Document the sixteen modules, their ports, databases and the /api/v1 gateway con
 Explain the synchronous REST plane and the asynchronous Kafka saga plane in the HLD overview.
 
 ---
+
+
+## 38. Saga sequence diagram
+
+A Mermaid flowchart traces order to inventory to payment to shipping to notification, including compensation edges.
+
+---
