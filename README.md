@@ -231,7 +231,7 @@ flowchart TB
         IE["inventory-events"]
         PE["payment-events"]
         SE["shipping-events"]
-        DLQ["order-analytics-dlq"]
+        DLQ["order-analytics-dlq · poison queue"]
     end
 
     subgraph OBS["📊 Read & Audit"]
