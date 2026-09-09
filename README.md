@@ -627,6 +627,10 @@ Supports Razorpay, Stripe, and a Mock adapter. Handles automatic saga-driven pay
 
 **Payment Adapters:** Razorpay · Stripe (stub) · Mock (dev/test)
 
+**Payment modes (`payment.saga-auto-process`)**
+- `true` (default) — saga auto-advances with the Mock adapter.
+- `false` — real Razorpay: a payment row is **pre-created** when `InventoryReservedEvent` arrives (carrying the saga `correlationId`), then `POST /api/v1/payments/initiate` resumes that same row — repeated calls return the existing gateway order (idempotent, no `409`). `POST /api/v1/payments/verify` captures the payment and publishes `PaymentProcessedEvent`; the Razorpay webhook (`POST /api/v1/payments/webhook`) is signature-verified as a fallback.
+
 **API Endpoints**
 
 | Method | Path | Description |
