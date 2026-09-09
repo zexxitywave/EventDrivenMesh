@@ -918,7 +918,7 @@ All services are instrumented with **Micrometer** and expose a `/actuator/promet
 # Start Prometheus
 docker run -d \
   --name prometheus \
-  -p 9095:9090 \
+  -p 9091:9090 \
   -v $(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
   prom/prometheus
 
