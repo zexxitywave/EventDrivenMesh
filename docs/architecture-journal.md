@@ -407,3 +407,10 @@ DLQ records are metadata; the Notification row owns fail state, so replay decisi
 Show how ops inspects notification-dlq with kafka-console-consumer and restores a row to RETRY_PENDING for replay.
 
 ---
+
+
+## 59. Finalized HLD
+
+Rehearse the final HLD diagram and resilience notes so the README matches the delivered saga and DLQ behavior.
+
+---
