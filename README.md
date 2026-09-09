@@ -265,7 +265,7 @@ This starts:
 | PostgreSQL 16 | `5432` | Auto-creates 7 databases |
 | MongoDB | `27017` | |
 | Redis 7 | `6379` | Persistence enabled |
-| Kafka UI | `8071` | http://localhost:8071 |
+| Kafka UI | `8069` | http://localhost:8069 |
 
 ### 3. Build All Modules
 
