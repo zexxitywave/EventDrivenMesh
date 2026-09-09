@@ -234,7 +234,10 @@ flowchart TB
         DLQ["order-analytics-dlq"]
     end
 
-    INVS -->|InventoryReservedEvent| IE[inventory-events]
+    subgraph OBS["📊 Read & Audit"]
+        ANS["analytics-service"]
+        LGS["logging-service"]
+    end
     IE --> ORS
     IE --> PYS[payment-service]
     IE --> LGS
