@@ -218,7 +218,7 @@ flowchart TB
         GW["API Gateway · JWT · rate-limit · lb://"]
     end
 
-    subgraph SVC["⚙️ Services"]
+    subgraph SVC["⚙️ Platform Services"]
         ORD["order-service"]
         INV["inventory-service"]
         PAY["payment-service"]
