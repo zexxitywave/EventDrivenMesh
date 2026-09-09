@@ -162,3 +162,10 @@ Latency per saga hop is derived from BaseEvent timestamps so bottlenecks surface
 auth-service signs JWTs with role claims that the gateway and downstream services consume on every request.
 
 ---
+
+
+## 24. User profiles
+
+user-service exposes profiles plus email preferences that notification-service reads before fanning out.
+
+---
