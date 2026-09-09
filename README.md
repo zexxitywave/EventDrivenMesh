@@ -287,6 +287,7 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --
 
     Same topics double as data planes for:
       analytics-service <-- [ order-events ] -> CQRS read model (revenue, top customers)
+      logging-service   <-- all events        -> 30-day indexed audit trail
 ```
 
 ### 4. Component Responsibilities
