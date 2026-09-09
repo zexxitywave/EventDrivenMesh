@@ -279,6 +279,7 @@ flowchart TB
 ```text
 Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --> order-service
                                                                                   |
+                                                                                  v
 ```
 
 ### 4. Component Responsibilities
