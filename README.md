@@ -348,7 +348,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/products/**` GET | product-service | ❌ |
 | `/api/v1/orders/**` | order-service | ✅ |
 | `/api/v1/payments/**` | payment-service | ✅ |
-| `/api/inventory/**` | inventory-service | ✅ |
+| `/api/v1/inventory/**` | inventory-service | ✅ |
 | `/api/shipping/**` | shipping-service | ✅ |
 | `/api/users/**` | user-service | ✅ |
 | `/api/cart/**` | cart-service | ✅ |
@@ -592,11 +592,11 @@ Manages stock levels. Reserves stock on order, publishes success/failure, and em
 
 | Method | Path | Description |
 |---|---|---|
-| POST/GET | `/api/inventory` | Create / list records |
-| GET | `/api/inventory/product/{productId}` | Stock by product |
-| POST | `/api/inventory/{id}/restock` | Add units |
-| GET | `/api/inventory/check` | Check availability |
-| GET | `/api/inventory/low-stock` | Low stock items |
+| POST/GET | `/api/v1/inventory` | Create / list records |
+| GET | `/api/v1/inventory/product/{productId}` | Stock by product |
+| POST | `/api/v1/inventory/{id}/restock` | Add units |
+| GET | `/api/v1/inventory/check` | Check availability |
+| GET | `/api/v1/inventory/low-stock` | Low stock items |
 
 **Kafka:** Consumes → `order-events` &nbsp;|&nbsp; Publishes → `inventory-events`, `inventory-alerts`
 
