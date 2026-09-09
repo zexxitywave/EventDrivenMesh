@@ -349,7 +349,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/orders/**` | order-service | ✅ |
 | `/api/v1/payments/**` | payment-service | ✅ |
 | `/api/v1/inventory/**` | inventory-service | ✅ |
-| `/api/shipping/**` | shipping-service | ✅ |
+| `/api/v1/shipping/**` | shipping-service | ✅ |
 | `/api/users/**` | user-service | ✅ |
 | `/api/cart/**` | cart-service | ✅ |
 | `/api/wishlist/**` | wishlist-service | ✅ |
@@ -636,8 +636,8 @@ Creates shipments when payment completes. Assigns tracking numbers and carrier, 
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/shipping/{shipmentId}` | Get shipment |
-| GET | `/api/shipping/order/{orderId}` | Shipment by order |
+| GET | `/api/v1/shipping/{shipmentId}` | Get shipment |
+| GET | `/api/v1/shipping/order/{orderId}` | Shipment by order |
 
 **Kafka:** Consumes → `payment-events` &nbsp;|&nbsp; Publishes → `shipping-events`
 
