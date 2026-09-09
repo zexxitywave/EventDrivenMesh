@@ -246,3 +246,10 @@ Each service exposes /actuator/health and metrics for docker probes and Promethe
 common-library advice standardizes error bodies so the gateway maps failures consistently for API consumers.
 
 ---
+
+
+## 36. Document the monorepo
+
+Document the sixteen modules, their ports, databases and the /api/v1 gateway contract in README.
+
+---
