@@ -393,3 +393,10 @@ Prefer per-service DLQ topics, cheap Kafka partitions with independent ownership
 Unclear SMTP responses default to retryable so no mail is dropped on a misclassification.
 
 ---
+
+
+## 57. ADR: DB is source of truth
+
+DLQ records are metadata; the Notification row owns fail state, so replay decisions read status from Mongo, not Kafka.
+
+---
