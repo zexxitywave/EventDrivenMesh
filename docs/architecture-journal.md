@@ -295,3 +295,10 @@ Mark the saga trigger, poison queue and compensation edges with a color legend f
 A GitHub Actions workflow builds every module and packages the jars on push so regressions fail fast.
 
 ---
+
+
+## 43. Graceful shutdown
+
+Stop timeouts are configured so in-flight saga events flush before a service exits.
+
+---
