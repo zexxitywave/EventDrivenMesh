@@ -259,7 +259,19 @@ flowchart TB
     NOT -. email + PDF / in-app .-> BUYER
     ANS -. failed events .-> DLQ
 
-    ANS -.failed events.-> DLQ[order-analytics-dlq]
+    classDef client fill:#ede9fe,stroke:#7c3aed,color:#4c1d95,stroke-width:2px;
+    classDef edge  fill:#dbeafe,stroke:#2563eb,color:#1e3a8a,stroke-width:2px;
+    classDef svc   fill:#dcfce7,stroke:#16a34a,color:#14532d,stroke-width:2px;
+    classDef bus   fill:#fef3c7,stroke:#d97706,color:#78350f,stroke-width:2px;
+    classDef obs   fill:#fce7f3,stroke:#db2777,color:#9d174d,stroke-width:2px;
+    classDef dlq   fill:#fee2e2,stroke:#dc2626,color:#7f1d1d,stroke-width:2px,stroke-dasharray:4;
+
+    class BUYER,SELLER client;
+    class GW edge;
+    class ORD,INV,PAY,SHP,NOT svc;
+    class OE,IE,PE,SE bus;
+    class ANS,LGS obs;
+    class DLQ dlq;
 ```
 
 ### 4. Component Responsibilities
