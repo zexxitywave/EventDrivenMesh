@@ -1,0 +1,1308 @@
+{
+  "info": {
+    "name": "EventDrivenMesh",
+    "description": "Complete, runnable API collection for the EventDrivenMesh microservices project (Spring Boot + Kafka saga).\n\nBase URL is the API Gateway: http://localhost:8080. All real endpoints live under /api/v1/**.\n\nDEMO CREDENTIALS (already provisioned in auth_db):\n  email    : creditskumar@gmail.com\n  password : Password@123\nRun \"Login\" first to store accessToken / refreshToken / userId into collection variables — the Gateway injects X-User-Id / X-Trace-Id from the JWT automatically.\n\nFor a one-click end-to-end demo, open the \"Saga Flow (run in order)\" folder and use the Collection Runner in order.\n\nNotes:\n  - Analytics has no gateway route; its folder uses directBase (http://localhost:8093).\n  - /api/v1/auth/** has no JWT filter, so \"Get Current User\" sends X-User-Id manually.\n  - Logging and Seller-Admin require a ROLE_ADMIN token.\n  - Product/category names & SKUs are unique — edit bodies before re-running to avoid conflicts.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl",           "value": "http://localhost:8080" },
+    { "key": "directBase",        "value": "http://localhost:8093" },
+    { "key": "directNotification","value": "http://localhost:8084" },
+    { "key": "accessToken",       "value": "" },
+    { "key": "refreshToken",      "value": "" },
+    { "key": "userId",            "value": "" },
+    { "key": "userEmail",         "value": "" },
+    { "key": "userRole",          "value": "" },
+    { "key": "traceId",           "value": "" },
+    { "key": "categoryId",        "value": "" },
+    { "key": "productId",         "value": "" },
+    { "key": "sku",               "value": "" },
+    { "key": "inventoryId",       "value": "" },
+    { "key": "orderId",           "value": "" },
+    { "key": "orderStatus",       "value": "" },
+    { "key": "correlationId",     "value": "" },
+    { "key": "paymentId",         "value": "" },
+    { "key": "gatewayOrderId",    "value": "" },
+    { "key": "shipmentId",        "value": "" },
+    { "key": "trackingNumber",    "value": "" },
+    { "key": "notificationId",    "value": "" }
+  ],
+  "auth": {
+    "type": "bearer",
+    "bearer": [{ "key": "token", "value": "{{accessToken}}", "type": "string" }]
+  },
+  "item": [
+
+    {
+      "name": "Saga Flow (run in order)",
+      "description": "One-click end-to-end demo. Run this folder top-to-bottom with the Collection Runner (add a small delay step between Place Order and Get Order by loading the runner with fixed delay).\n\nFlow: Login → Category → Product → Inventory → Place Order (triggers Kafka saga: order → inventory → payment → shipping → notification) → poll Order Status → verify Payment / Shipment / Notifications → download Invoice PDF.",
+      "item": [
+        {
+          "name": "1. LOGIN",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var res = pm.response.json();",
+            "pm.test('Login OK', function () { pm.response.to.have.status(200); });",
+            "if (res.accessToken) {",
+            "  pm.collectionVariables.set('accessToken', res.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+            "  pm.collectionVariables.set('userId', res.userId);",
+            "  pm.collectionVariables.set('userEmail', res.email);",
+            "  pm.collectionVariables.set('userRole', res.role);",
+            "  console.log('token saved for user', res.email);",
+            "}"
+          ]}}],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Password@123\"\n}" }
+          }
+        },
+        {
+          "name": "2. CREATE CATEGORY",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Category created', function () { pm.response.to.have.status(201); });",
+            "var c = pm.response.json();",
+            "pm.collectionVariables.set('categoryId', c.id);",
+            "console.log('categoryId:', c.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/categories", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Smartphones\",\n  \"description\": \"Mobile phones and smartphones\"\n}" }
+          }
+        },
+        {
+          "name": "3. CREATE PRODUCT  (price = 1)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Product created', function () { pm.response.to.have.status(201); });",
+            "var p = pm.response.json();",
+            "pm.collectionVariables.set('productId', p.id);",
+            "pm.collectionVariables.set('sku', p.sku);",
+            "console.log('productId:', p.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/products", "host": ["{{baseUrl}}"], "path": ["api","v1","products"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Samsung Galaxy S26\",\n  \"description\": \"Latest flagship smartphone\",\n  \"sku\": \"SGS26-BLK-256\",\n  \"price\": 1.00,\n  \"originalPrice\": 1.00,\n  \"categoryId\": \"{{categoryId}}\",\n  \"brand\": \"Samsung\",\n  \"imageUrl\": \"https://picsum.photos/seed/galaxy-s26/640/480\",\n  \"weightGrams\": 218,\n  \"status\": \"ACTIVE\"\n}" }
+          }
+        },
+        {
+          "name": "4. CREATE INVENTORY",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Inventory created', function () { pm.response.to.have.status(201); });",
+            "var it = pm.response.json();",
+            "pm.collectionVariables.set('inventoryId', it.id);",
+            "console.log('inventoryId:', it.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory"] },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"name\": \"Samsung Galaxy S26\",\n  \"description\": \"Latest flagship smartphone\",\n  \"quantity\": 100,\n  \"warehouseLocation\": \"WH-POSTMAN\",\n  \"lowStockThreshold\": 10\n}" }
+          }
+        },
+        {
+          "name": "5. PLACE ORDER  [TRIGGERS KAFKA SAGA]",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Order placed', function () { pm.response.to.have.status(201); });",
+            "var o = pm.response.json();",
+            "pm.collectionVariables.set('orderId', o.orderId);",
+            "pm.collectionVariables.set('orderStatus', o.status);",
+            "console.log('orderId:', o.orderId, '| status:', o.status);",
+            "console.log('KAFKA SAGA TRIGGERED: order-events -> inventory -> payment -> shipping -> notification');"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders", "host": ["{{baseUrl}}"], "path": ["api","v1","orders"] },
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"{{userId}}\",\n  \"customerEmail\": \"{{userEmail}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"productName\": \"Samsung Galaxy S26\",\n      \"quantity\": 1,\n      \"price\": 1.00\n    }\n  ]\n}" }
+          }
+        },
+        {
+          "name": "6. ORDER STATUS  (wait ~8s for saga)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Order found', function () { pm.response.to.have.status(200); });",
+            "var o = pm.response.json();",
+            "pm.collectionVariables.set('orderStatus', o.status);",
+            "console.log('Order status:', o.status, '| total:', o.totalAmount);",
+            "console.log('Expected final status: SHIPPED');"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "7. ORDER HISTORY  (event sourcing)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var h = pm.response.json();",
+            "pm.test('History returned', function () { pm.response.to.have.status(200); });",
+            "if (Array.isArray(h) && h.length) {",
+            "  pm.collectionVariables.set('correlationId', h[0].correlationId || '');",
+            "  console.log('Events:', h.map(function (e) { return e.eventType || e.type; }).join(' -> '));",
+            "}"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}/history", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","{{orderId}}","history"] }
+          }
+        },
+        {
+          "name": "8. PAYMENT BY ORDER",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Payment found', function () { pm.response.to.have.status(200); });",
+            "var p = pm.response.json();",
+            "pm.collectionVariables.set('paymentId', p.id);",
+            "console.log('Payment:', p.status, '| amount:', p.amount);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","order","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "9. SHIPMENT BY ORDER",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Shipment found', function () { pm.response.to.have.status(200); });",
+            "var s = pm.response.json();",
+            "pm.collectionVariables.set('shipmentId', s.id);",
+            "pm.collectionVariables.set('trackingNumber', s.trackingNumber);",
+            "console.log('Shipment:', s.status, '| tracking:', s.trackingNumber);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/shipping/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","shipping","order","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "10. MY NOTIFICATIONS",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Notifications listed', function () { pm.response.to.have.status(200); });",
+            "var n = pm.response.json();",
+            "if (Array.isArray(n) && n.length) {",
+            "  pm.collectionVariables.set('notificationId', n[0].id);",
+            "  console.log('Totalt notifications:', n.length);",
+            "  n.slice(0, 5).forEach(function (x) { console.log(' -', x.type, '|', x.message); });",
+            "}"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications"] }
+          }
+        },
+        {
+          "name": "11. DOWNLOAD INVOICE PDF",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Invoice returned', function () { pm.response.to.have.status(200); });",
+            "var ct = pm.response.headers.get('Content-Type') || '';",
+            "console.log(ct.includes('pdf') ? 'PDF invoice ready' : 'No PDF for this order yet');"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/invoice/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","invoice","{{orderId}}"] },
+            "description": "Returns application/pdf bytes when the ORDER_PLACED notification has a generated PDF."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Auth",
+      "description": "Authentication — register, verify, login, refresh, logout, password reset.",
+      "item": [
+        {
+          "name": "Register",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/register", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Jagdish Kumar\",\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Password@123\"\n}" },
+            "description": "Register a new user. Sends an OTP to the email for verification. No JWT required."
+          }
+        },
+        {
+          "name": "Verify Email (OTP)",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/verify-email", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","verify-email"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"otp\": \"123456\"\n}" },
+            "description": "Verify email using the 6-digit OTP sent after registration."
+          }
+        },
+        {
+          "name": "Resend Verification OTP",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/auth/resend-verification?email=creditskumar@gmail.com",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","auth","resend-verification"],
+              "query": [{ "key": "email", "value": "creditskumar@gmail.com" }]
+            },
+            "description": "Resend the verification OTP."
+          }
+        },
+        {
+          "name": "Login",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var res = pm.response.json();",
+            "pm.test('Login OK', function () { pm.response.to.have.status(200); });",
+            "if (res.accessToken) {",
+            "  pm.collectionVariables.set('accessToken', res.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+            "  pm.collectionVariables.set('userId', res.userId);",
+            "  pm.collectionVariables.set('userEmail', res.email);",
+            "  pm.collectionVariables.set('userRole', res.role);",
+            "}"
+          ]}}],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/login", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","login"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"password\": \"Password@123\"\n}" },
+            "description": "Login. Auto-saves accessToken, refreshToken, userId, email and role."
+          }
+        },
+        {
+          "name": "Refresh Token",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var res = pm.response.json();",
+            "if (res.accessToken) {",
+            "  pm.collectionVariables.set('accessToken', res.accessToken);",
+            "  pm.collectionVariables.set('refreshToken', res.refreshToken);",
+            "}",
+            "pm.test('Token refreshed', function () { pm.response.to.have.status(200); });"
+          ]}}],
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/refresh", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","refresh"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "description": "Exchange the refresh token for a new access token (token rotation revokes the old refresh token)."
+          }
+        },
+        {
+          "name": "Logout",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/logout", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","logout"] },
+            "body": { "mode": "raw", "raw": "{\n  \"refreshToken\": \"{{refreshToken}}\"\n}" },
+            "description": "Revokes the refresh token and blacklists the access token in Redis."
+          }
+        },
+        {
+          "name": "Forgot Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/forgot-password", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","forgot-password"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\"\n}" },
+            "description": "Request a password-reset OTP."
+          }
+        },
+        {
+          "name": "Reset Password",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/reset-password", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","reset-password"] },
+            "body": { "mode": "raw", "raw": "{\n  \"email\": \"creditskumar@gmail.com\",\n  \"otp\": \"123456\",\n  \"newPassword\": \"NewPassword@123\"\n}" },
+            "description": "Reset the password using the OTP."
+          }
+        },
+        {
+          "name": "Get Current User",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "X-User-Id", "value": "{{userId}}" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/auth/me", "host": ["{{baseUrl}}"], "path": ["api","v1","auth","me"] },
+            "description": "Current user info from the userId. The /api/v1/auth/** route has no JWT filter, so X-User-Id must be sent manually."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "User Profile",
+      "description": "User profile, preferences and addresses (user-service, X-User-Id injected by gateway JWT filter).",
+      "item": [
+        {
+          "name": "Get My Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/profile", "host": ["{{baseUrl}}"], "path": ["api","v1","users","profile"] }
+          }
+        },
+        {
+          "name": "Create Profile",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/profile", "host": ["{{baseUrl}}"], "path": ["api","v1","users","profile"] },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Jagdish Kumar\",\n  \"email\": \"{{userEmail}}\",\n  \"phoneNumber\": \"+91 98765 43210\"\n}" }
+          }
+        },
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/profile", "host": ["{{baseUrl}}"], "path": ["api","v1","users","profile"] },
+            "body": { "mode": "raw", "raw": "{\n  \"fullName\": \"Jagdish Kumar\",\n  \"phoneNumber\": \"+91 98765 43211\"\n}" }
+          }
+        },
+        {
+          "name": "Deactivate Profile",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/profile", "host": ["{{baseUrl}}"], "path": ["api","v1","users","profile"] },
+            "description": "Deactivates the account (204)."
+          }
+        },
+        {
+          "name": "Update Preferences",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/profile/preferences", "host": ["{{baseUrl}}"], "path": ["api","v1","users","profile","preferences"] },
+            "body": { "mode": "raw", "raw": "{\n  \"language\": \"en\",\n  \"currency\": \"INR\",\n  \"emailNotifications\": true,\n  \"smsNotifications\": false,\n  \"pushNotifications\": true\n}" }
+          }
+        },
+        {
+          "name": "Get Addresses",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/addresses", "host": ["{{baseUrl}}"], "path": ["api","v1","users","addresses"] }
+          }
+        },
+        {
+          "name": "Add Address",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/addresses", "host": ["{{baseUrl}}"], "path": ["api","v1","users","addresses"] },
+            "body": { "mode": "raw", "raw": "{\n  \"label\": \"Home\",\n  \"recipientName\": \"Jagdish Kumar\",\n  \"phoneNumber\": \"+91 98765 43210\",\n  \"addressLine1\": \"123 MG Road\",\n  \"addressLine2\": \"Indiranagar\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560038\",\n  \"country\": \"India\",\n  \"defaultAddress\": true\n}" }
+          }
+        },
+        {
+          "name": "Update Address",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/users/addresses/{{addressId}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","users","addresses","{{addressId}}"]
+            },
+            "body": { "mode": "raw", "raw": "{\n  \"label\": \"Home\",\n  \"recipientName\": \"Jagdish Kumar\",\n  \"phoneNumber\": \"+91 98765 43210\",\n  \"addressLine1\": \"456 MG Road\",\n  \"addressLine2\": \"Koramangala\",\n  \"city\": \"Bengaluru\",\n  \"state\": \"Karnataka\",\n  \"postalCode\": \"560034\",\n  \"country\": \"India\",\n  \"defaultAddress\": true\n}" },
+            "description": "Replace {{addressId}} with a real address UUID (or set the collection variable)."
+          }
+        },
+        {
+          "name": "Delete Address",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/addresses/{{addressId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","users","addresses","{{addressId}}"] },
+            "description": "Replace {{addressId}} with a real address UUID. Returns 204."
+          }
+        },
+        {
+          "name": "Set Default Address",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/users/addresses/{{addressId}}/default", "host": ["{{baseUrl}}"], "path": ["api","v1","users","addresses","{{addressId}}","default"] },
+            "description": "Mark an address as the default shipping address."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Products & Categories",
+      "description": "Product catalog CRUD, search/filter/pagination and category management (product-service).",
+      "item": [
+        {
+          "name": "Categories",
+          "description": "Category CRUD under /api/v1/products/categories",
+          "item": [
+            {
+              "name": "Create Category",
+              "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+                "pm.response.to.have.status(201);",
+                "var c = pm.response.json();",
+                "pm.collectionVariables.set('categoryId', c.id);"
+              ]}}],
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/v1/products/categories", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories"] },
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Smartphones\",\n  \"description\": \"Mobile phones and smartphones\"\n}" },
+                "description": "Create a category. Name (and auto-generated slug) are unique — rename before re-running."
+              }
+            },
+            {
+              "name": "Bulk Create Categories",
+              "request": {
+                "method": "POST",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/v1/products/categories/bulk", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories","bulk"] },
+                "body": { "mode": "raw", "raw": "[\n  { \"name\": \"Electronics\", \"description\": \"Electronic devices\" },\n  { \"name\": \"Clothing\", \"description\": \"Apparel and fashion\" },\n  { \"name\": \"Books\", \"description\": \"Books and literature\" }\n]" }
+              }
+            },
+            {
+              "name": "Get All Categories",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/v1/products/categories", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories"] }
+              }
+            },
+            {
+              "name": "Get Category by ID",
+              "request": {
+                "method": "GET",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/v1/products/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories","{{categoryId}}"] }
+              }
+            },
+            {
+              "name": "Update Category",
+              "request": {
+                "method": "PUT",
+                "header": [{ "key": "Content-Type", "value": "application/json" }],
+                "url": { "raw": "{{baseUrl}}/api/v1/products/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories","{{categoryId}}"] },
+                "body": { "mode": "raw", "raw": "{\n  \"name\": \"Mobile Phones\",\n  \"description\": \"All mobile phones including smartphones\"\n}" }
+              }
+            },
+            {
+              "name": "Delete Category",
+              "request": {
+                "method": "DELETE",
+                "header": [],
+                "url": { "raw": "{{baseUrl}}/api/v1/products/categories/{{categoryId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","categories","{{categoryId}}"] },
+                "description": "Delete a category (204). Fails while products still reference it."
+              }
+            }
+          ]
+        },
+        {
+          "name": "Create Product",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.response.to.have.status(201);",
+            "var p = pm.response.json();",
+            "pm.collectionVariables.set('productId', p.id);",
+            "pm.collectionVariables.set('sku', p.sku);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/products", "host": ["{{baseUrl}}"], "path": ["api","v1","products"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Samsung Galaxy S26\",\n  \"description\": \"Latest flagship smartphone\",\n  \"sku\": \"SGS26-DEMO-{{$timestamp}}\",\n  \"price\": 1.00,\n  \"originalPrice\": 1.00,\n  \"categoryId\": \"{{categoryId}}\",\n  \"brand\": \"Samsung\",\n  \"imageUrl\": \"https://picsum.photos/seed/galaxy-s26/640/480\",\n  \"weightGrams\": 218,\n  \"status\": \"ACTIVE\"\n}" },
+            "description": "Create a product. sellerId is injected from the JWT by the gateway. SKU is unique — a timestamp suffix avoids conflicts on re-run."
+          }
+        },
+        {
+          "name": "Bulk Create Products",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/bulk", "host": ["{{baseUrl}}"], "path": ["api","v1","products","bulk"] },
+            "body": { "mode": "raw", "raw": "[\n  {\n    \"name\": \"iPhone 16\",\n    \"description\": \"Apple flagship\",\n    \"sku\": \"IPH16-DEMO-{{$timestamp}}\",\n    \"price\": 1.00,\n    \"categoryId\": \"{{categoryId}}\",\n    \"brand\": \"Apple\"\n  },\n  {\n    \"name\": \"OnePlus 13\",\n    \"description\": \"OnePlus flagship\",\n    \"sku\": \"OP13-DEMO-{{$timestamp}}\",\n    \"price\": 1.00,\n    \"categoryId\": \"{{categoryId}}\",\n    \"brand\": \"OnePlus\"\n  }\n]" }
+          }
+        },
+        {
+          "name": "Get Product by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","{{productId}}"] }
+          }
+        },
+        {
+          "name": "Get Product by SKU",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/sku/{{sku}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","sku","{{sku}}"] }
+          }
+        },
+        {
+          "name": "Search Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","products"],
+              "query": [
+                { "key": "keyword",    "value": "", "disabled": true },
+                { "key": "categoryId", "value": "", "disabled": true },
+                { "key": "status",     "value": "", "disabled": true },
+                { "key": "minPrice",   "value": "", "disabled": true },
+                { "key": "maxPrice",   "value": "", "disabled": true },
+                { "key": "brand",      "value": "", "disabled": true },
+                { "key": "page",       "value": "0" },
+                { "key": "size",       "value": "20" },
+                { "key": "sortBy",     "value": "createdAt" },
+                { "key": "sortDir",    "value": "desc" }
+              ]
+            },
+            "description": "Search with optional filters and pagination. Returns a Spring Page: {content, totalElements, ...}."
+          }
+        },
+        {
+          "name": "Get Products by Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/category/{{categoryId}}?page=0&size=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","products","category","{{categoryId}}"],
+              "query": [{ "key": "page", "value": "0" }, { "key": "size", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Get My Products (Seller)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/my-products?page=0&size=20", "host": ["{{baseUrl}}"], "path": ["api","v1","products","my-products"] }
+          }
+        },
+        {
+          "name": "Get Products by Seller ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/seller/{{userId}}?page=0&size=20", "host": ["{{baseUrl}}"], "path": ["api","v1","products","seller","{{userId}}"] }
+          }
+        },
+        {
+          "name": "Update Product",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","{{productId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"name\": \"Samsung Galaxy S26 Ultra\",\n  \"description\": \"Updated flagship\",\n  \"sku\": \"SGS26U-DEMO-{{$timestamp}}\",\n  \"price\": 1.00,\n  \"categoryId\": \"{{categoryId}}\",\n  \"brand\": \"Samsung\"\n}" }
+          }
+        },
+        {
+          "name": "Update Product Status",
+          "request": {
+            "method": "PATCH",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}/status", "host": ["{{baseUrl}}"], "path": ["api","v1","products","{{productId}}","status"] },
+            "body": { "mode": "raw", "raw": "{\n  \"status\": \"ACTIVE\"\n}" },
+            "description": "Values: ACTIVE, INACTIVE, OUT_OF_STOCK, DISCONTINUED."
+          }
+        },
+        {
+          "name": "Delete Product",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/products/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","products","{{productId}}"] },
+            "description": "Delete a product (204)."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Cart",
+      "description": "Cart management (cart-service, X-User-Id injected by gateway).",
+      "item": [
+        {
+          "name": "Get Cart",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart", "host": ["{{baseUrl}}"], "path": ["api","v1","cart"] },
+            "description": "Returns the cart (creates an empty one if missing)."
+          }
+        },
+        {
+          "name": "Add to Cart",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart/items", "host": ["{{baseUrl}}"], "path": ["api","v1","cart","items"] },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 1\n}" }
+          }
+        },
+        {
+          "name": "Update Item Quantity",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart/items/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","cart","items","{{productId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 2\n}" }
+          }
+        },
+        {
+          "name": "Remove Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart/items/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","cart","items","{{productId}}"] }
+          }
+        },
+        {
+          "name": "Clear Cart",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/cart", "host": ["{{baseUrl}}"], "path": ["api","v1","cart"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Wishlist",
+      "description": "Wishlist management (wishlist-service).",
+      "item": [
+        {
+          "name": "Add to Wishlist",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/wishlist/add", "host": ["{{baseUrl}}"], "path": ["api","v1","wishlist","add"] },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\"\n}" }
+          }
+        },
+        {
+          "name": "Remove from Wishlist",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/wishlist/remove/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","wishlist","remove","{{productId}}"] }
+          }
+        },
+        {
+          "name": "Get Wishlist",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/wishlist/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","wishlist","{{userId}}"] }
+          }
+        },
+        {
+          "name": "Move to Cart",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/wishlist/move-to-cart/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","wishlist","move-to-cart","{{productId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Inventory",
+      "description": "Inventory records, restock, availability checks (inventory-service, MongoDB).",
+      "item": [
+        {
+          "name": "Create Inventory Item",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.response.to.have.status(201);",
+            "var it = pm.response.json();",
+            "pm.collectionVariables.set('inventoryId', it.id);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory"] },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"name\": \"Samsung Galaxy S26\",\n  \"description\": \"Latest flagship smartphone\",\n  \"quantity\": 100,\n  \"warehouseLocation\": \"WH-POSTMAN\",\n  \"lowStockThreshold\": 10\n}" }
+          }
+        },
+        {
+          "name": "Get Inventory by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/{{inventoryId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory","{{inventoryId}}"] }
+          }
+        },
+        {
+          "name": "Get Inventory by Product ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/product/{{productId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory","product","{{productId}}"] }
+          }
+        },
+        {
+          "name": "Get All Inventory",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory"] }
+          }
+        },
+        {
+          "name": "Update Inventory Item",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/{{inventoryId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory","{{inventoryId}}"] },
+            "body": { "mode": "raw", "raw": "{\n  \"productId\": \"{{productId}}\",\n  \"quantity\": 150,\n  \"warehouseLocation\": \"WH-POSTMAN\",\n  \"lowStockThreshold\": 15\n}" }
+          }
+        },
+        {
+          "name": "Restock Item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/{{inventoryId}}/restock", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory","{{inventoryId}}","restock"] },
+            "body": { "mode": "raw", "raw": "{\n  \"quantity\": 50,\n  \"warehouseLocation\": \"WH-POSTMAN\"\n}" }
+          }
+        },
+        {
+          "name": "Delete Inventory Item",
+          "request": {
+            "method": "DELETE",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/{{inventoryId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory","{{inventoryId}}"] }
+          }
+        },
+        {
+          "name": "Check Availability",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/inventory/check?productId={{productId}}&quantity=1",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","inventory","check"],
+              "query": [{ "key": "productId", "value": "{{productId}}" }, { "key": "quantity", "value": "1" }]
+            },
+            "description": "Returns true/false — used by order-service before accepting an order."
+          }
+        },
+        {
+          "name": "Get Low Stock Items",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/inventory/low-stock", "host": ["{{baseUrl}}"], "path": ["api","v1","inventory","low-stock"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Seller",
+      "description": "Seller registration, profile, products/orders/analytics, and admin verification.",
+      "item": [
+        {
+          "name": "Register as Seller",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/seller/register", "host": ["{{baseUrl}}"], "path": ["api","v1","seller","register"] },
+            "body": { "mode": "raw", "raw": "{\n  \"storeName\": \"Zexxity Store\",\n  \"email\": \"{{userEmail}}\",\n  \"phone\": \"+91 98765 43210\",\n  \"businessAddress\": \"123 MG Road, Bengaluru\",\n  \"businessRegistrationNumber\": \"GSTIN-123\"\n}" }
+          }
+        },
+        {
+          "name": "Get Seller Profile",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/seller/profile", "host": ["{{baseUrl}}"], "path": ["api","v1","seller","profile"] }
+          }
+        },
+        {
+          "name": "Update Seller Profile",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/seller/profile", "host": ["{{baseUrl}}"], "path": ["api","v1","seller","profile"] },
+            "body": { "mode": "raw", "raw": "{\n  \"storeName\": \"Zexxity Store\",\n  \"phone\": \"+91 98765 43211\",\n  \"businessAddress\": \"456 MG Road, Bengaluru\"\n}" }
+          }
+        },
+        {
+          "name": "Get Seller Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/seller/products", "host": ["{{baseUrl}}"], "path": ["api","v1","seller","products"] },
+            "description": "Requires the seller profile to be VERIFIED."
+          }
+        },
+        {
+          "name": "Get Seller Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/seller/orders", "host": ["{{baseUrl}}"], "path": ["api","v1","seller","orders"] },
+            "description": "Requires the seller profile to be VERIFIED."
+          }
+        },
+        {
+          "name": "Seller Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/seller/analytics", "host": ["{{baseUrl}}"], "path": ["api","v1","seller","analytics"] }
+          }
+        },
+        {
+          "name": "Admin - Verify Seller",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/admin/sellers/{{userId}}/verify?status=VERIFIED&notes=auto-approved",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","admin","sellers","{{userId}}","verify"],
+              "query": [
+                { "key": "status", "value": "VERIFIED" },
+                { "key": "notes", "value": "auto-approved" }
+              ]
+            },
+            "description": "Requires ROLE_ADMIN (gateway RoleAuthorizationFilter). status: VERIFIED / REJECTED / SUSPENDED."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Orders",
+      "description": "Order management and the Kafka saga entry point (order-service).",
+      "item": [
+        {
+          "name": "Create Order  [TRIGGERS KAFKA SAGA]",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Order placed', function () { pm.response.to.have.status(201); });",
+            "var o = pm.response.json();",
+            "pm.collectionVariables.set('orderId', o.orderId);",
+            "pm.collectionVariables.set('orderStatus', o.status);",
+            "console.log('orderId:', o.orderId, 'status:', o.status);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders", "host": ["{{baseUrl}}"], "path": ["api","v1","orders"] },
+            "body": { "mode": "raw", "raw": "{\n  \"customerId\": \"{{userId}}\",\n  \"customerEmail\": \"{{userEmail}}\",\n  \"items\": [\n    {\n      \"productId\": \"{{productId}}\",\n      \"productName\": \"Samsung Galaxy S26\",\n      \"quantity\": 1,\n      \"price\": 1.00\n    }\n  ]\n}" },
+            "description": "Places an order and starts the saga: ORDER_CREATED → inventory reserve → payment → shipping → notification. totalAmount is computed from item prices."
+          }
+        },
+        {
+          "name": "Get Order by ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var o = pm.response.json();",
+            "pm.collectionVariables.set('orderStatus', o.status);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "Get All Orders",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders", "host": ["{{baseUrl}}"], "path": ["api","v1","orders"] }
+          }
+        },
+        {
+          "name": "Get Orders by Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/customer/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","customer","{{userId}}"] }
+          }
+        },
+        {
+          "name": "Get Order History (events)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}/history", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","{{orderId}}","history"] },
+            "description": "Event-sourced journey: ORDER_CREATED → INVENTORY_CHECKING → INVENTORY_RESERVED → PAYMENT_PROCESSING → PAYMENT_COMPLETED → ORDER_SHIPPED."
+          }
+        },
+        {
+          "name": "Get Events by Correlation ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/correlation/{{correlationId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","correlation","{{correlationId}}"] },
+            "description": "All events sharing one correlationId (set {{correlationId}} from the history response)."
+          }
+        },
+        {
+          "name": "Order Status SSE Stream",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('SSE stream connects', function () { pm.response.to.have.status(200); });"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}/status-stream", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","{{orderId}}","status-stream"] },
+            "description": "Server-Sent Events stream that pushes status updates live (text/event-stream)."
+          }
+        },
+        {
+          "name": "[DEBUG] Set Status",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/orders/{{orderId}}/status/SHIPPED", "host": ["{{baseUrl}}"], "path": ["api","v1","orders","{{orderId}}","status","SHIPPED"] },
+            "description": "Debug endpoint: directly advance an order to a status. Values: PENDING, INVENTORY_CHECKING, INVENTORY_RESERVED, PAYMENT_PROCESSING, PAYMENT_COMPLETED, SHIPPING_PROCESSING, SHIPPED, COMPLETED, CANCELLED, FAILED."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Payments",
+      "description": "Payment initiation, verification, refunds and the Razorpay webhook (payment-service).",
+      "item": [
+        {
+          "name": "Initiate Payment  (MOCK)",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Payment initiated', function () { pm.response.to.have.status(200); });",
+            "var g = pm.response.json();",
+            "pm.collectionVariables.set('paymentId', g.paymentId);",
+            "if (g.gatewayOrderId) pm.collectionVariables.set('gatewayOrderId', g.gatewayOrderId);"
+          ]}}],
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/initiate", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","initiate"] },
+            "body": { "mode": "raw", "raw": "{\n  \"orderId\": \"{{orderId}}\",\n  \"customerId\": \"{{userId}}\",\n  \"customerEmail\": \"{{userEmail}}\",\n  \"amount\": 1.00,\n  \"gateway\": \"MOCK\",\n  \"paymentMethod\": \"CARD\"\n}" },
+            "description": "Creates a gateway order/session for the checkout UI. gateway: RAZORPAY, STRIPE or MOCK (local dev)."
+          }
+        },
+        {
+          "name": "Verify Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/verify", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","verify"] },
+            "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"gatewayPaymentId\": \"pay_mock_123\",\n  \"gatewayOrderId\": \"{{gatewayOrderId}}\",\n  \"gatewaySignature\": \"mock_signature\"\n}" },
+            "description": "Verifies the gateway callback signature and captures the payment."
+          }
+        },
+        {
+          "name": "Refund Payment",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/refund", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","refund"] },
+            "body": { "mode": "raw", "raw": "{\n  \"paymentId\": \"{{paymentId}}\",\n  \"amount\": 1.00,\n  \"reason\": \"Customer requested cancellation\"\n}" },
+            "description": "Full refund if amount is omitted or equals the payment amount; partial refund otherwise."
+          }
+        },
+        {
+          "name": "Get Payment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/{{paymentId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","{{paymentId}}"] }
+          }
+        },
+        {
+          "name": "Get Payment by Order ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var p = pm.response.json();",
+            "if (p.id) pm.collectionVariables.set('paymentId', p.id);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","order","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "Get Payments by Customer",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/customer/{{userId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","customer","{{userId}}"] }
+          }
+        },
+        {
+          "name": "Get Order for Checkout (proxy)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/orders/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","orders","{{orderId}}"] },
+            "description": "Payment-service proxies the order from order-service via Eureka."
+          }
+        },
+        {
+          "name": "Razorpay Webhook",
+          "request": {
+            "auth": { "type": "noauth" },
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "X-Razorpay-Signature", "value": "razorpay_hmac_signature_here" }
+            ],
+            "url": { "raw": "{{baseUrl}}/api/v1/payments/webhook/razorpay", "host": ["{{baseUrl}}"], "path": ["api","v1","payments","webhook","razorpay"] },
+            "body": { "mode": "raw", "raw": "{\n  \"event\": \"payment.captured\",\n  \"payload\": {\n    \"payment\": {\n      \"entity\": {\n        \"id\": \"pay_xyz123\",\n        \"order_id\": \"order_xyz123\",\n        \"amount\": 100,\n        \"currency\": \"INR\",\n        \"status\": \"captured\"\n      }\n    }\n  }\n}" },
+            "description": "Called by Razorpay directly — no JWT (high-limit, signature-verified endpoint)."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Shipping",
+      "description": "Shipment tracking — records are auto-created by the saga once payment completes.",
+      "item": [
+        {
+          "name": "Get Shipment by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/shipping/{{shipmentId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","shipping","{{shipmentId}}"] }
+          }
+        },
+        {
+          "name": "Get Shipment by Order ID",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var s = pm.response.json();",
+            "pm.collectionVariables.set('shipmentId', s.id);",
+            "if (s.trackingNumber) pm.collectionVariables.set('trackingNumber', s.trackingNumber);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/shipping/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","shipping","order","{{orderId}}"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Notifications",
+      "description": "In-app notifications, unread counts, mark-as-read, PDF invoice, and a direct email test.",
+      "item": [
+        {
+          "name": "Get My Notifications",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "var n = pm.response.json();",
+            "if (Array.isArray(n) && n.length) pm.collectionVariables.set('notificationId', n[0].id);"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications"] }
+          }
+        },
+        {
+          "name": "Get Unread Notifications",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/unread", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","unread"] }
+          }
+        },
+        {
+          "name": "Get Unread Count",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/unread/count", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","unread","count"] },
+            "description": "Returns {\"count\": N} — handy for UI badges."
+          }
+        },
+        {
+          "name": "Get Notifications by Order",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/order/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","order","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "Mark Notification as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/{{notificationId}}/read", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","{{notificationId}}","read"] }
+          }
+        },
+        {
+          "name": "Mark All as Read",
+          "request": {
+            "method": "PATCH",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/read-all", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","read-all"] }
+          }
+        },
+        {
+          "name": "Download Invoice PDF",
+          "event": [{ "listen": "test", "script": { "type": "text/javascript", "exec": [
+            "pm.test('Invoice returned', function () { pm.response.to.have.status(200); });",
+            "var ct = pm.response.headers.get('Content-Type') || '';",
+            "console.log(ct.includes('pdf') ? 'PDF invoice ready' : 'No PDF for this order yet');"
+          ]}}],
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/notifications/invoice/{{orderId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","notifications","invoice","{{orderId}}"] }
+          }
+        },
+        {
+          "name": "Test Email (direct)",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{directNotification}}/api/v1/test/email", "host": ["{{directNotification}}"], "path": ["api","v1","test","email"] },
+            "description": "Direct call to notification-service (this path has no gateway route). Sends a sample ORDER_SHIPPED email."
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Analytics",
+      "description": "CQRS read-side analytics (analytics-service, separate analytics_db, fed via Kafka consumer). No gateway route — uses directBase http://localhost:8093.",
+      "item": [
+        {
+          "name": "Get Summary",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{directBase}}/api/v1/analytics/summary", "host": ["{{directBase}}"], "path": ["api","v1","analytics","summary"] },
+            "description": "Returns totalOrders, totalRevenue, averageOrderValue."
+          }
+        },
+        {
+          "name": "Get All Order Analytics",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{directBase}}/api/v1/analytics/orders", "host": ["{{directBase}}"], "path": ["api","v1","analytics","orders"] }
+          }
+        },
+        {
+          "name": "Get Top Customers",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{directBase}}/api/v1/analytics/top-customers", "host": ["{{directBase}}"], "path": ["api","v1","analytics","top-customers"] }
+          }
+        },
+        {
+          "name": "Get Revenue Per Day",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{directBase}}/api/v1/analytics/revenue-per-day", "host": ["{{directBase}}"], "path": ["api","v1","analytics","revenue-per-day"] }
+          }
+        }
+      ]
+    },
+
+    {
+      "name": "Logging",
+      "description": "Centralized log aggregation with traceId correlation (logging-service). Requires a ROLE_ADMIN token through the gateway.",
+      "item": [
+        {
+          "name": "Search Logs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/logs?page=0&size=50",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","logs"],
+              "query": [
+                { "key": "serviceName", "value": "", "disabled": true },
+                { "key": "level", "value": "", "disabled": true },
+                { "key": "keyword", "value": "", "disabled": true },
+                { "key": "traceId", "value": "", "disabled": true },
+                { "key": "from", "value": "", "disabled": true },
+                { "key": "to", "value": "", "disabled": true },
+                { "key": "page", "value": "0" },
+                { "key": "size", "value": "50" }
+              ]
+            },
+            "description": "Filters: serviceName, level (INFO/WARN/ERROR), keyword, traceId, from, to, page, size."
+          }
+        },
+        {
+          "name": "Get Log by ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/logs/{{logId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","logs","{{logId}}"] },
+            "description": "Replace {{logId}} with a log entry UUID."
+          }
+        },
+        {
+          "name": "Get Logs by Trace ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": { "raw": "{{baseUrl}}/api/v1/logs/trace/{{traceId}}", "host": ["{{baseUrl}}"], "path": ["api","v1","logs","trace","{{traceId}}"] },
+            "description": "All logs sharing a gateway-generated X-Trace-Id (set {{traceId}} from the order flow — gateway logs every request)."
+          }
+        },
+        {
+          "name": "Get Log Stats",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/logs/stats?windowMinutes=60",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","logs","stats"],
+              "query": [{ "key": "windowMinutes", "value": "60" }]
+            }
+          }
+        },
+        {
+          "name": "Get Recent Errors",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/logs/errors/recent?minutes=10",
+              "host": ["{{baseUrl}}"],
+              "path": ["api","v1","logs","errors","recent"],
+              "query": [{ "key": "minutes", "value": "10" }]
+            }
+          }
+        }
+      ]
+    }
+
+  ]
+}
