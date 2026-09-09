@@ -901,8 +901,8 @@ Any event that fails deserialization or violates a DB constraint beyond the idem
 | Property | Value |
 |---|---|
 | Mode | KRaft — no ZooKeeper |
-| External port | `9095` (EXTERNAL listener - localhost) |
-| Internal port | `29092` (INTERNAL listener - container-to-container) |
+| External port | `9095` (EXTERNAL listener — localhost) |
+| Internal port | `29092` (INTERNAL listener — container-to-container) |
 | Auto topic creation | Enabled |
 | UI | http://localhost:8069 |
 
