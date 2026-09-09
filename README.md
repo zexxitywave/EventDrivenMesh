@@ -226,7 +226,7 @@ flowchart TB
         NOT["notification-service"]
     end
 
-    subgraph BUS["📨 Event Bus · Kafka"]
+    subgraph BUS["📨 Event Bus · Kafka (ordered topics)"]
         OE["order-events"]
         IE["inventory-events"]
         PE["payment-events"]
