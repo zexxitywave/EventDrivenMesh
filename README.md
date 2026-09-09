@@ -355,7 +355,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/wishlist/**` | wishlist-service | ✅ |
 | `/api/v1/seller/**` | seller-service | ✅ |
 | `/api/v1/notifications/**` | notification-service | ✅ |
-| `/api/logs/**` | logging-service | ✅ |
+| `/api/v1/logs/**` | logging-service | ✅ |
 | `/api/analytics/**` | analytics-service | ✅ |
 
 ---
@@ -684,11 +684,11 @@ Intercepts all Kafka business events and converts them into structured log entri
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/logs` | Search (serviceName, level, keyword, traceId, date range) |
-| GET | `/api/logs/{id}` | Single entry |
-| GET | `/api/logs/trace/{traceId}` | All logs for one saga |
-| GET | `/api/logs/stats` | Aggregated stats per service/level |
-| GET | `/api/logs/errors/recent` | Recent errors for monitoring |
+| GET | `/api/v1/logs` | Search (serviceName, level, keyword, traceId, date range) |
+| GET | `/api/v1/logs/{id}` | Single entry |
+| GET | `/api/v1/logs/trace/{traceId}` | All logs for one saga |
+| GET | `/api/v1/logs/stats` | Aggregated stats per service/level |
+| GET | `/api/v1/logs/errors/recent` | Recent errors for monitoring |
 
 **Kafka:** Consumes → `service-logs`, `order-events`, `payment-events`, `inventory-events`, `shipping-events`
 
