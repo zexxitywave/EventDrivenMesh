@@ -64,3 +64,10 @@ inventory-service consumes order-events, reserves stock, then publishes Inventor
 When a later saga step fails, inventory-service consumes compensating events and frees the reserved stock.
 
 ---
+
+
+## 10. Payment processing
+
+payment-service consumes inventory-events, processes the charge, then publishes PaymentSucceededEvent or PaymentFailedEvent.
+
+---
