@@ -148,3 +148,10 @@ Records that fail to parse or project are retried briefly, then published to ord
 logging-service consumes every event topic and writes a time-bucketed audit trail for support and forensics.
 
 ---
+
+
+## 22. Hop latency tracking
+
+Latency per saga hop is derived from BaseEvent timestamps so bottlenecks surface in logs and metrics.
+
+---
