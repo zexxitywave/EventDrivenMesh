@@ -172,6 +172,23 @@ graph TB
 
 ---
 
+## 🧭 High-Level Design (HLD)
+
+### 1. Context & Actors
+
+EventDrivenMesh is a headless e-commerce backend. Clients never talk to a service directly — every request enters through the **API Gateway**, which authenticates, rate-limits, and routes to a service via Eureka/`lb://`. Long-running business operations (placing an order) are decomposed into a chain of Kafka events: each service performs one step and publishes the event that triggers the next.
+
+| Actor / System | Role |
+|---|---|
+| Buyer (Web / Mobile) | Browse catalog, manage cart & wishlist, place orders, complete Razorpay checkout |
+| Seller | Store profile, product management, order & revenue views |
+| Admin | Seller verification, platform monitoring |
+| Razorpay | External PSP — gateway orders, captures, signed webhooks |
+| Resend / AWS SES | Transactional email (notifications, auth OTP), PDF invoices |
+| Google OAuth2 | Federated identity |
+
+---
+
 ## 🔄 Order Saga Flow
 
 The core checkout flow uses a **choreography-based saga** — no central orchestrator. Each service reacts to events and publishes the next event in the chain.
