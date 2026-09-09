@@ -183,3 +183,10 @@ product-service serves the catalog and aggregates inventory state through Eureka
 cart-service keeps carts in Redis for fast multi-tab reads and a reliable checkout handoff to order-service.
 
 ---
+
+
+## 27. Wishlist service
+
+wishlist-service stores favourites per user and can emit restock-alert events for out-of-stock items.
+
+---
