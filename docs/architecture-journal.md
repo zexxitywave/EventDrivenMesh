@@ -302,3 +302,10 @@ A GitHub Actions workflow builds every module and packages the jars on push so r
 Stop timeouts are configured so in-flight saga events flush before a service exits.
 
 ---
+
+
+## 44. OpenAPI docs
+
+Each service exposes springdoc OpenAPI behind the gateway for contract browsing.
+
+---
