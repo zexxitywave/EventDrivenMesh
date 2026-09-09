@@ -71,3 +71,10 @@ When a later saga step fails, inventory-service consumes compensating events and
 payment-service consumes inventory-events, processes the charge, then publishes PaymentSucceededEvent or PaymentFailedEvent.
 
 ---
+
+
+## 11. Payment compensation
+
+PaymentFailedEvent rolls back the inventory reservation and triggers the buyer notification path.
+
+---
