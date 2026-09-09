@@ -187,13 +187,22 @@ public class OrderServiceImpl implements OrderService {
     @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateOrderStatus(UUID orderId, Order.OrderStatus status, UUID correlationId) {
+        updateOrderStatus(orderId, status, correlationId, null);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateOrderStatus(UUID orderId, Order.OrderStatus status, UUID correlationId,
+                                  Order.OrderStatus previousStatus) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
-        Order.OrderStatus previousStatus = order.getStatus();
+        if (previousStatus == null) {
+            previousStatus = order.getStatus();
+        }
         order.setStatus(status);
         orderRepository.save(order);
-        log.info("Updated order {} status to {}", orderId, status);
+        log.info("Updated order {} status to {} (previous {})", orderId, status, previousStatus);
 
         // Append to event log — wrapped so a failure here never blocks the saga
         try {

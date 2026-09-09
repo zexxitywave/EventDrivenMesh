@@ -22,12 +22,13 @@ public class OrderSagaOrchestrator {
     private final OrderService orderService;
     private final LogPublisher logPublisher;
 
-    public void onInventoryReserved(UUID orderId, UUID correlationId) {
+    public void onInventoryReserved(UUID orderId, UUID correlationId, Order.OrderStatus previousStatus) {
         log.info("[Orchestrator] onInventoryReserved called for order={}", orderId);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.INVENTORY_RESERVED, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.INVENTORY_RESERVED, correlationId, previousStatus);
             log.info("[Orchestrator] set INVENTORY_RESERVED OK for order={}", orderId);
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.PAYMENT_PROCESSING, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.PAYMENT_PROCESSING, correlationId,
+                    Order.OrderStatus.INVENTORY_RESERVED);
             log.info("[Orchestrator] set PAYMENT_PROCESSING OK for order={}", orderId);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onInventoryReserved for order={} — {}: {}",
@@ -35,46 +36,46 @@ public class OrderSagaOrchestrator {
         }
     }
 
-    public void onPaymentCompleted(UUID orderId, UUID correlationId, UUID paymentId) {
+    public void onPaymentCompleted(UUID orderId, UUID correlationId, UUID paymentId, Order.OrderStatus previousStatus) {
         log.info("[Orchestrator] onPaymentCompleted order={}", orderId);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.PAYMENT_COMPLETED, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.PAYMENT_COMPLETED, correlationId, previousStatus);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onPaymentCompleted order={}: {}", orderId, e.getMessage(), e);
         }
     }
 
-    public void onShipmentCreated(UUID orderId, UUID correlationId, String trackingNumber) {
+    public void onShipmentCreated(UUID orderId, UUID correlationId, String trackingNumber, Order.OrderStatus previousStatus) {
         log.info("[Orchestrator] onShipmentCreated order={}", orderId);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.SHIPPED, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.SHIPPED, correlationId, previousStatus);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onShipmentCreated order={}: {}", orderId, e.getMessage(), e);
         }
     }
 
-    public void onInventoryFailed(UUID orderId, UUID correlationId, String reason) {
+    public void onInventoryFailed(UUID orderId, UUID correlationId, String reason, Order.OrderStatus previousStatus) {
         log.warn("[Orchestrator] onInventoryFailed order={} reason={}", orderId, reason);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED, correlationId, previousStatus);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onInventoryFailed order={}: {}", orderId, e.getMessage(), e);
         }
     }
 
-    public void onPaymentFailed(UUID orderId, UUID correlationId, String reason) {
+    public void onPaymentFailed(UUID orderId, UUID correlationId, String reason, Order.OrderStatus previousStatus) {
         log.warn("[Orchestrator] onPaymentFailed order={} reason={}", orderId, reason);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED, correlationId, previousStatus);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onPaymentFailed order={}: {}", orderId, e.getMessage(), e);
         }
     }
 
-    public void onShipmentFailed(UUID orderId, UUID correlationId, String reason) {
+    public void onShipmentFailed(UUID orderId, UUID correlationId, String reason, Order.OrderStatus previousStatus) {
         log.warn("[Orchestrator] onShipmentFailed order={} reason={}", orderId, reason);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.FAILED, correlationId);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.FAILED, correlationId, previousStatus);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onShipmentFailed order={}: {}", orderId, e.getMessage(), e);
         }

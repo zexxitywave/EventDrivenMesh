@@ -7,6 +7,7 @@ import com.hacisimsek.common.event.payment.PaymentFailedEvent;
 import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentProcessedEvent;
+import com.hacisimsek.order.model.Order;
 import com.hacisimsek.order.saga.orchestrator.OrderSagaOrchestrator;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -41,6 +42,31 @@ public class OrderSagaHandler {
     private static final String SHIPMENT_PROCESSED  = ShipmentProcessedEvent.class.getName();
     private static final String SHIPMENT_FAILED_CN  = ShipmentFailedEvent.class.getName();
 
+    /**
+     * Reads the CURRENT status from the DB without any JPA/EntityManager thread
+     * involvement — captured BEFORE the direct JDBC update so the event-log
+     * previousStatus reflects the true preceding state, not the post-update one.
+     */
+    private Order.OrderStatus queryStatus(UUID orderId) {
+        String current;
+        try {
+            current = jdbcTemplate.queryForObject(
+                    "SELECT status FROM orders WHERE id = ?", String.class, orderId);
+        } catch (Exception e) {
+            log.warn("[SagaHandler] Could not read status for order {}: {}", orderId, e.getMessage());
+            return null;
+        }
+        if (current == null) {
+            return null;
+        }
+        try {
+            return Order.OrderStatus.valueOf(current);
+        } catch (IllegalArgumentException e) {
+            log.warn("[SagaHandler] Unknown status '{}' for order {}", current, orderId);
+            return null;
+        }
+    }
+
     @KafkaListener(topics = "inventory-events", groupId = "order-service-group",
             containerFactory = "kafkaListenerContainerFactory")
     public void handleInventoryEvents(ConsumerRecord<String, Object> record) {
@@ -55,6 +81,8 @@ public class OrderSagaHandler {
                 UUID orderId = e.getOrderId();
                 log.info("[SagaHandler] InventoryReserved for order={} — updating DB directly", orderId);
 
+                Order.OrderStatus previousStatus = queryStatus(orderId);
+
                 // Direct JDBC update — bypasses JPA/EntityManager thread issues completely
                 int rows = jdbcTemplate.update(
                     "UPDATE orders SET status = 'PAYMENT_PROCESSING', last_modified_at = NOW() WHERE id = ?",
@@ -63,18 +91,19 @@ public class OrderSagaHandler {
 
                 if (rows > 0) {
                     // Also call orchestrator for event sourcing / SSE / logging
-                    orchestrator.onInventoryReserved(orderId, e.getCorrelationId());
+                    orchestrator.onInventoryReserved(orderId, e.getCorrelationId(), previousStatus);
                 }
 
             } else if (INVENTORY_FAILED.equals(type)) {
                 InventoryReservationFailedEvent e = objectMapper.convertValue(event, InventoryReservationFailedEvent.class);
                 UUID orderId = e.getOrderId();
                 log.info("[SagaHandler] InventoryFailed for order={}", orderId);
+                Order.OrderStatus previousStatus = queryStatus(orderId);
                 jdbcTemplate.update(
                     "UPDATE orders SET status = 'CANCELLED', last_modified_at = NOW() WHERE id = ?",
                     orderId);
                 orchestrator.onInventoryFailed(orderId, e.getCorrelationId(),
-                        e.getReason() != null ? e.getReason() : "unknown");
+                        e.getReason() != null ? e.getReason() : "unknown", previousStatus);
             } else {
                 log.warn("[SagaHandler] Unhandled inventory event type={}", type);
             }
@@ -99,19 +128,21 @@ public class OrderSagaHandler {
             if (PAYMENT_PROCESSED.equals(type)) {
                 PaymentProcessedEvent e = objectMapper.convertValue(event, PaymentProcessedEvent.class);
                 UUID orderId = e.getOrderId();
+                Order.OrderStatus previousStatus = queryStatus(orderId);
                 jdbcTemplate.update(
                     "UPDATE orders SET status = 'PAYMENT_COMPLETED', last_modified_at = NOW() WHERE id = ?",
                     orderId);
-                orchestrator.onPaymentCompleted(orderId, e.getCorrelationId(), e.getPaymentId());
+                orchestrator.onPaymentCompleted(orderId, e.getCorrelationId(), e.getPaymentId(), previousStatus);
 
             } else if (PAYMENT_FAILED.equals(type)) {
                 PaymentFailedEvent e = objectMapper.convertValue(event, PaymentFailedEvent.class);
                 UUID orderId = e.getOrderId();
+                Order.OrderStatus previousStatus = queryStatus(orderId);
                 jdbcTemplate.update(
                     "UPDATE orders SET status = 'CANCELLED', last_modified_at = NOW() WHERE id = ?",
                     orderId);
                 orchestrator.onPaymentFailed(orderId, e.getCorrelationId(),
-                        e.getReason() != null ? e.getReason() : "unknown");
+                        e.getReason() != null ? e.getReason() : "unknown", previousStatus);
             } else {
                 log.warn("[SagaHandler] Unhandled payment event type={}", type);
             }
@@ -133,19 +164,21 @@ public class OrderSagaHandler {
             if (SHIPMENT_PROCESSED.equals(type)) {
                 ShipmentProcessedEvent e = objectMapper.convertValue(event, ShipmentProcessedEvent.class);
                 UUID orderId = e.getOrderId();
+                Order.OrderStatus previousStatus = queryStatus(orderId);
                 jdbcTemplate.update(
                     "UPDATE orders SET status = 'SHIPPED', last_modified_at = NOW() WHERE id = ?",
                     orderId);
-                orchestrator.onShipmentCreated(orderId, e.getCorrelationId(), e.getTrackingNumber());
+                orchestrator.onShipmentCreated(orderId, e.getCorrelationId(), e.getTrackingNumber(), previousStatus);
 
             } else if (SHIPMENT_FAILED_CN.equals(type)) {
                 ShipmentFailedEvent e = objectMapper.convertValue(event, ShipmentFailedEvent.class);
                 UUID orderId = e.getOrderId();
+                Order.OrderStatus previousStatus = queryStatus(orderId);
                 jdbcTemplate.update(
                     "UPDATE orders SET status = 'FAILED', last_modified_at = NOW() WHERE id = ?",
                     orderId);
                 orchestrator.onShipmentFailed(orderId, e.getCorrelationId(),
-                        e.getReason() != null ? e.getReason() : "unknown");
+                        e.getReason() != null ? e.getReason() : "unknown", previousStatus);
             } else {
                 log.warn("[SagaHandler] Unhandled shipping event type={}", type);
             }

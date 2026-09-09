@@ -292,6 +292,21 @@ public class PaymentServiceImpl implements PaymentService {
             return toResponse(payment);
         }
 
+        // Safety net: if the payment carries no correlation yet (e.g. /initiate won
+        // the race before the correlation sink was populated), resolve it now so the
+        // PaymentProcessedEvent / PaymentFailedEvent keep the saga trace intact.
+        if (payment.getCorrelationId() == null) {
+            UUID resolved = orderCorrelationRepository.findByOrderId(payment.getOrderId())
+                    .map(OrderCorrelation::getCorrelationId)
+                    .orElse(null);
+            if (resolved != null) {
+                payment.setCorrelationId(resolved);
+                paymentRepository.save(payment);
+                log.info("verifyPayment: resolved correlation {} for payment {} from order-correlation sink",
+                        resolved, payment.getId());
+            }
+        }
+
         PaymentGatewayAdapter adapter = resolveAdapter(payment.getGateway());
         boolean verified = adapter.verifyAndCapture(
                 request.getGatewayPaymentId(), request.getGatewayOrderId(), request.getGatewaySignature());
