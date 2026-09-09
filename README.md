@@ -89,7 +89,7 @@ through a central API Gateway with JWT authentication.
 - **Event-Driven Saga** — Checkout flows are orchestrated through Kafka events with automatic compensating rollbacks. No single point of failure.
 - **Polyglot Persistence** — Each service owns its data store. PostgreSQL for transactions, MongoDB for documents, Redis for session cache.
 - **Gateway-Level Security** — JWT is validated once at the API Gateway. All downstream services receive trusted identity headers — no repeated token parsing.
-- **PDF Invoice Generation** — On every successful order, the notification service auto-generates a styled PDF invoice (via OpenPDF / iText) and attaches it to the confirmation email. Invoices are stored as binary in MongoDB and downloadable anytime via `GET /api/notifications/invoice/{orderId}`.
+- **PDF Invoice Generation** — On every successful order, the notification service auto-generates a styled PDF invoice (via OpenPDF / iText) and attaches it to the confirmation email. Invoices are stored as binary in MongoDB and downloadable anytime via `GET /api/v1/notifications/invoice/{orderId}`.
 - **Kubernetes-Ready** — HPA-configured with CPU/memory scaling, zero-downtime rolling updates, liveness/readiness probes, and Prometheus scraping out of the box.
 - **Full Observability** — A dedicated logging service aggregates structured logs across all 15 services with cross-service traceId correlation and a 30-day TTL.
 - **Analytics Service (new)** — CQRS pattern with a dedicated analytics PostgreSQL DB separate from transactional DBs. Batch Kafka consumer delivers ~500 events/sec throughput. Tracks revenue, top customers, and daily order trends.
@@ -354,7 +354,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/cart/**` | cart-service | ✅ |
 | `/api/v1/wishlist/**` | wishlist-service | ✅ |
 | `/api/v1/seller/**` | seller-service | ✅ |
-| `/api/notifications/**` | notification-service | ✅ |
+| `/api/v1/notifications/**` | notification-service | ✅ |
 | `/api/logs/**` | logging-service | ✅ |
 | `/api/analytics/**` | analytics-service | ✅ |
 
@@ -653,12 +653,12 @@ Sends transactional emails via Resend and stores in-app notifications. Failed de
 
 | Method | Path | Description |
 |---|---|---|
-| GET | `/api/notifications` | All notifications |
-| GET | `/api/notifications/unread` | Unread only |
-| GET | `/api/notifications/unread/count` | Badge count |
-| PATCH | `/api/notifications/{id}/read` | Mark as read |
-| PATCH | `/api/notifications/read-all` | Mark all read |
-| GET | `/api/notifications/invoice/{orderId}` | Download PDF invoice |
+| GET | `/api/v1/notifications` | All notifications |
+| GET | `/api/v1/notifications/unread` | Unread only |
+| GET | `/api/v1/notifications/unread/count` | Badge count |
+| PATCH | `/api/v1/notifications/{id}/read` | Mark as read |
+| PATCH | `/api/v1/notifications/read-all` | Mark all read |
+| GET | `/api/v1/notifications/invoice/{orderId}` | Download PDF invoice |
 
 **PDF Invoice Generation**
 
@@ -666,7 +666,7 @@ On every `ORDER_PLACED` event, the notification service:
 1. Generates a styled PDF invoice using **OpenPDF (iText)** — includes order number, itemised table, subtotal, tax, and grand total
 2. Attaches the PDF to the order confirmation email sent via Resend
 3. Stores the raw PDF bytes in MongoDB alongside the notification record
-4. Exposes it for re-download at any time via `GET /api/notifications/invoice/{orderId}` → returns `application/pdf`
+4. Exposes it for re-download at any time via `GET /api/v1/notifications/invoice/{orderId}` → returns `application/pdf`
 
 **Kafka:** Consumes → `order-events`, `payment-events`, `shipping-events`
 
