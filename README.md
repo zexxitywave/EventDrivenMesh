@@ -238,9 +238,10 @@ flowchart TB
         ANS["analytics-service"]
         LGS["logging-service"]
     end
-    IE --> ORS
-    IE --> PYS[payment-service]
-    IE --> LGS
+
+    BUYER -- REST /api/v1/** --> GW
+    SELLER -- REST /api/v1/** --> GW
+    GW --> ORD & INV & PAY & SHP
 
     PYS -->|PaymentProcessedEvent| PE[payment-events]
     PE --> ORS
