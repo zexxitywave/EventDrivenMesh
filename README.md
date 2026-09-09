@@ -399,7 +399,7 @@ This starts:
 | Container | Port | Notes |
 |---|---|---|
 | Kafka (KRaft) | `9095` | No ZooKeeper required (`29092` internal listener) |
-| PostgreSQL 16 | `5432` | Auto-creates 7 databases |
+| PostgreSQL 16 | `5432` | Auto-creates 8 databases |
 | MongoDB | `27017` | |
 | Redis 7 | `6379` | Persistence enabled |
 | Kafka UI | `8069` | http://localhost:8069 |
