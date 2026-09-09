@@ -203,6 +203,32 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 
 Two cooperating planes: a **synchronous REST plane** (gateway + direct internal lookups) and an **asynchronous Kafka plane** (the saga, analytics projection, log aggregation, notification fan-out).
 
+```mermaid
+flowchart LR
+    ORS[order-service] -->|OrderCreatedEvent| TE[order-events]
+    TE --> INVS[inventory-service]
+    TE --> ANS[analytics-service]
+    TE --> LGS[logging-service]
+
+    INVS -->|InventoryReservedEvent| IE[inventory-events]
+    IE --> ORS
+    IE --> PYS[payment-service]
+    IE --> LGS
+
+    PYS -->|PaymentProcessedEvent| PE[payment-events]
+    PE --> ORS
+    PE --> SHS[shipping-service]
+    PE --> NTS[notification-service]
+    PE --> LGS
+
+    SHS -->|ShipmentProcessedEvent| SE[shipping-events]
+    SE --> ORS
+    SE --> NTS
+    SE --> LGS
+
+    ANS -.failed events.-> DLQ[order-analytics-dlq]
+```
+
 ---
 
 ## 🔄 Order Saga Flow
