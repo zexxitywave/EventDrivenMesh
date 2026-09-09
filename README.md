@@ -243,6 +243,17 @@ flowchart LR
 | `logging-service` | Aggregates business events + `service-logs` into an indexed, TTL'd (30-day) audit trail | `logging_db` |
 | `service-registry` | Eureka discovery | — |
 
+### 5. Key Flows
+
+**5.1 Checkout saga** — the end-to-end happy path and failure branches are in [Order Saga Flow](#-order-saga-flow). Participant status machine:
+
+| Participant | Success | Failure role |
+|---|---|---|
+| order-service | `PENDING → INVENTORY_RESERVED → PAYMENT_COMPLETED → SHIPPED` | `CANCELLED` (stock) / `FAILED` (payment, shipping) |
+| inventory-service | reserves stock → `InventoryReservedEvent` | `InventoryReservationFailedEvent`; releases stock if payment later fails |
+| payment-service | captures → `PaymentProcessedEvent` | `PaymentFailedEvent` — money never moves before a successful capture |
+| shipping-service | creates shipment + tracking → `ShipmentProcessedEvent` | `ShipmentFailedEvent` → order `FAILED` |
+
 ---
 
 ## 🔄 Order Saga Flow
