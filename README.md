@@ -146,6 +146,7 @@ graph TB
     KAFKA -- inventory-events --> LOG
     KAFKA -- payment-events --> LOG
     KAFKA -- shipping-events --> LOG
+    KAFKA -- service-logs --> LOG
 
     WISH -- REST --> CART
     SELLER -- REST --> PRODUCT
