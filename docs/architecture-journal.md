@@ -337,3 +337,10 @@ Resend daily-quota rejections matching a 550 quota message are classified transi
 Bad addresses and relay denials fail immediately; ambiguous errors default to retryable so mail is never silently dropped.
 
 ---
+
+
+## 49. Backoff scheduling
+
+An indexed nextAttemptAt field makes the retry job pick only due rows, with exponential backoff per attempt.
+
+---
