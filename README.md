@@ -199,6 +199,10 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 | Zero-trust at the edge | Gateway validates JWT once and injects `X-User-Id` / `X-User-Email` / `X-User-Role`; downstream services trust these headers |
 | 12-factor config | All credentials via environment (`RAZORPAY_*`, `RESEND_API_KEY`, `MAIL_PASSWORD`, `JWT_SECRET`, …) with sensible dev defaults |
 
+### 3. Logical Architecture
+
+Two cooperating planes: a **synchronous REST plane** (gateway + direct internal lookups) and an **asynchronous Kafka plane** (the saga, analytics projection, log aggregation, notification fan-out).
+
 ---
 
 ## 🔄 Order Saga Flow
