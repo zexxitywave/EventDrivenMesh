@@ -281,6 +281,17 @@ flowchart LR
 | Crash recovery | Services are stateless besides their DBs; replay is safe via the idempotency above |
 | Security | Gateway JWT (HMAC-SHA256, 15-min access / 7-day rotated refresh), Google OAuth2, Razorpay webhook HMAC verification, tiered rate limiting |
 
+### 7. Non-Functional Targets
+
+| NFR | Evidence |
+|---|---|
+| Throughput | ~30 req/s sustained on order placement — JMeter, **0.00 % errors across 30,000 orders** |
+| Latency | p50 ~20–30 ms, p95 ~1 s, p99 stable under sustained load |
+| Resilience | All saga failure paths exercised (payment `force-failure` toggle, stock-out, shipping failure) |
+| Scalability | Kafka partitions + per-service instance scale-out; HPA 2–8 replicas (CPU > 60% / mem > 70%) |
+| Availability | Zero-downtime rolling updates; `preStop` drain; liveness/readiness probes |
+| Observability | Micrometer → Prometheus → Grafana (8 dashboards), centralized logs, Kafka lag metrics |
+
 ---
 
 ## 🔄 Order Saga Flow
