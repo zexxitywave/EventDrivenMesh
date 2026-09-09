@@ -309,3 +309,10 @@ Stop timeouts are configured so in-flight saga events flush before a service exi
 Each service exposes springdoc OpenAPI behind the gateway for contract browsing.
 
 ---
+
+
+## 45. CORS policy
+
+The gateway allows web and mobile clients to call /api/v1/** from the browser frontier.
+
+---
