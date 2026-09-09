@@ -353,7 +353,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/users/**` | user-service | ✅ |
 | `/api/v1/cart/**` | cart-service | ✅ |
 | `/api/v1/wishlist/**` | wishlist-service | ✅ |
-| `/api/seller/**` | seller-service | ✅ |
+| `/api/v1/seller/**` | seller-service | ✅ |
 | `/api/notifications/**` | notification-service | ✅ |
 | `/api/logs/**` | logging-service | ✅ |
 | `/api/analytics/**` | analytics-service | ✅ |
@@ -507,11 +507,11 @@ Merchant profile management and verification lifecycle. Delegates product and or
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/seller/register` | Register as seller |
-| GET/PUT | `/api/seller/profile` | View / update store profile |
-| GET | `/api/seller/products` | Seller's product listings |
-| GET | `/api/seller/orders` | Orders with seller's items |
-| GET | `/api/seller/analytics` | Revenue, order count, avg value |
+| POST | `/api/v1/seller/register` | Register as seller |
+| GET/PUT | `/api/v1/seller/profile` | View / update store profile |
+| GET | `/api/v1/seller/products` | Seller's product listings |
+| GET | `/api/v1/seller/orders` | Orders with seller's items |
+| GET | `/api/v1/seller/analytics` | Revenue, order count, avg value |
 | GET/POST | `/api/admin/sellers/**` | Admin verification |
 
 **Verification status:** `PENDING → VERIFIED / REJECTED / SUSPENDED`
