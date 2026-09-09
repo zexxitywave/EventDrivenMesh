@@ -352,7 +352,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/shipping/**` | shipping-service | ✅ |
 | `/api/v1/users/**` | user-service | ✅ |
 | `/api/v1/cart/**` | cart-service | ✅ |
-| `/api/wishlist/**` | wishlist-service | ✅ |
+| `/api/v1/wishlist/**` | wishlist-service | ✅ |
 | `/api/seller/**` | seller-service | ✅ |
 | `/api/notifications/**` | notification-service | ✅ |
 | `/api/logs/**` | logging-service | ✅ |
@@ -548,10 +548,10 @@ Save products for later. Compound unique index on `{userId, productId}` prevents
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/wishlist/add` | Add to wishlist |
-| DELETE | `/api/wishlist/remove/{productId}` | Remove |
-| GET | `/api/wishlist/{userId}` | Get full wishlist |
-| POST | `/api/wishlist/move-to-cart/{productId}` | Move to cart |
+| POST | `/api/v1/wishlist/add` | Add to wishlist |
+| DELETE | `/api/v1/wishlist/remove/{productId}` | Remove |
+| GET | `/api/v1/wishlist/{userId}` | Get full wishlist |
+| POST | `/api/v1/wishlist/move-to-cart/{productId}` | Move to cart |
 
 ---
 
