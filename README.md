@@ -312,7 +312,8 @@ This starts:
 | Kafka UI | `8069` | — |
 | kafka-lag-exporter | `8000` | — |
 | Prometheus | `9091` | — |
-| Grafana | `3005` | — |
+| Grafana | `3000` | — |
+| Alertmanager | `9093` | — |
 
 All services register with Eureka and are reachable through the API Gateway at `http://localhost:8080`.
 
