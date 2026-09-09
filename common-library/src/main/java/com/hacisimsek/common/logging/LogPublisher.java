@@ -1,8 +1,7 @@
 package com.hacisimsek.common.logging;
 
-import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 import java.util.Arrays;
@@ -20,18 +19,19 @@ import java.util.Map;
  * All entries are indexed by serviceName, level, traceId, and timestamp.
  * Logs are auto-deleted after 30 days via MongoDB TTL index.
  *
- * This bean requires a KafkaTemplate<String, Object> in the application context.
- * Every service already has one configured in its KafkaConfig.
+ * KafkaTemplate is injected optionally: services that configure a KafkaTemplate
+ * publish their logs; services that don't simply no-op (never breaks startup).
+ * NOTE: not using @ConditionalOnBean — its evaluation order against @Component
+ * classes is unreliable and caused "No qualifying bean" startups.
  */
 @Component
-@ConditionalOnBean(KafkaTemplate.class)
-@RequiredArgsConstructor
 @Slf4j
 public class LogPublisher {
 
     private static final String TOPIC = "service-logs";
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    @Autowired(required = false)
+    private KafkaTemplate<String, Object> kafkaTemplate;
 
     // ── Public API ────────────────────────────────────────────────────────────
 
@@ -73,6 +73,10 @@ public class LogPublisher {
 
     private void publish(String serviceName, String level, String traceId,
                          String message, Throwable ex, Map<String, Object> metadata) {
+        if (kafkaTemplate == null) {
+            log.warn("[LogPublisher] KafkaTemplate not available in this service — skipping publish to {}", TOPIC);
+            return;
+        }
         try {
             ServiceLogEvent event = ServiceLogEvent.builder()
                     .serviceName(serviceName)
