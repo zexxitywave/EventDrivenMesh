@@ -85,3 +85,10 @@ PaymentFailedEvent rolls back the inventory reservation and triggers the buyer n
 shipping-service consumes payment-events, creates the shipment, and publishes ShippingCompletedEvent to close the main saga chain.
 
 ---
+
+
+## 13. Shipping failure path
+
+ShippingFailedEvent carries the cause so analytics and notification consumers can react deterministically.
+
+---
