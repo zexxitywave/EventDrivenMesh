@@ -134,3 +134,10 @@ analytics-service consumes order, inventory, payment and shipping events into de
 Projections are keyed by eventId so at-least-once Kafka redelivery never double-counts a saga step.
 
 ---
+
+
+## 20. First DLQ: order-analytics-dlq
+
+Records that fail to parse or project are retried briefly, then published to order-analytics-dlq for inspection and replay.
+
+---
