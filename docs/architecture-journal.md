@@ -197,3 +197,10 @@ wishlist-service stores favourites per user and can emit restock-alert events fo
 seller-service manages seller profiles and product ingestion that feeds the product-service catalog.
 
 ---
+
+
+## 29. Trusted identity headers
+
+After JWT validation the gateway injects X-User-Id, X-User-Email and X-User-Role so downstream services trust the edge.
+
+---
