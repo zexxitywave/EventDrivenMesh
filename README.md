@@ -215,7 +215,7 @@ flowchart TB
     end
 
     subgraph EDGE["🛡️ Edge · Gateway"]
-        GW["API Gateway · JWT · rate-limit · lb://"]
+        GW["API Gateway · JWT · rate-limit · lb:// (Eureka)"]
     end
 
     subgraph SVC["⚙️ Platform Services"]
