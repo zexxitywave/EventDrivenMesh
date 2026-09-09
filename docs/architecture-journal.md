@@ -288,3 +288,10 @@ Cheap reads such as cart to product and inventory, and seller to product and ord
 Mark the saga trigger, poison queue and compensation edges with a color legend for the HLD diagram.
 
 ---
+
+
+## 42. CI build
+
+A GitHub Actions workflow builds every module and packages the jars on push so regressions fail fast.
+
+---
