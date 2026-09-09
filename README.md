@@ -269,6 +269,18 @@ flowchart LR
 - Shipping failure → order `FAILED`.
 - Malformed analytics events never block the pipeline — routed to `order-analytics-dlq`.
 
+### 6. Reliability, Idempotency & Observability
+
+| Concern | Mechanism |
+|---|---|
+| Duplicate / replayed events | `correlationId` + `eventId` on every event; unique `event_id` constraint in `analytics_db` |
+| Slow consumers / poison messages | Batch consumer + DLQ; measured 87% latency reduction when partitions scale 1 → 10 |
+| Cross-service tracing | Saga `correlationId` flows through every event header; `GET /api/v1/logs/trace/{correlationId}` returns the full saga trace |
+| Email reliability | Resend SMTP `smtp.resend.com:587` (STARTTLS), 3× retry scheduler, PDF invoices stored in MongoDB |
+| Consumer lag visibility | kafka-lag-exporter → Prometheus → Grafana |
+| Crash recovery | Services are stateless besides their DBs; replay is safe via the idempotency above |
+| Security | Gateway JWT (HMAC-SHA256, 15-min access / 7-day rotated refresh), Google OAuth2, Razorpay webhook HMAC verification, tiered rate limiting |
+
 ---
 
 ## 🔄 Order Saga Flow
