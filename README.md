@@ -280,6 +280,7 @@ flowchart TB
 Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --> order-service
                                                                                   |
                                                                                   v
+ 1  order-service -- OrderCreatedEvent --> [ order-events ]            --> inventory-service
 ```
 
 ### 4. Component Responsibilities
