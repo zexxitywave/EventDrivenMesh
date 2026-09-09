@@ -252,10 +252,12 @@ flowchart TB
     PAY -- PaymentProcessedEvent --> PE
     PE --> ORD & SHP & NOT & LGS
 
-    SHS -->|ShipmentProcessedEvent| SE[shipping-events]
-    SE --> ORS
-    SE --> NTS
-    SE --> LGS
+    SHP -- ShipmentProcessedEvent --> SE
+    SE --> ORD & NOT & LGS
+
+    PAY -. PaymentFailedEvent .-> ORD
+    NOT -. email + PDF / in-app .-> BUYER
+    ANS -. failed events .-> DLQ
 
     ANS -.failed events.-> DLQ[order-analytics-dlq]
 ```
