@@ -274,6 +274,8 @@ flowchart TB
     class DLQ dlq;
 ```
 
+> **No Mermaid renderer (e.g. Gitea mirror, plain-text reader)?** Here is the same topology as a flat chain:
+
 ### 4. Component Responsibilities
 
 | Service | Role in the HLD | State |
