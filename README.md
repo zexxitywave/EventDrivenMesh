@@ -54,6 +54,7 @@ through a central API Gateway with JWT authentication.
 
 - [Key Highlights](#-key-highlights)
 - [Architecture](#-architecture)
+- [High-Level Design (HLD)](#-high-level-design-hld)
 - [Order Saga Flow](#-order-saga-flow)
 - [🚀 Quick Start](#-quick-start)
 - [Service Port Reference](#-service-port-reference)
