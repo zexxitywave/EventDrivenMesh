@@ -512,7 +512,7 @@ Merchant profile management and verification lifecycle. Delegates product and or
 | GET | `/api/v1/seller/products` | Seller's product listings |
 | GET | `/api/v1/seller/orders` | Orders with seller's items |
 | GET | `/api/v1/seller/analytics` | Revenue, order count, avg value |
-| GET/POST | `/api/admin/sellers/**` | Admin verification |
+| GET/POST | `/api/v1/admin/sellers/**` | Admin verification |
 
 **Verification status:** `PENDING → VERIFIED / REJECTED / SUSPENDED`
 
