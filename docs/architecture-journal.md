@@ -204,3 +204,10 @@ seller-service manages seller profiles and product ingestion that feeds the prod
 After JWT validation the gateway injects X-User-Id, X-User-Email and X-User-Role so downstream services trust the edge.
 
 ---
+
+
+## 30. Edge rate limiting
+
+Requests to /api/v1/** are rate-limited per user to shield the saga from traffic spikes at checkout.
+
+---
