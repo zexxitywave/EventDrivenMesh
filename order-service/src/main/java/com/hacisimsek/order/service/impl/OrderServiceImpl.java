@@ -176,9 +176,15 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
-    @Override
+@Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateOrderStatus(UUID orderId, Order.OrderStatus status) {
+        updateOrderStatus(orderId, status, null);
+    }
+
+    @Override
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void updateOrderStatus(UUID orderId, Order.OrderStatus status, UUID correlationId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found with id: " + orderId));
 
@@ -191,7 +197,7 @@ public class OrderServiceImpl implements OrderService {
         try {
             OrderEvent.EventType eventType = resolveEventType(status);
             orderEventService.append(
-                    orderId, null,
+                    orderId, correlationId,
                     eventType,
                     previousStatus, status,
                     "saga", null);

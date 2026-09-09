@@ -13,4 +13,5 @@ public interface OrderService {
     List<OrderResponse> getAllOrders();
     List<OrderResponse> getOrdersByCustomerId(UUID customerId);
     void updateOrderStatus(UUID orderId, Order.OrderStatus status);
+    void updateOrderStatus(UUID orderId, Order.OrderStatus status, UUID correlationId);
 }
