@@ -239,7 +239,7 @@ flowchart TB
         LGS["logging-service"]
     end
 
-    BUYER -- REST /api/v1/** --> GW
+    BUYER -- /api/v1/** --> GW
     SELLER -- REST /api/v1/** --> GW
     GW --> ORD & INV & PAY & SHP
 
