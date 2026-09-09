@@ -11,6 +11,7 @@ import java.util.stream.Collectors;
 
 import com.hacisimsek.common.logging.LogPublisher;
 import com.hacisimsek.payment.exception.PaymentAlreadyExistsException;
+import com.hacisimsek.payment.exception.PaymentNotInitiatedException;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -290,6 +291,21 @@ public class PaymentServiceImpl implements PaymentService {
         if (payment.getStatus() == Payment.PaymentStatus.COMPLETED) {
             log.warn("Payment {} already completed — returning existing record", payment.getId());
             return toResponse(payment);
+        }
+
+        // Hard gate: a payment can only be verified against the gateway order that
+        // /initiate actually issued to the gateway. Prevents completing payments on
+        // arbitrary order ids obtained outside the backend (e.g. pasting any id into
+        // the Razorpay checkout directly).
+        if (payment.getGatewayOrderId() == null || payment.getGatewayOrderId().isBlank()) {
+            throw new PaymentNotInitiatedException(
+                    "Payment " + payment.getId() + " has no gateway order — "
+                            + "/api/v1/payments/initiate must be called before /verify");
+        }
+        if (!payment.getGatewayOrderId().equals(request.getGatewayOrderId())) {
+            throw new PaymentNotInitiatedException(
+                    "gatewayOrderId " + request.getGatewayOrderId() + " does not match the order "
+                            + "issued at initiate (" + payment.getGatewayOrderId() + ")");
         }
 
         // Safety net: if the payment carries no correlation yet (e.g. /initiate won
