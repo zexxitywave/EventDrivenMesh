@@ -637,6 +637,7 @@ Supports Razorpay, Stripe, and a Mock adapter. Handles automatic saga-driven pay
 |---|---|---|
 | POST | `/api/v1/payments/initiate` | Create gateway order |
 | POST | `/api/v1/payments/verify` | Verify signature & capture |
+| POST | `/api/v1/payments/webhook` | Razorpay signature-verified callback |
 | POST | `/api/v1/payments/refund` | Full or partial refund |
 | GET | `/api/v1/payments/{paymentId}` | Get payment |
 | GET | `/api/v1/payments/order/{orderId}` | Payment by order |
