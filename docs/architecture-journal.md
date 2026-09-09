@@ -344,3 +344,10 @@ Bad addresses and relay denials fail immediately; ambiguous errors default to re
 An indexed nextAttemptAt field makes the retry job pick only due rows, with exponential backoff per attempt.
 
 ---
+
+
+## 50. Last error triage
+
+Notification rows keep the last errorMessage so FAILED mail can be triaged without grepping service logs.
+
+---
