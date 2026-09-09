@@ -27,7 +27,9 @@ import com.hacisimsek.payment.dto.VerifyPaymentRequest;
 import com.hacisimsek.payment.gateway.GatewayOrderResult;
 import com.hacisimsek.payment.gateway.PaymentGatewayAdapter;
 import com.hacisimsek.payment.model.Payment;
+import com.hacisimsek.payment.model.OrderCorrelation;
 import com.hacisimsek.payment.repository.PaymentRepository;
+import com.hacisimsek.payment.repository.OrderCorrelationRepository;
 import com.hacisimsek.payment.service.PaymentService;
 
 import io.micrometer.core.instrument.Counter;
@@ -43,6 +45,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final List<PaymentGatewayAdapter> gatewayAdapters;
     private final ObjectMapper objectMapper;
     private final LogPublisher logPublisher;
+    private final OrderCorrelationRepository orderCorrelationRepository;
     private final Counter paymentsProcessedCounter;
     private final Counter paymentsFailedCounter;
     private static final String PAYMENT_TOPIC = "payment-events";
@@ -54,12 +57,14 @@ public class PaymentServiceImpl implements PaymentService {
                                List<PaymentGatewayAdapter> gatewayAdapters,
                                ObjectMapper objectMapper,
                                LogPublisher logPublisher,
+                               OrderCorrelationRepository orderCorrelationRepository,
                                MeterRegistry meterRegistry) {
         this.paymentRepository = paymentRepository;
         this.kafkaTemplate = kafkaTemplate;
         this.gatewayAdapters = gatewayAdapters;
         this.objectMapper = objectMapper;
         this.logPublisher = logPublisher;
+        this.orderCorrelationRepository = orderCorrelationRepository;
         this.paymentsProcessedCounter = Counter.builder("zexxity.payments.processed")
                 .description("Total payments successfully processed")
                 .register(meterRegistry);
@@ -142,8 +147,19 @@ public class PaymentServiceImpl implements PaymentService {
     @Transactional
     public void preparePayment(InventoryReservedEvent event) {
         UUID orderId = event.getOrderId();
-        if (paymentRepository.findByOrderId(orderId).isPresent()) {
-            log.info("preparePayment: payment already exists for order={} — leaving as-is", orderId);
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(orderId);
+        if (existingPayment.isPresent()) {
+            // If /initiate won the race and created the payment before this
+            // Kafka-driven call, backfill the correlationId so the saga trace
+            // stays intact regardless of delivery order.
+            if (existingPayment.get().getCorrelationId() == null) {
+                existingPayment.get().setCorrelationId(event.getCorrelationId());
+                paymentRepository.save(existingPayment.get());
+                log.info("preparePayment: backfilled correlationId {} onto existing payment {} for order={}",
+                        event.getCorrelationId(), existingPayment.get().getId(), orderId);
+            } else {
+                log.info("preparePayment: payment already exists for order={} — leaving as-is", orderId);
+            }
             return;
         }
 
@@ -201,14 +217,16 @@ public class PaymentServiceImpl implements PaymentService {
                 if (request.getPaymentMethod() != null) {
                     existing.setPaymentMethod(request.getPaymentMethod());
                 }
+                if (existing.getCorrelationId() == null) {
+                    existing.setCorrelationId(resolveCorrelationId(existingPayment, request));
+                }
                 payment = existing;
             }
             // FAILED — retry below with a fresh payment, carrying correlation forward
         }
 
         if (payment == null) {
-            UUID correlationId = existingPayment.isPresent()
-                    ? existingPayment.get().getCorrelationId() : null;
+            UUID correlationId = resolveCorrelationId(existingPayment, request);
             payment = Payment.builder()
                     .orderId(request.getOrderId())
                     .customerId(request.getCustomerId())
@@ -239,6 +257,26 @@ public class PaymentServiceImpl implements PaymentService {
                 .currency(DEFAULT_CURRENCY)
                 .status(Payment.PaymentStatus.PENDING.name())
                 .build();
+    }
+
+    /**
+     * Resolves the saga correlation ID for an initiate request, in priority order:
+     *   1. correlation already stored on the payment record
+     *   2. correlation supplied by the client (from the order response)
+     *   3. correlation persisted by OrderCorrelationHandler when OrderCreatedEvent
+     *      was observed (covers the case where /initiate wins the race against
+     *      the Kafka-driven preparePayment)
+     */
+    private UUID resolveCorrelationId(Optional<Payment> existingPayment, InitiatePaymentRequest request) {
+        if (existingPayment.isPresent() && existingPayment.get().getCorrelationId() != null) {
+            return existingPayment.get().getCorrelationId();
+        }
+        if (request.getCorrelationId() != null) {
+            return request.getCorrelationId();
+        }
+        return orderCorrelationRepository.findByOrderId(request.getOrderId())
+                .map(OrderCorrelation::getCorrelationId)
+                .orElse(null);
     }
 
     // ── Verify and Capture ────────────────────────────────────────────────────
