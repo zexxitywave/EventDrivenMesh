@@ -7,6 +7,7 @@ import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hacisimsek.common.event.inventory.StockReleasedEvent;
 import com.hacisimsek.common.event.order.OrderCreatedEvent;
 import com.hacisimsek.common.event.payment.PaymentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
@@ -15,6 +16,7 @@ import com.hacisimsek.inventory.service.InventoryService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
 
 @Component
 @RequiredArgsConstructor
@@ -33,6 +35,9 @@ public class InventorySagaHandler {
     private final InventoryService inventoryService;
     private final LogPublisher logPublisher;
     private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    private static final String COMPENSATION_TOPIC = "compensation-events";
 
     // ── Forward flow: reserve stock when a new order arrives ─────────────────
 
@@ -93,6 +98,9 @@ public class InventorySagaHandler {
                                         ? paymentFailedEvent.getReason() : "unknown",
                                 "compensationAction", "STOCK_RELEASED"
                         ));
+                publishStockReleased(paymentFailedEvent.getCorrelationId(),
+                        paymentFailedEvent.getOrderId(),
+                        paymentFailedEvent.getReason() != null ? paymentFailedEvent.getReason() : "payment failed");
             } catch (Exception e) {
                 // Log but don't rethrow — a missing reservation (e.g. already cancelled)
                 // must not block other messages in the partition
@@ -145,6 +153,9 @@ public class InventorySagaHandler {
                                         ? shipmentFailedEvent.getReason() : "unknown",
                                 "compensationAction", "STOCK_RELEASED"
                         ));
+                publishStockReleased(shipmentFailedEvent.getCorrelationId(),
+                        shipmentFailedEvent.getOrderId(),
+                        shipmentFailedEvent.getReason() != null ? shipmentFailedEvent.getReason() : "shipment failed");
             } catch (Exception e) {
                 log.error("Failed to release inventory for order {} after shipment failure: {}",
                         shipmentFailedEvent.getOrderId(), e.getMessage());
@@ -159,5 +170,21 @@ public class InventorySagaHandler {
         }
         // ShipmentProcessedEvent is intentionally ignored — stock was already
         // correctly deducted at reservation time and confirmed through payment.
+    }
+
+    /**
+     * Publishes a StockReleasedEvent so order-service can record the
+     * INVENTORY_RELEASED compensation step in the order event log.
+     */
+    private void publishStockReleased(java.util.UUID correlationId, java.util.UUID orderId, String reason) {
+        try {
+            StockReleasedEvent releaseEvent = new StockReleasedEvent(
+                    correlationId, orderId, null, null, null, reason);
+            kafkaTemplate.send(COMPENSATION_TOPIC, releaseEvent);
+            log.info("StockReleasedEvent published for order {} on {}", orderId, COMPENSATION_TOPIC);
+        } catch (Exception e) {
+            // Release already succeeded — log only
+            log.error("Failed to publish StockReleasedEvent for order {}: {}", orderId, e.getMessage());
+        }
     }
 }

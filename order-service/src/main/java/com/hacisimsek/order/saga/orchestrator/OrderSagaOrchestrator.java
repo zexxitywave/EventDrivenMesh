@@ -75,9 +75,33 @@ public class OrderSagaOrchestrator {
     public void onShipmentFailed(UUID orderId, UUID correlationId, String reason, Order.OrderStatus previousStatus) {
         log.warn("[Orchestrator] onShipmentFailed order={} reason={}", orderId, reason);
         try {
-            orderService.updateOrderStatus(orderId, Order.OrderStatus.FAILED, correlationId, previousStatus);
+            orderService.updateOrderStatus(orderId, Order.OrderStatus.CANCELLED, correlationId, previousStatus);
         } catch (Exception e) {
             log.error("[Orchestrator] FAILED onShipmentFailed order={}: {}", orderId, e.getMessage(), e);
         }
+    }
+
+    /**
+     * Compensation event received on compensation-events (BEFORE the ORDER_CANCELLED
+     * event) — payment was refunded after a failure. Recorded on the event log only;
+     * the order's own status remains untouched until onShipmentFailed/onPaymentFailed
+     * resolves it to CANCELLED.
+     */
+    public void onPaymentRefunded(UUID orderId, UUID correlationId, String reason) {
+        log.info("[Orchestrator] onPaymentRefunded order={} reason={}", orderId, reason);
+        orderService.recordCompensationEvent(orderId, correlationId,
+                "PAYMENT_REFUNDED", "PAYMENT_COMPLETED", "REFUNDED",
+                "Compensation: " + reason);
+    }
+
+    /**
+     * Compensation event received on compensation-events — reserved stock was released
+     * after a failure. Recorded on the event log only.
+     */
+    public void onStockReleased(UUID orderId, UUID correlationId, String reason) {
+        log.info("[Orchestrator] onStockReleased order={} reason={}", orderId, reason);
+        orderService.recordCompensationEvent(orderId, correlationId,
+                "INVENTORY_RELEASED", "INVENTORY_RESERVED", "RELEASED",
+                "Compensation: " + reason);
     }
 }

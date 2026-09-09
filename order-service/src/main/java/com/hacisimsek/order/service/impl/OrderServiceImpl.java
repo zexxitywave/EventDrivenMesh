@@ -138,14 +138,14 @@ public class OrderServiceImpl implements OrderService {
         try {
             orderEventService.append(
                     savedOrder.getId(), correlationId,
-                    OrderEvent.EventType.ORDER_CREATED,
-                    null, Order.OrderStatus.PENDING,
+                    "ORDER_CREATED",
+                    null, Order.OrderStatus.PENDING.name(),
                     "order-service", "Order created with " + itemDtos.size() + " item(s)");
 
             orderEventService.append(
                     savedOrder.getId(), correlationId,
-                    OrderEvent.EventType.INVENTORY_CHECKING,
-                    Order.OrderStatus.PENDING, Order.OrderStatus.INVENTORY_CHECKING,
+                    "INVENTORY_CHECKING",
+                    Order.OrderStatus.PENDING.name(), Order.OrderStatus.INVENTORY_CHECKING.name(),
                     "order-service", "Saga started — checking inventory");
         } catch (Exception e) {
             log.warn("Event sourcing append failed for order {} — continuing: {}", savedOrder.getId(), e.getMessage());
@@ -179,6 +179,24 @@ public class OrderServiceImpl implements OrderService {
     }
 
 @Override
+    @Transactional
+    public void recordCompensationEvent(UUID orderId, UUID correlationId,
+                                        String eventType, String previousStatus,
+                                        String newStatus, String details) {
+        try {
+            orderEventService.appendCompensation(
+                    orderId, correlationId,
+                    eventType, previousStatus, newStatus,
+                    "saga", details);
+            log.info("Recorded compensation event {} for order {} ({} → {})",
+                    eventType, orderId, previousStatus, newStatus);
+        } catch (Exception e) {
+            log.warn("Compensation event append failed for order {} — compensation already applied: {}",
+                    orderId, e.getMessage());
+        }
+    }
+
+    @Override
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void updateOrderStatus(UUID orderId, Order.OrderStatus status) {
         updateOrderStatus(orderId, status, null);
@@ -206,11 +224,10 @@ public class OrderServiceImpl implements OrderService {
 
         // Append to event log — wrapped so a failure here never blocks the saga
         try {
-            OrderEvent.EventType eventType = resolveEventType(status);
             orderEventService.append(
                     orderId, correlationId,
-                    eventType,
-                    previousStatus, status,
+                    resolveEventType(status),
+                    previousStatus != null ? previousStatus.name() : null, status.name(),
                     "saga", null);
         } catch (Exception e) {
             log.warn("Event sourcing append failed for order {} — saga continues: {}", orderId, e.getMessage());
@@ -221,18 +238,18 @@ public class OrderServiceImpl implements OrderService {
         orderStatusEmitter.push(orderId, status.name(), terminal);
     }
 
-    private OrderEvent.EventType resolveEventType(Order.OrderStatus status) {
+    private String resolveEventType(Order.OrderStatus status) {
         return switch (status) {
-            case INVENTORY_CHECKING          -> OrderEvent.EventType.INVENTORY_CHECKING;
-            case INVENTORY_RESERVED          -> OrderEvent.EventType.INVENTORY_RESERVED;
-            case PAYMENT_PROCESSING          -> OrderEvent.EventType.PAYMENT_PROCESSING;
-            case PAYMENT_COMPLETED           -> OrderEvent.EventType.PAYMENT_COMPLETED;
-            case SHIPPING_PROCESSING         -> OrderEvent.EventType.SHIPPING_PROCESSING;
-            case SHIPPED                     -> OrderEvent.EventType.ORDER_SHIPPED;
-            case COMPLETED                   -> OrderEvent.EventType.ORDER_COMPLETED;
-            case CANCELLED                   -> OrderEvent.EventType.ORDER_CANCELLED;
-            case FAILED                      -> OrderEvent.EventType.ORDER_FAILED;
-            default                          -> OrderEvent.EventType.ORDER_CREATED;
+            case INVENTORY_CHECKING          -> "INVENTORY_CHECKING";
+            case INVENTORY_RESERVED          -> "INVENTORY_RESERVED";
+            case PAYMENT_PROCESSING          -> "PAYMENT_PROCESSING";
+            case PAYMENT_COMPLETED           -> "PAYMENT_COMPLETED";
+            case SHIPPING_PROCESSING         -> "SHIPPING_PROCESSING";
+            case SHIPPED                     -> "ORDER_SHIPPED";
+            case COMPLETED                   -> "ORDER_COMPLETED";
+            case CANCELLED                   -> "ORDER_CANCELLED";
+            case FAILED                      -> "ORDER_FAILED";
+            default                          -> "ORDER_CREATED";
         };
     }
 

@@ -3,8 +3,10 @@ package com.hacisimsek.order.saga;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservationFailedEvent;
 import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
+import com.hacisimsek.common.event.inventory.StockReleasedEvent;
 import com.hacisimsek.common.event.payment.PaymentFailedEvent;
 import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
+import com.hacisimsek.common.event.payment.PaymentRefundedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentProcessedEvent;
 import com.hacisimsek.order.model.Order;
@@ -41,6 +43,9 @@ public class OrderSagaHandler {
     private static final String PAYMENT_FAILED      = PaymentFailedEvent.class.getName();
     private static final String SHIPMENT_PROCESSED  = ShipmentProcessedEvent.class.getName();
     private static final String SHIPMENT_FAILED_CN  = ShipmentFailedEvent.class.getName();
+
+    private static final String PAYMENT_REFUNDED_CN = PaymentRefundedEvent.class.getName();
+    private static final String STOCK_RELEASED_CN   = StockReleasedEvent.class.getName();
 
     /**
      * Reads the CURRENT status from the DB without any JPA/EntityManager thread
@@ -175,7 +180,7 @@ public class OrderSagaHandler {
                 UUID orderId = e.getOrderId();
                 Order.OrderStatus previousStatus = queryStatus(orderId);
                 jdbcTemplate.update(
-                    "UPDATE orders SET status = 'FAILED', last_modified_at = NOW() WHERE id = ?",
+                    "UPDATE orders SET status = 'CANCELLED', last_modified_at = NOW() WHERE id = ?",
                     orderId);
                 orchestrator.onShipmentFailed(orderId, e.getCorrelationId(),
                         e.getReason() != null ? e.getReason() : "unknown", previousStatus);
@@ -185,6 +190,32 @@ public class OrderSagaHandler {
         } catch (Exception ex) {
             log.error("[SagaHandler] ERROR handling shipping event: {}", ex.getMessage(), ex);
             throw new IllegalStateException("Failed to process shipping event type=" + type, ex);
+        }
+    }
+
+    @KafkaListener(topics = "compensation-events", groupId = "order-service-group",
+            containerFactory = "kafkaListenerContainerFactory")
+    public void handleCompensationEvents(ConsumerRecord<String, Object> record) {
+        Object event = record.value();
+        if (event == null) return;
+        String type = event.getClass().getName();
+        log.info("[SagaHandler] compensation-events type={}", type);
+
+        try {
+            if (PAYMENT_REFUNDED_CN.equals(type)) {
+                PaymentRefundedEvent e = objectMapper.convertValue(event, PaymentRefundedEvent.class);
+                orchestrator.onPaymentRefunded(e.getOrderId(), e.getCorrelationId(),
+                        e.getReason() != null ? e.getReason() : "payment refunded after saga failure");
+            } else if (STOCK_RELEASED_CN.equals(type)) {
+                StockReleasedEvent e = objectMapper.convertValue(event, StockReleasedEvent.class);
+                orchestrator.onStockReleased(e.getOrderId(), e.getCorrelationId(),
+                        e.getReason() != null ? e.getReason() : "reserved stock released after saga failure");
+            } else {
+                log.warn("[SagaHandler] Unhandled compensation event type={}", type);
+            }
+        } catch (Exception ex) {
+            log.error("[SagaHandler] ERROR handling compensation event: {}", ex.getMessage(), ex);
+            throw new IllegalStateException("Failed to process compensation event type=" + type, ex);
         }
     }
 }

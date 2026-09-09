@@ -29,9 +29,9 @@ public class OrderEventService {
     @Transactional
     public OrderEvent append(UUID orderId,
                              UUID correlationId,
-                             OrderEvent.EventType eventType,
-                             Order.OrderStatus previousStatus,
-                             Order.OrderStatus newStatus,
+                             String eventType,
+                             String previousStatus,
+                             String newStatus,
                              String triggeredBy,
                              String details) {
         OrderEvent event = OrderEvent.builder()
@@ -46,6 +46,35 @@ public class OrderEventService {
 
         OrderEvent saved = orderEventRepository.save(event);
         log.debug("[EventStore] Appended {} for order {} ({} → {})",
+                eventType, orderId, previousStatus, newStatus);
+        return saved;
+    }
+
+    /**
+     * Append a saga compensation event (e.g. PAYMENT_REFUNDED, INVENTORY_RELEASED).
+     * Unlike {@link #append} this does NOT change the order's own status — the
+     * entry records the compensation state of another service in the same trace.
+     */
+    @Transactional
+    public OrderEvent appendCompensation(UUID orderId,
+                                         UUID correlationId,
+                                         String eventType,
+                                         String previousStatus,
+                                         String newStatus,
+                                         String triggeredBy,
+                                         String details) {
+        OrderEvent event = OrderEvent.builder()
+                .orderId(orderId)
+                .correlationId(correlationId)
+                .eventType(eventType)
+                .previousStatus(previousStatus)
+                .newStatus(newStatus)
+                .triggeredBy(triggeredBy)
+                .details(details)
+                .build();
+
+        OrderEvent saved = orderEventRepository.save(event);
+        log.debug("[EventStore] Appended compensation {} for order {} ({} → {})",
                 eventType, orderId, previousStatus, newStatus);
         return saved;
     }
@@ -73,6 +102,12 @@ public class OrderEventService {
             throw new RuntimeException("No events found for order: " + orderId);
         }
         // The last event's newStatus is the current state
-        return events.get(events.size() - 1).getNewStatus();
+        try {
+            return Order.OrderStatus.valueOf(events.get(events.size() - 1).getNewStatus());
+        } catch (IllegalArgumentException e) {
+            log.warn("Last event for order {} has non-order status '{}' — returning null",
+                    orderId, events.get(events.size() - 1).getNewStatus());
+            return null;
+        }
     }
 }

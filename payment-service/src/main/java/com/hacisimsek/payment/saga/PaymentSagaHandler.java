@@ -2,6 +2,7 @@ package com.hacisimsek.payment.saga;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
+import com.hacisimsek.common.event.payment.PaymentRefundedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.payment.dto.RefundRequest;
 import com.hacisimsek.payment.model.Payment;
@@ -12,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Component;
 
 @Component
@@ -25,6 +27,9 @@ public class PaymentSagaHandler {
     private final PaymentService paymentService;
     private final PaymentRepository paymentRepository;
     private final ObjectMapper objectMapper;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+
+    private static final String COMPENSATION_TOPIC = "compensation-events";
 
     /**
      * When false: saga stops at INVENTORY_RESERVED and waits for the customer
@@ -106,6 +111,25 @@ public class PaymentSagaHandler {
 
                 log.info("Auto-refund completed for order {} — payment {} refunded",
                         event.getOrderId(), payment.getId());
+
+                // Notify the saga so order-service can record PAYMENT_REFUNDED
+                // in the order event log with a truthful previousStatus.
+                try {
+                    PaymentRefundedEvent refundedEvent = new PaymentRefundedEvent(
+                            event.getCorrelationId(),
+                            event.getOrderId(),
+                            payment.getId(),
+                            payment.getCustomerId(),
+                            payment.getCustomerEmail(),
+                            refundRequest.getReason());
+                    kafkaTemplate.send(COMPENSATION_TOPIC, refundedEvent);
+                    log.info("PaymentRefundedEvent published for order {} on {}",
+                            event.getOrderId(), COMPENSATION_TOPIC);
+                } catch (Exception publishEx) {
+                    // Refund already succeeded — log only, never roll it back
+                    log.error("Failed to publish PaymentRefundedEvent for order {}: {}",
+                            event.getOrderId(), publishEx.getMessage());
+                }
 
             } catch (Exception e) {
                 log.error("Auto-refund FAILED for order {} payment {}: {}",

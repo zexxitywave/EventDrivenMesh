@@ -41,17 +41,14 @@ public class OrderEvent {
     @Column(name = "correlation_id")
     private UUID correlationId;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "event_type", nullable = false)
-    private EventType eventType;
+    private String eventType;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "new_status", nullable = false)
-    private Order.OrderStatus newStatus;
+    private String newStatus;
 
-    @Enumerated(EnumType.STRING)
     @Column(name = "previous_status")
-    private Order.OrderStatus previousStatus;
+    private String previousStatus;
 
     @Column(name = "triggered_by", length = 100)
     private String triggeredBy;
@@ -65,20 +62,5 @@ public class OrderEvent {
     @PrePersist
     protected void onCreate() {
         this.occurredAt = Instant.now();
-    }
-
-    public enum EventType {
-        ORDER_CREATED,
-        INVENTORY_CHECKING,
-        INVENTORY_RESERVED,
-        INVENTORY_RESERVATION_FAILED,
-        PAYMENT_PROCESSING,
-        PAYMENT_COMPLETED,
-        PAYMENT_FAILED,
-        SHIPPING_PROCESSING,
-        ORDER_SHIPPED,
-        ORDER_COMPLETED,
-        ORDER_CANCELLED,
-        ORDER_FAILED
     }
 }
