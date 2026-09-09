@@ -22,3 +22,10 @@ Introduce common-library holding BaseEvent (eventId, correlationId, timestamp), 
 Register every service with spring-cloud-netflix-eureka so the gateway resolves lb:// URIs and instances auto-register and heartbeat on boot.
 
 ---
+
+
+## 4. Edge gateway
+
+Add api-gateway with JWT validation at the edge, per-user rate limiting, and routes to /api/v1/** across the mesh.
+
+---
