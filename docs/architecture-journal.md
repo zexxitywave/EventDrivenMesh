@@ -281,3 +281,10 @@ Poison events are diverted to per-service DLQ topics, currently order-analytics-
 Cheap reads such as cart to product and inventory, and seller to product and order, skip the bus and go direct.
 
 ---
+
+
+## 41. Diagram legend
+
+Mark the saga trigger, poison queue and compensation edges with a color legend for the HLD diagram.
+
+---
