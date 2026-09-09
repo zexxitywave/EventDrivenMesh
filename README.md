@@ -274,6 +274,8 @@ flowchart TB
     class DLQ dlq;
 ```
 
+**Legend.** Violet — clients; blue — the gateway edge; green — saga participants; amber — Kafka topics; pink — read/audit; dashed red — poison queue (`order-analytics-dlq`).
+
 > **No Mermaid renderer (e.g. Gitea mirror, plain-text reader)?** Here is the same topology as a flat chain:
 
 ```text
