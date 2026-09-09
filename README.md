@@ -225,7 +225,14 @@ flowchart TB
         SHP["shipping-service"]
         NOT["notification-service"]
     end
-    TE --> LGS[logging-service]
+
+    subgraph BUS["📨 Event Bus · Kafka"]
+        OE["order-events"]
+        IE["inventory-events"]
+        PE["payment-events"]
+        SE["shipping-events"]
+        DLQ["order-analytics-dlq"]
+    end
 
     INVS -->|InventoryReservedEvent| IE[inventory-events]
     IE --> ORS
