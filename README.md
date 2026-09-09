@@ -908,8 +908,9 @@ All services are instrumented with **Micrometer** and expose a `/actuator/promet
 
 | Tool | URL | Credentials |
 |---|---|---|
-| Prometheus | http://localhost:9095 | — |
-| Grafana | http://localhost:3005 | admin / admin |
+| Prometheus | http://localhost:9091 | — |
+| Grafana | http://localhost:3000 | admin / admin |
+| kafka-lag-exporter | http://localhost:8000 | — |
 
 ### Quick Start
 
