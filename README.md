@@ -933,8 +933,8 @@ docker run -d \
 > On Windows with PowerShell replace `$(pwd)` with `${PWD}`.
 
 After Grafana starts:
-1. Open http://localhost:3005 and log in with `admin / admin`
-2. Add Prometheus as a data source: `http://host.docker.internal:9095`
+1. Open http://localhost:3000 and log in with `admin / admin`
+2. Add Prometheus as a data source: `http://host.docker.internal:9091`
 3. Import the dashboard JSON from `monitoring/grafana-dashboard.json`
 
 ### Dashboard Panels
