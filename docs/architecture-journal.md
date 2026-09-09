@@ -386,3 +386,10 @@ A full mvn clean verify runs before the DLQ work ships so all sixteen modules co
 Prefer per-service DLQ topics, cheap Kafka partitions with independent ownership, over a shared dead-letter broker.
 
 ---
+
+
+## 56. ADR: ambiguous errors retry
+
+Unclear SMTP responses default to retryable so no mail is dropped on a misclassification.
+
+---
