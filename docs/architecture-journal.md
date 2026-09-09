@@ -29,3 +29,10 @@ Register every service with spring-cloud-netflix-eureka so the gateway resolves 
 Add api-gateway with JWT validation at the edge, per-user rate limiting, and routes to /api/v1/** across the mesh.
 
 ---
+
+
+## 5. order-service skeleton
+
+Create order-service with an OrderCreatedEvent producer on the order-events topic and a REST controller for the order lifecycle.
+
+---
