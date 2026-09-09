@@ -277,7 +277,7 @@ flowchart TB
 > **No Mermaid renderer (e.g. Gitea mirror, plain-text reader)?** Here is the same topology as a flat chain:
 
 ```text
-Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --> order-service
+Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// (Eureka) --> order-service
                                                                                   |
                                                                                   v
  1  order-service -- OrderCreatedEvent --> [ order-events ]            --> inventory-service
