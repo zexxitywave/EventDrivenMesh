@@ -286,6 +286,7 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --
  4  shipping-service -- ShipmentProcessedEvent --> [ shipping-events ] --> notification-service
 
     Same topics double as data planes for:
+      analytics-service <-- [ order-events ] -> CQRS read model (revenue, top customers)
 ```
 
 ### 4. Component Responsibilities
