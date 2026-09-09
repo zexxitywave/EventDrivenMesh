@@ -345,7 +345,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | Path | Service | JWT |
 |---|---|---|
 | `/api/v1/auth/**` | auth-service | ❌ |
-| `/api/products/**` GET | product-service | ❌ |
+| `/api/v1/products/**` GET | product-service | ❌ |
 | `/api/orders/**` | order-service | ✅ |
 | `/api/payments/**` | payment-service | ✅ |
 | `/api/inventory/**` | inventory-service | ✅ |
@@ -486,12 +486,12 @@ Full product catalog with category hierarchy, full-text search, price filtering,
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/products` | Create product (seller only) |
-| POST | `/api/products/bulk` | Bulk create |
-| GET | `/api/products/{id}` | Get by ID or SKU |
-| PUT/PATCH/DELETE | `/api/products/{id}` | Update / change status / delete |
-| GET | `/api/products` | Search with filters |
-| GET | `/api/products/my-products` | Seller's own listings |
+| POST | `/api/v1/products` | Create product (seller only) |
+| POST | `/api/v1/products/bulk` | Bulk create |
+| GET | `/api/v1/products/{id}` | Get by ID or SKU |
+| PUT/PATCH/DELETE | `/api/v1/products/{id}` | Update / change status / delete |
+| GET | `/api/v1/products` | Search with filters |
+| GET | `/api/v1/products/my-products` | Seller's own listings |
 
 **Search params:** `keyword`, `categoryId`, `minPrice`, `maxPrice`, `brand`, `page`, `size`, `sortBy`, `sortDir`
 
