@@ -414,3 +414,10 @@ Show how ops inspects notification-dlq with kafka-console-consumer and restores 
 Rehearse the final HLD diagram and resilience notes so the README matches the delivered saga and DLQ behavior.
 
 ---
+
+
+## 60. Journal complete
+
+Entries one through sixty consolidate the architecture decisions behind the event-driven mesh, from scaffolding to DLQ strategy.
+
+---
