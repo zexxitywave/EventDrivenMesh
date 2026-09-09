@@ -211,3 +211,10 @@ After JWT validation the gateway injects X-User-Id, X-User-Email and X-User-Role
 Requests to /api/v1/** are rate-limited per user to shield the saga from traffic spikes at checkout.
 
 ---
+
+
+## 31. Kafka in docker-compose
+
+docker-compose runs Kafka with auto topic creation so order-events, inventory-events, payment-events and shipping-events exist on startup.
+
+---
