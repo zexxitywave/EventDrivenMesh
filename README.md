@@ -350,7 +350,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 | `/api/v1/payments/**` | payment-service | ✅ |
 | `/api/v1/inventory/**` | inventory-service | ✅ |
 | `/api/v1/shipping/**` | shipping-service | ✅ |
-| `/api/users/**` | user-service | ✅ |
+| `/api/v1/users/**` | user-service | ✅ |
 | `/api/cart/**` | cart-service | ✅ |
 | `/api/wishlist/**` | wishlist-service | ✅ |
 | `/api/seller/**` | seller-service | ✅ |
@@ -467,12 +467,12 @@ Manages user profiles and shipping addresses. Uses the `X-User-Id` header (injec
 
 | Method | Path | Description |
 |---|---|---|
-| POST/GET/PUT | `/api/users/profile` | Create / read / update profile |
-| DELETE | `/api/users/profile` | Deactivate account |
-| PATCH | `/api/users/profile/preferences` | Language, currency, notifications |
-| GET/POST | `/api/users/addresses` | List / add addresses |
-| PUT/DELETE | `/api/users/addresses/{id}` | Update / delete address |
-| PATCH | `/api/users/addresses/{id}/default` | Set default address |
+| POST/GET/PUT | `/api/v1/users/profile` | Create / read / update profile |
+| DELETE | `/api/v1/users/profile` | Deactivate account |
+| PATCH | `/api/v1/users/profile/preferences` | Language, currency, notifications |
+| GET/POST | `/api/v1/users/addresses` | List / add addresses |
+| PUT/DELETE | `/api/v1/users/addresses/{id}` | Update / delete address |
+| PATCH | `/api/v1/users/addresses/{id}/default` | Set default address |
 
 ---
 
