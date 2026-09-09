@@ -316,3 +316,10 @@ Each service exposes springdoc OpenAPI behind the gateway for contract browsing.
 The gateway allows web and mobile clients to call /api/v1/** from the browser frontier.
 
 ---
+
+
+## 46. Secret hygiene
+
+Tokens, database passwords and SMTP credentials stay out of the repo and come from environment overrides.
+
+---
