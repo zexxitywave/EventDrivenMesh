@@ -120,3 +120,10 @@ Mongo notifications track PENDING, RETRY_PENDING, SENT and FAILED transitions wi
 A scheduled job revisits RETRY_PENDING notifications so transient SMTP failures are retried instead of dropped.
 
 ---
+
+
+## 18. Analytics read model
+
+analytics-service consumes order, inventory, payment and shipping events into denormalized projections for dashboards.
+
+---
