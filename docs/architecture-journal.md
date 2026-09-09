@@ -274,3 +274,10 @@ A Mermaid flowchart traces order to inventory to payment to shipping to notifica
 Poison events are diverted to per-service DLQ topics, currently order-analytics-dlq and notification-dlq.
 
 ---
+
+
+## 40. Economy sync reads
+
+Cheap reads such as cart to product and inventory, and seller to product and order, skip the bus and go direct.
+
+---
