@@ -276,6 +276,10 @@ flowchart TB
 
 > **No Mermaid renderer (e.g. Gitea mirror, plain-text reader)?** Here is the same topology as a flat chain:
 
+```text
+Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --> order-service
+```
+
 ### 4. Component Responsibilities
 
 | Service | Role in the HLD | State |
