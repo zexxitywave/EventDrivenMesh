@@ -57,3 +57,10 @@ Add correlationId propagation on every event envelope so retries, logs and metri
 inventory-service consumes order-events, reserves stock, then publishes InventoryReservedEvent, or InventoryReservationFailedEvent on shortage.
 
 ---
+
+
+## 9. Inventory compensation
+
+When a later saga step fails, inventory-service consumes compensating events and frees the reserved stock.
+
+---
