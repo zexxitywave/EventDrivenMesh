@@ -32,4 +32,12 @@ public class InitiatePaymentRequest {
     private Payment.PaymentGateway gateway;
 
     private String paymentMethod;
+
+    /**
+     * Saga correlation ID — carried through PaymentProcessedEvent so the entire
+     * order trace stays linked. Supplied by the client from the order response
+     * (order-service persists it); also backfilled by preparePayment() if the
+     * Kafka-driven saga message arrives first.
+     */
+    private UUID correlationId;
 }
