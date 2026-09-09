@@ -253,3 +253,10 @@ common-library advice standardizes error bodies so the gateway maps failures con
 Document the sixteen modules, their ports, databases and the /api/v1 gateway contract in README.
 
 ---
+
+
+## 37. Sync and async planes
+
+Explain the synchronous REST plane and the asynchronous Kafka saga plane in the HLD overview.
+
+---
