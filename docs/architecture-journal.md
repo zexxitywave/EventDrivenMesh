@@ -239,3 +239,10 @@ Docker healthchecks gate gateway startup on Eureka and microservice readiness so
 Each service exposes /actuator/health and metrics for docker probes and Prometheus-style scraping.
 
 ---
+
+
+## 35. Central error envelope
+
+common-library advice standardizes error bodies so the gateway maps failures consistently for API consumers.
+
+---
