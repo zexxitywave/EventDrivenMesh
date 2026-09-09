@@ -107,7 +107,7 @@ graph TB
     Client([Client]) --> GW[API Gateway :8080]
 
     subgraph Infra
-        KAFKA[Apache Kafka :9092]
+        KAFKA[Apache Kafka :9095]
         PG[(PostgreSQL :5432)]
         MONGO[(MongoDB :27017)]
         REDIS[(Redis :6379)]
