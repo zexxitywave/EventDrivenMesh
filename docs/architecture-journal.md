@@ -127,3 +127,10 @@ A scheduled job revisits RETRY_PENDING notifications so transient SMTP failures 
 analytics-service consumes order, inventory, payment and shipping events into denormalized projections for dashboards.
 
 ---
+
+
+## 19. Idempotent projection
+
+Projections are keyed by eventId so at-least-once Kafka redelivery never double-counts a saga step.
+
+---
