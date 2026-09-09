@@ -207,7 +207,7 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 - **Resilience** — poisoned events are diverted to `order-analytics-dlq`; participants emit compensating events (reservation failure, payment failure, shipping failure) that the saga reacts to — no orchestrator node, no single point of failure.
 
 ```mermaid
-flowchart LR
+flowchart TB
     ORS[order-service] -->|OrderCreatedEvent| TE[order-events]
     TE --> INVS[inventory-service]
     TE --> ANS[analytics-service]
