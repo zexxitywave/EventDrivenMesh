@@ -379,3 +379,10 @@ application.yml gains app.notification.dlq-topic and retry-base-delay-minutes wi
 A full mvn clean verify runs before the DLQ work ships so all sixteen modules compile together.
 
 ---
+
+
+## 55. ADR: per-service DLQ
+
+Prefer per-service DLQ topics, cheap Kafka partitions with independent ownership, over a shared dead-letter broker.
+
+---
