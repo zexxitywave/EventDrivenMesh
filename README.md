@@ -289,6 +289,7 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --
       analytics-service <-- [ order-events ] -> CQRS read model (revenue, top customers)
       logging-service   <-- all events        -> 30-day indexed audit trail
       order-service     <-- inventory/payment/shipping events -> saga status machine
+      poison pills      -> [ order-analytics-dlq ]
 ```
 
 ### 4. Component Responsibilities
