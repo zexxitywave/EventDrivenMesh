@@ -290,6 +290,8 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// --
       logging-service   <-- all events        -> 30-day indexed audit trail
       order-service     <-- inventory/payment/shipping events -> saga status machine
       poison pills      -> [ order-analytics-dlq ]
+
+    notification-service -- email + PDF invoice / in-app --> Buyer
 ```
 
 ### 4. Component Responsibilities
