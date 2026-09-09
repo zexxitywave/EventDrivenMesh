@@ -49,6 +49,13 @@ public class Notification {
     @Builder.Default
     private int maxRetries = 3;
 
+    /** Earliest permitted send time for the next retry (backoff scheduling). */
+    @Indexed
+    private LocalDateTime nextAttemptAt;
+
+    /** Last send error observed — helps ops triage DLQ'd notifications. */
+    private String errorMessage;
+
     /** Whether the user has read this notification */
     @Builder.Default
     private boolean read = false;
