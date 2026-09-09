@@ -50,3 +50,10 @@ On checkout the order-service publishes OrderCreatedEvent so the saga chain begi
 Add correlationId propagation on every event envelope so retries, logs and metrics trace an order through each saga hop.
 
 ---
+
+
+## 8. Inventory reservation
+
+inventory-service consumes order-events, reserves stock, then publishes InventoryReservedEvent, or InventoryReservationFailedEvent on shortage.
+
+---
