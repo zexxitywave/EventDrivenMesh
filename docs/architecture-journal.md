@@ -372,3 +372,10 @@ The Kafka listener error handler retries then publishes failed records to notifi
 application.yml gains app.notification.dlq-topic and retry-base-delay-minutes with sensible defaults.
 
 ---
+
+
+## 54. Reactor verification
+
+A full mvn clean verify runs before the DLQ work ships so all sixteen modules compile together.
+
+---
