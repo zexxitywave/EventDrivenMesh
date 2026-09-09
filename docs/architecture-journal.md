@@ -92,3 +92,10 @@ shipping-service consumes payment-events, creates the shipment, and publishes Sh
 ShippingFailedEvent carries the cause so analytics and notification consumers can react deterministically.
 
 ---
+
+
+## 14. Notification fan-out
+
+notification-service consumes ShippingCompletedEvent, builds an email with the order summary and persists a Notification in Mongo.
+
+---
