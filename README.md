@@ -344,7 +344,7 @@ Single entry point for all client traffic. Validates JWT and injects identity he
 
 | Path | Service | JWT |
 |---|---|---|
-| `/api/auth/**` | auth-service | ❌ |
+| `/api/v1/auth/**` | auth-service | ❌ |
 | `/api/products/**` GET | product-service | ❌ |
 | `/api/orders/**` | order-service | ✅ |
 | `/api/payments/**` | payment-service | ✅ |
@@ -404,15 +404,15 @@ Handles registration, email OTP verification, login, JWT issuance, refresh token
 
 | Method | Path | Auth | Description |
 |---|---|---|---|
-| POST | `/api/auth/register` | Public | Register — sends email OTP |
-| POST | `/api/auth/verify-email` | Public | Verify with OTP |
-| POST | `/api/auth/login` | Public | Login → accessToken + refreshToken |
-| POST | `/api/auth/refresh` | Public | Rotate refresh token |
-| POST | `/api/auth/logout` | Public | Revoke refresh token |
-| POST | `/api/auth/forgot-password` | Public | Send reset OTP |
-| POST | `/api/auth/reset-password` | Public | Reset with OTP |
-| GET | `/api/auth/me` | JWT | Get current user |
-| GET | `/api/auth/oauth2/authorize/google` | Public | Start Google OAuth2 |
+| POST | `/api/v1/auth/register` | Public | Register — sends email OTP |
+| POST | `/api/v1/auth/verify-email` | Public | Verify with OTP |
+| POST | `/api/v1/auth/login` | Public | Login → accessToken + refreshToken |
+| POST | `/api/v1/auth/refresh` | Public | Rotate refresh token |
+| POST | `/api/v1/auth/logout` | Public | Revoke refresh token |
+| POST | `/api/v1/auth/forgot-password` | Public | Send reset OTP |
+| POST | `/api/v1/auth/reset-password` | Public | Reset with OTP |
+| GET | `/api/v1/auth/me` | JWT | Get current user |
+| GET | `/api/v1/auth/oauth2/authorize/google` | Public | Start Google OAuth2 |
 
 **Login Response**
 ```json
