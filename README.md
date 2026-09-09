@@ -214,6 +214,10 @@ sequenceDiagram
     end
 ```
 
+> **Payment processing mode** — controlled by `payment.saga-auto-process` in `payment-service`:
+> - `true` (default) — the saga auto-completes payment via the built-in **Mock** adapter; no browser or payment page is needed. Ideal for demos and CI.
+> - `false` — the saga pauses at `PAYMENT_PROCESSING` and waits for a real **Razorpay** checkout. `POST /api/v1/payments/initiate` is idempotent (it resumes the payment row created at reservation time, preserving the saga `correlationId`); after the customer pays, `POST /api/v1/payments/verify` (or the webhook) captures the payment and publishes `PaymentProcessedEvent`, which resumes shipping.
+
 ---
 
 ## 🚀 Quick Start
