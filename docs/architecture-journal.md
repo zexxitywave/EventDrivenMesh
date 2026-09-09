@@ -358,3 +358,10 @@ Notification rows keep the last errorMessage so FAILED mail can be triaged witho
 NotificationDeadLetter carries order, recipient, retryCount and reason without the attached invoice PDF bytes.
 
 ---
+
+
+## 52. Listener-level DLQ
+
+The Kafka listener error handler retries then publishes failed records to notification-dlq instead of skipping silently.
+
+---
