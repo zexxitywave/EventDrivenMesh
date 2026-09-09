@@ -95,7 +95,7 @@ through a central API Gateway with JWT authentication.
 - **Analytics Service (new)** — CQRS pattern with a dedicated analytics PostgreSQL DB separate from transactional DBs. Batch Kafka consumer delivers ~500 events/sec throughput. Tracks revenue, top customers, and daily order trends.
 - **Poison Pill + DLQ Pattern** — The analytics consumer detects malformed/unprocessable events and routes them to `order-analytics-dlq` for safe reprocessing without blocking the main consumer.
 - **Idempotency via `event_id`** — A unique constraint on `event_id` in the analytics DB prevents duplicate event ingestion even under consumer restarts or replay.
-- **Prometheus + Grafana Observability** — Micrometer-instrumented services expose HTTP latency p50/p95/p99, Kafka consumer throughput, JVM heap usage, and HikariCP connection pool metrics. Grafana dashboards at `localhost:3005`.
+- **Prometheus + Grafana Observability** — Micrometer-instrumented services expose HTTP latency p50/p95/p99, Kafka consumer throughput, JVM heap usage, and HikariCP connection pool metrics. Grafana dashboards at `localhost:3000`.
 - **GitHub Actions CI Pipeline** — Builds all 16 modules on every push to ensure the multi-module Maven project compiles cleanly across the entire codebase.
 
 ---
