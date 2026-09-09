@@ -254,6 +254,21 @@ flowchart LR
 | payment-service | captures → `PaymentProcessedEvent` | `PaymentFailedEvent` — money never moves before a successful capture |
 | shipping-service | creates shipment + tracking → `ShipmentProcessedEvent` | `ShipmentFailedEvent` → order `FAILED` |
 
+**5.2 Real (Razorpay) payment path — correlation preservation**
+
+1. When `InventoryReservedEvent` arrives, payment-service **pre-creates** a payment row (`status = PENDING`) carrying the event's `correlationId`.
+2. Frontend calls `POST /api/v1/payments/initiate` → the **existing** row is resumed (idempotent): repeated calls return the already-created gateway order instead of a `409`.
+3. Customer pays on Razorpay → `POST /api/v1/payments/verify` (or the signature-verified webhook `POST /api/v1/payments/webhook`) captures the payment.
+4. `PaymentProcessedEvent` republishes the saga's `correlationId` → order-service moves to `PAYMENT_COMPLETED`, shipping-service creates the shipment.
+5. **Mock mode** (`payment.saga-auto-process=true`) collapses steps 1–3 into the consumer itself — no browser required. Verified end-to-end in both modes.
+
+**5.3 Compensation / failure handling**
+
+- Stock unavailable → order `CANCELLED` immediately; no payment attempted.
+- Payment/verification failure → `PaymentFailedEvent`; order `FAILED`, reserved stock released.
+- Shipping failure → order `FAILED`.
+- Malformed analytics events never block the pipeline — routed to `order-analytics-dlq`.
+
 ---
 
 ## 🔄 Order Saga Flow
