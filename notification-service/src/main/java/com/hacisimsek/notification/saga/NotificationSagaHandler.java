@@ -4,6 +4,7 @@ import java.util.UUID;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.event.inventory.InventoryReservationFailedEvent;
+import com.hacisimsek.common.logging.LogPublisher;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Component;
@@ -17,6 +18,8 @@ import com.hacisimsek.notification.service.NotificationService;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+
+import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
@@ -32,6 +35,7 @@ public class NotificationSagaHandler {
 
     private final NotificationService notificationService;
     private final ObjectMapper objectMapper;
+    private final LogPublisher logPublisher;
 
     // ── Order events ──────────────────────────────────────────────────────────
 
@@ -44,6 +48,11 @@ public class NotificationSagaHandler {
             OrderCreatedEvent e = objectMapper.convertValue(event, OrderCreatedEvent.class);
             log.info("ORDER_PLACED for order: {}", e.getOrderId());
             notificationService.sendOrderPlacedNotification(e);
+            logPublisher.info("notification-service",
+                    e.getCorrelationId() != null ? e.getCorrelationId().toString() : null,
+                    "Order placed notification sent",
+                    Map.of("orderId", e.getOrderId().toString(),
+                            "customerEmail", e.getCustomerEmail() != null ? e.getCustomerEmail() : ""));
         }
     }
 
@@ -65,6 +74,11 @@ public class NotificationSagaHandler {
                         e.getCustomerEmail(),
                         e.getReason() != null ? e.getReason() : "Item out of stock");
             }
+            logPublisher.warn("notification-service",
+                    e.getCorrelationId() != null ? e.getCorrelationId().toString() : null,
+                    "Order cancelled notification sent (inventory failed)",
+                    Map.of("orderId", e.getOrderId().toString(),
+                            "reason", e.getReason() != null ? e.getReason() : "out of stock"));
         }
     }
 
@@ -84,6 +98,11 @@ public class NotificationSagaHandler {
                     e.getOrderId(),
                     e.getCustomerId() != null ? e.getCustomerId() : UUID.randomUUID(),
                     e.getCustomerEmail());
+            logPublisher.info("notification-service",
+                    e.getCorrelationId() != null ? e.getCorrelationId().toString() : null,
+                    "Payment success notification sent",
+                    Map.of("orderId", e.getOrderId().toString(),
+                            "customerEmail", e.getCustomerEmail() != null ? e.getCustomerEmail() : ""));
 
         } else if (PAYMENT_FAILED.equals(type)) {
             PaymentFailedEvent e = objectMapper.convertValue(event, PaymentFailedEvent.class);
@@ -92,6 +111,11 @@ public class NotificationSagaHandler {
                     e.getOrderId(),
                     e.getCustomerId() != null ? e.getCustomerId() : UUID.randomUUID(),
                     e.getCustomerEmail());
+            logPublisher.warn("notification-service",
+                    e.getCorrelationId() != null ? e.getCorrelationId().toString() : null,
+                    "Payment failed notification sent",
+                    Map.of("orderId", e.getOrderId().toString(),
+                            "reason", e.getReason() != null ? e.getReason() : ""));
         }
     }
 
@@ -112,6 +136,11 @@ public class NotificationSagaHandler {
                     e.getCustomerId() != null ? e.getCustomerId() : UUID.randomUUID(),
                     e.getCustomerEmail(),
                     e.getTrackingNumber());
+            logPublisher.info("notification-service",
+                    e.getCorrelationId() != null ? e.getCorrelationId().toString() : null,
+                    "Order shipped notification sent",
+                    Map.of("orderId", e.getOrderId().toString(),
+                            "trackingNumber", e.getTrackingNumber() != null ? e.getTrackingNumber() : ""));
 
         } else if (SHIPMENT_FAILED.equals(type)) {
             ShipmentFailedEvent e = objectMapper.convertValue(event, ShipmentFailedEvent.class);
@@ -121,6 +150,11 @@ public class NotificationSagaHandler {
                     e.getCustomerId() != null ? e.getCustomerId() : UUID.randomUUID(),
                     e.getCustomerEmail() != null ? e.getCustomerEmail() : null,
                     e.getReason() != null ? e.getReason() : "Shipment could not be processed");
+            logPublisher.warn("notification-service",
+                    e.getCorrelationId() != null ? e.getCorrelationId().toString() : null,
+                    "Shipment failed notification sent",
+                    Map.of("orderId", e.getOrderId().toString(),
+                            "reason", e.getReason() != null ? e.getReason() : ""));
         }
     }
 }

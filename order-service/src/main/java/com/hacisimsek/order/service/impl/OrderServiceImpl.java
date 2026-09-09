@@ -4,6 +4,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.dto.OrderItemDto;
 import com.hacisimsek.common.event.order.OrderCreatedEvent;
+import com.hacisimsek.common.logging.LogPublisher;
 import com.hacisimsek.order.dto.OrderItemResponse;
 import com.hacisimsek.order.dto.OrderRequest;
 import com.hacisimsek.order.dto.OrderResponse;
@@ -22,6 +23,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -38,6 +40,7 @@ public class OrderServiceImpl implements OrderService {
     private final ObjectMapper objectMapper;
     private final OrderStatusEmitter orderStatusEmitter;
     private final OrderEventService orderEventService;
+    private final LogPublisher logPublisher;
     private final Counter ordersCreatedCounter;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -45,12 +48,14 @@ public class OrderServiceImpl implements OrderService {
                             ObjectMapper objectMapper,
                             OrderStatusEmitter orderStatusEmitter,
                             OrderEventService orderEventService,
+                            LogPublisher logPublisher,
                             MeterRegistry meterRegistry) {
         this.orderRepository = orderRepository;
         this.outboxEventRepository = outboxEventRepository;
         this.objectMapper = objectMapper;
         this.orderStatusEmitter = orderStatusEmitter;
         this.orderEventService = orderEventService;
+        this.logPublisher = logPublisher;
         this.ordersCreatedCounter = Counter.builder("zexxity.orders.created")
                 .description("Total number of orders successfully created")
                 .register(meterRegistry);
@@ -134,6 +139,12 @@ public class OrderServiceImpl implements OrderService {
         savedOrder.setStatus(Order.OrderStatus.INVENTORY_CHECKING);
         orderRepository.save(savedOrder);
 
+        logPublisher.info("order-service", correlationId.toString(),
+                "Order created: " + savedOrder.getId(),
+                Map.of("orderId", savedOrder.getId().toString(),
+                        "totalAmount", totalAmount.toPlainString(),
+                        "itemCount", String.valueOf(itemDtos.size())));
+
         // Append ORDER_CREATED event to the immutable event log
         try {
             orderEventService.append(
@@ -200,6 +211,12 @@ public class OrderServiceImpl implements OrderService {
                     "saga", details);
             log.info("Recorded compensation event {} for order {} ({} → {})",
                     eventType, orderId, previousStatus, newStatus);
+            logPublisher.info("order-service",
+                    correlationId != null ? correlationId.toString() : null,
+                    "Compensation " + eventType + " for order " + orderId,
+                    Map.of("orderId", orderId.toString(),
+                            "previousStatus", previousStatus != null ? previousStatus : "",
+                            "newStatus", newStatus != null ? newStatus : ""));
         } catch (Exception e) {
             log.warn("Compensation event append failed for order {} — compensation already applied: {}",
                     orderId, e.getMessage());
@@ -231,6 +248,14 @@ public class OrderServiceImpl implements OrderService {
         order.setStatus(status);
         orderRepository.save(order);
         log.info("Updated order {} status to {} (previous {})", orderId, status, previousStatus);
+
+        logPublisher.info("order-service",
+                correlationId != null ? correlationId.toString() : null,
+                "Order " + orderId + " status → " + status.name()
+                        + (previousStatus != null ? " (previous " + previousStatus + ")" : ""),
+                Map.of("orderId", orderId.toString(),
+                        "status", status.name(),
+                        "previousStatus", previousStatus != null ? previousStatus.name() : ""));
 
         // Append to event log — wrapped so a failure here never blocks the saga
         try {
