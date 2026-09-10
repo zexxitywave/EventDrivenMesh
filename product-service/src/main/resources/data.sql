@@ -74,5 +74,5 @@ INSERT INTO products (id, name, description, sku, price, original_price, categor
     ('20000000-0000-4000-8000-000000000032', 'SPF 50 Sunscreen 50ml',      'Matte-finish broad spectrum SPF 50.', 'SPF50-50ML',            799.00,    899.00, '30000000-0000-4000-8000-000000000006', '11111111-1111-4111-8111-111111111111', 'ACTIVE',       'https://picsum.photos/seed/spf50/640/480',                    'GlowLab',     90, 4.40,  67, NOW(), NOW())
 ON CONFLICT (id) DO NOTHING;
 
--- Demo: every product sells for exactly 1.00
-UPDATE products SET price = 1.00, original_price = 1.00;
+-- Demo: every product sells for exactly 0.10
+UPDATE products SET price = 0.10, original_price = 0.10;
