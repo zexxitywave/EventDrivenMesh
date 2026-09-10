@@ -156,6 +156,12 @@ public class LogEventConsumer {
                     .level(isFailure ? LogEntry.LogLevel.ERROR : LogEntry.LogLevel.INFO)
                     .message(message)
                     .traceId(correlationId)
+                    // The "endpoint" for a derived event log IS the inbound Kafka topic.
+                    .endpoint(topic)
+                    // Latency from producer timestamp to consumption — real broker/consume delay.
+                    .durationMs(computeDurationMs(record))
+                    // A *Failed* event represents the recorded error — surface its type.
+                    .exceptionClass(isFailure ? eventType : null)
                     .source(LogEntry.LogSource.KAFKA_EVENT)
                     .metadata(Map.of("topic", topic, "eventType", eventType))
                     .timestamp(Instant.now())
@@ -177,6 +183,16 @@ public class LogEventConsumer {
         if (val == null) return null;
         if (val instanceof String s) return s.isBlank() ? null : s;
         return val.toString();
+    }
+
+    /**
+     * Time the event spent in Kafka before this consumer handled it
+     * (producer CREATE_TIME timestamp → now). Null if the record has no timestamp.
+     */
+    private Long computeDurationMs(ConsumerRecord<String, byte[]> record) {
+        long recordTs = record.timestamp();
+        if (recordTs < 0) return null;
+        return Math.max(0, System.currentTimeMillis() - recordTs);
     }
 
     private String extractEventType(ConsumerRecord<String, byte[]> record, Map<String, Object> payload) {
