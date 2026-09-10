@@ -3,6 +3,7 @@ package com.hacisimsek.shipping.config;
 import com.hacisimsek.common.kafka.EventJsonDeserializer;
 import org.apache.kafka.clients.consumer.ConsumerConfig;
 import org.apache.kafka.clients.producer.ProducerConfig;
+import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 import org.springframework.beans.factory.annotation.Value;
@@ -17,6 +18,7 @@ import org.springframework.kafka.core.KafkaAdmin.NewTopics;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.kafka.core.ProducerFactory;
 import org.springframework.kafka.listener.ContainerProperties;
+import org.springframework.kafka.listener.DeadLetterPublishingRecoverer;
 import org.springframework.kafka.listener.DefaultErrorHandler;
 import org.springframework.kafka.support.serializer.JsonSerializer;
 import org.springframework.util.backoff.FixedBackOff;
@@ -85,8 +87,12 @@ public class KafkaConfig {
                 new ConcurrentKafkaListenerContainerFactory<>();
         factory.setConsumerFactory(consumerFactory());
         factory.getContainerProperties().setAckMode(ContainerProperties.AckMode.RECORD);
-        // Retry twice with 2s gap, then skip — prevents poison-pill messages from looping
-        factory.setCommonErrorHandler(new DefaultErrorHandler(new FixedBackOff(2000L, 2)));
+        // Retry twice with a 2s gap; records that still fail are published to
+        // <topic>-dlq instead of being silently dropped (poison-pill safety).
+        factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new DeadLetterPublishingRecoverer(kafkaTemplate(),
+                        (record, exception) -> new TopicPartition(record.topic() + "-dlq", record.partition())),
+                new FixedBackOff(2000L, 2)));
         return factory;
     }
 }
