@@ -281,6 +281,23 @@ spring:
                 deny-empty-key: false
                 empty-key-status: 429
 
+        # Analytics Service — business aggregates, protected like other admin endpoints
+        - id: analytics-service
+          uri: lb://analytics-service
+          predicates:
+            - Path=/api/v1/analytics/**
+          filters:
+            - JwtAuthFilter
+            - name: RoleAuthorizationFilter
+              args:
+                roles: ROLE_ADMIN
+            - name: RequestRateLimiter
+              args:
+                rate-limiter: "#{@standardLimiter}"
+                key-resolver: "#{@ipKeyResolver}"
+                deny-empty-key: false
+                empty-key-status: 429
+
         # OpenAPI docs proxy routes (no JWT, no rate limit — internal dev tool)
         - id: order-service-docs
           uri: lb://order-service
