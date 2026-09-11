@@ -93,7 +93,9 @@ public class OrderReadProjection {
     private void apply(OrderEventPayload payload, java.util.UUID orderId, String type)
             throws JsonProcessingException {
 
-        OrderReadModel readModel = readModelRepository.findById(orderId).orElseGet(() -> {
+        java.util.Optional<OrderReadModel> existing = readModelRepository.findById(orderId);
+        boolean freshlyCreated = existing.isEmpty();
+        OrderReadModel readModel = existing.orElseGet(() -> {
             OrderReadModel fresh = OrderReadModel.builder()
                     .orderId(orderId)
                     .customerId(payload.getCustomerId())
@@ -121,10 +123,11 @@ public class OrderReadProjection {
             if (readModel.getCreatedAt() == null && payload.getTimestamp() != null) {
                 readModel.setCreatedAt(payload.getTimestamp());
             }
-            // Never regress status: the write side leaves the order at
-            // INVENTORY_CHECKING after creation, but a later-cached event must not
-            // downgrade an already-projected status.
-            if (readModel.getStatus() == null) {
+            // The write side leaves the order at INVENTORY_CHECKING after creation.
+            // Only promote freshly-projected (or still-PENDING) rows; never regress
+            // an already-advanced status such as PAYMENT_PROCESSING.
+            if (freshlyCreated || readModel.getStatus() == null
+                    || readModel.getStatus() == Order.OrderStatus.PENDING) {
                 readModel.setStatus(Order.OrderStatus.INVENTORY_CHECKING);
             }
         }
