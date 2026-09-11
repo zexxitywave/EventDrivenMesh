@@ -6,6 +6,8 @@ import com.hacisimsek.order.dto.OrderResponse;
 import com.hacisimsek.order.eventsourcing.OrderEvent;
 import com.hacisimsek.order.eventsourcing.OrderEventService;
 import com.hacisimsek.order.model.Order;
+import com.hacisimsek.order.readmodel.OrderReadResponse;
+import com.hacisimsek.order.readmodel.OrderReadService;
 import com.hacisimsek.order.service.OrderService;
 import com.hacisimsek.order.sse.OrderStatusEmitter;
 import io.swagger.v3.oas.annotations.Operation;
@@ -31,6 +33,7 @@ import java.util.UUID;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderReadService orderReadService;
     private final OrderStatusEmitter orderStatusEmitter;
     private final OrderEventService orderEventService;
 
@@ -47,19 +50,31 @@ public class OrderController {
         return orderService.createOrders(bulkOrderRequest.getOrders());
     }
 
+    // ── CQRS reads: served from the order_reads projection (never the write table) ──
+
     @GetMapping("/{orderId}")
-    public OrderResponse getOrderById(@PathVariable UUID orderId) {
-        return orderService.getOrderById(orderId);
+    public OrderReadResponse getOrderById(@PathVariable UUID orderId) {
+        return orderReadService.getById(orderId);
     }
 
     @GetMapping
-    public List<OrderResponse> getAllOrders() {
-        return orderService.getAllOrders();
+    public List<OrderReadResponse> getAllOrders() {
+        return orderReadService.getAll();
     }
 
     @GetMapping("/customer/{customerId}")
-    public List<OrderResponse> getOrdersByCustomerId(@PathVariable UUID customerId) {
-        return orderService.getOrdersByCustomerId(customerId);
+    public List<OrderReadResponse> getOrdersByCustomerId(@PathVariable UUID customerId) {
+        return orderReadService.getByCustomerId(customerId);
+    }
+
+    /**
+     * Comparison endpoint — reads the SAME order from the WRITE-side table
+     * (orders). Used to demonstrate that reads now come from order_reads and to
+     * observe eventual consistency between the two models.
+     */
+    @GetMapping("/write/{orderId}")
+    public OrderResponse getOrderFromWriteModel(@PathVariable UUID orderId) {
+        return orderService.getOrderById(orderId);
     }
 
     @GetMapping("/{orderId}/history")
