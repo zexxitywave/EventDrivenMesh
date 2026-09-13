@@ -68,7 +68,7 @@ chaos:
     watcher:
       rest-controller: true
       service: true
-      repository: true
+      repository: false
     assaults:
       latency-active: true
       latency-range-start: 1000
