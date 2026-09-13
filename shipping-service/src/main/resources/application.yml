@@ -58,7 +58,7 @@ management:
   endpoints:
     web:
       exposure:
-        include: health,info,prometheus,metrics
+        include: health,info,prometheus,metrics,chaosmonkey
   endpoint:
     health:
       show-details: always
@@ -80,4 +80,48 @@ management:
 #   - notification sent to customer
 shipping:
   force-failure: false
+
+---
+# Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
+# Start with: --spring.profiles.active=chaos-monkey
+# Runtime control: GET  /actuator/chaosmonkey        (status)
+#                  POST /actuator/chaosmonkey/assaults (tune assaults live)
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey
+
+chaos:
+  monkey:
+    enabled: true
+    watcher:
+      rest-controller: true
+      service: true
+      repository: true
+    assaults:
+      latency-active: true
+      latency-range-start: 1000
+      latency-range-end: 3000
+      exceptions-active: true
+      kill-application-active: false
 #
+# docker exec -it postgres psql -U postgres
+# \l list database
+# \c order_db
+# SELECT * FROM orders;
+
+
+
+
+
+
+
+#
+#  docker exec -it mongodb mongosh
+#  show dbs                 -- list databases (like \l)
+#  use notification_db      -- switch into a database
+#  show collections         -- list "tables" (collections)
+#  db.getCollectionNames()  -- same thing in one command
+#  db.notifications.find()  -- SELECT * FROM notifications
+#  db.notifications.find().limit(10).pretty()   -- nicer readable output
+#db.notifications.find({}, { _id: 0 })        -- without the _id field noise
