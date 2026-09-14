@@ -76,3 +76,16 @@ ON CONFLICT (id) DO NOTHING;
 
 -- Demo: every product sells for exactly 0.10
 UPDATE products SET price = 0.10, original_price = 0.10;
+
+-- ── pgvector: extension + column + HNSW index for semantic search ───────
+-- The embedding column is created here (not by Hibernate) because Hibernate's
+-- generic binding writes PGobject as bytea, which Postgres rejects for vector.
+CREATE EXTENSION IF NOT EXISTS vector;
+
+ALTER TABLE products ADD COLUMN IF NOT EXISTS embedding vector(768);
+
+CREATE INDEX IF NOT EXISTS idx_products_embedding_hnsw
+    ON products USING hnsw (embedding vector_cosine_ops);
+
+-- Clean up the learning-demo table from the intro walkthrough (optional)
+DROP TABLE IF EXISTS demo_products;

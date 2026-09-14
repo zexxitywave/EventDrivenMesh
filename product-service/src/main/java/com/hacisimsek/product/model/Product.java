@@ -95,6 +95,14 @@ public class Product {
     @Builder.Default
     private Integer ratingCount = 0;
 
+    /*
+     * The 'embedding' vector(768) column is intentionally NOT mapped here.
+     * Hibernate 6's generic binding sends PGobject as bytea, which Postgres
+     * rejects for a vector column. We read/write it via native SQL:
+     *   - write: UPDATE products SET embedding = cast(:vec AS vector)
+     *   - read : native SELECT ordering by embedding <=> cast(:vec AS vector)
+     */
+
     @Column(updatable = false)
     private Instant createdAt;
     private Instant updatedAt;

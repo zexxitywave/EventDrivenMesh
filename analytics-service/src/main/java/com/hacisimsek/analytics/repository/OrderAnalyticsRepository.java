@@ -37,3 +37,18 @@ public interface OrderAnalyticsRepository extends JpaRepository<OrderAnalytics, 
     @Query("SELECT AVG(o.totalAmount) FROM OrderAnalytics o")
     BigDecimal getAverageOrderValue();
 }
+
+
+//SELECT * FROM order_events WHERE correlation_id = 'bf515a5e...'
+//  → Scans all 1,000,000 rows
+//    → Finds matching rows
+//      → Returns result
+//        → Slow (seconds)
+//
+//
+//
+//SELECT * FROM order_events WHERE correlation_id = 'bf515a5e...'
+//  → Jumps to index
+//    → Finds row locations directly
+//      → Returns result
+//        → Fast (milliseconds)

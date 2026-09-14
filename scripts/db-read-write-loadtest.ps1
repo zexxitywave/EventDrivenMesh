@@ -34,14 +34,34 @@ param(
     [string]$PgPassword      = "postgres",
     [string]$DbHost          = "localhost",
     [int]$Port               = 5432,
-    [int]$SeedRows           = 100000,
-    [int]$WriterProcesses    = 4,
-    [int]$WriterOps          = 400,
-    [int]$RowsPerInsert      = 50,
-    [int]$ReaderQueries      = 400,
+    [int]$SeedRows           = 100000,  #Initially put 100,000 rows into the table
+    [int]$WriterProcesses    = 12,      #Run 12 writers simultaneously
+    [int]$WriterOps          = 1500,    #Each writer performs 1,500 insert operations
+    [int]$RowsPerInsert      = 200,     #Each INSERT operation inserts 200 rows
+    [int]$ReaderQueries      = 1000,    #Run 1,000 read/SELECT queries
     [int]$WarmupSeconds      = 2,
     [switch]$KeepTable
 )
+
+
+#Writer 1 ──┐
+#Writer 2 ──┤
+#Writer 3 ──┤
+#...        ├──→ PostgreSQL
+#Writer 12 ─┘
+#
+#Each writer:
+#1,500 INSERT operations
+#
+#Each INSERT:
+#200 rows
+#
+#Therefore:
+#
+#12 writers
+#× 1,500 operations
+#× 200 rows
+#= 3,600,000 rows
 
 $ErrorActionPreference = "Stop"
 

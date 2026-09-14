@@ -125,3 +125,9 @@ chaos:
 #  db.notifications.find()  -- SELECT * FROM notifications
 #  db.notifications.find().limit(10).pretty()   -- nicer readable output
 #db.notifications.find({}, { _id: 0 })        -- without the _id field noise
+
+
+
+
+#  SELECT product_id, name, category, price, rating, num_reviews, stock_quantity, discount, sales, date_added
+#  FROM csv_products;

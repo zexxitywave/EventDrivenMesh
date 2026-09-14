@@ -16,7 +16,12 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 @Service
 @RequiredArgsConstructor
@@ -25,6 +30,7 @@ public class ProductService {
 
     private final ProductRepository productRepository;
     private final CategoryRepository categoryRepository;
+    private final EmbeddingService embeddingService;
 
     // ── CRUD ──────────────────────────────────────────────────────────────────
 
@@ -53,7 +59,9 @@ public class ProductService {
             builder.category(category);
         }
 
-        Product saved = productRepository.save(builder.build());
+        Product product = builder.build();
+        Product saved = productRepository.save(product);
+        updateEmbeddingSafely(saved);
         log.info("Product created: {} (SKU: {})", saved.getName(), saved.getSku());
         return toResponse(saved);
     }
@@ -91,6 +99,7 @@ public class ProductService {
         }
 
         Product updated = productRepository.save(product);
+        updateEmbeddingSafely(updated);
         return toResponse(updated);
     }
 
@@ -140,7 +149,44 @@ public class ProductService {
         return productRepository.findAll(pageable).map(this::toResponse);
     }
 
+    // ── Semantic (vector) search ────────────────────────────────────────────
+
+    @Transactional(readOnly = true)
+    public List<ProductResponse> semanticSearch(String query, int limit) {
+        float[] queryVec = embeddingService.embed(query);
+        List<UUID> ids = productRepository.findSimilar(
+                EmbeddingService.vectorLiteral(queryVec), limit);
+
+        if (ids.isEmpty()) {
+            return List.of();
+        }
+
+        // Load full entities, but keep the ranking order the vector index returned.
+        Map<UUID, ProductResponse> byId = productRepository.findAllById(ids).stream()
+                .map(this::toResponse)
+                .collect(Collectors.toMap(ProductResponse::getId, r -> r));
+
+        return ids.stream()
+                .map(byId::get)
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
     // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private void updateEmbeddingSafely(Product product) {
+        try {
+            String text = Stream.of(product.getName(), product.getBrand(), product.getDescription())
+                    .filter(Objects::nonNull)
+                    .filter(s -> !s.isBlank())
+                    .collect(Collectors.joining(" "));
+            float[] vec = embeddingService.embed(text);
+            productRepository.updateEmbedding(product.getId(), EmbeddingService.vectorLiteral(vec));
+        } catch (Exception e) {
+            // Fail open: product still works without semantics, log and continue.
+            log.warn("Embedding failed for product {}: {}", product.getName(), e.getMessage());
+        }
+    }
 
     private Product findProduct(UUID id) {
         return productRepository.findById(id)

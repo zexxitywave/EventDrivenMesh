@@ -139,6 +139,21 @@ public class ProductController {
                 keyword, categoryId, status, minPrice, maxPrice, brand, pageable));
     }
 
+    /**
+     * Semantic (vector) search — nearest neighbors in embedding space.
+     * Ranked by meaning, not keywords: "gaming headphones" finds noise-cancelling audio gear.
+     * GET /api/v1/products/search?q=gaming-headphones&limit=10
+     */
+    @GetMapping("/search")
+    public ResponseEntity<List<ProductResponse>> semanticSearch(
+            @RequestParam(required = false, defaultValue = "") String q,
+            @RequestParam(defaultValue = "10") int limit) {
+        if (q == null || q.isBlank()) {
+            return ResponseEntity.ok(List.of());
+        }
+        return ResponseEntity.ok(productService.semanticSearch(q, Math.min(limit, 50)));
+    }
+
     @GetMapping("/category/{categoryId}")
     public ResponseEntity<Page<ProductResponse>> getByCategory(
             @PathVariable UUID categoryId,

@@ -5,10 +5,12 @@ import com.hacisimsek.product.model.ProductStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.math.BigDecimal;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,6 +21,26 @@ public interface ProductRepository extends JpaRepository<Product, UUID> {
     Optional<Product> findBySku(String sku);
 
     boolean existsBySku(String sku);
+
+    // ── Vector search ────────────────────────────────────────────────────────
+    // pgvector: returns products ordered by cosine distance to a query vector.
+    // The cast(:queryVec AS vector) converts the literal '[0.1,...]' into a Postgres vector.
+    @Query(value = """
+        SELECT id FROM products
+        WHERE embedding IS NOT NULL
+        ORDER BY embedding <=> cast(:queryVec AS vector)
+        LIMIT :limit
+        """, nativeQuery = true)
+    List<UUID> findSimilar(@Param("queryVec") String queryVec, @Param("limit") int limit);
+
+    @Query(value = "SELECT * FROM products WHERE embedding IS NULL", nativeQuery = true)
+    List<Product> findProductsMissingEmbedding();
+
+    // Hibernate cannot bind PGobject for the vector column (bytea mismatch), so we
+    // write embeddings with a native UPDATE and an explicit cast.
+    @Modifying
+    @Query(value = "UPDATE products SET embedding = cast(:vec AS vector) WHERE id = :id", nativeQuery = true)
+    void updateEmbedding(@Param("id") UUID id, @Param("vec") String vec);
 
     // ── List queries with JOIN FETCH to eliminate N+1 on category ────────────
     // Without JOIN FETCH, fetching 100 products fires 101 queries:

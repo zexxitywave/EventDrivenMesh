@@ -71,7 +71,8 @@ public class OrderReadServiceImpl implements OrderReadService {
                 .lastEventAt(m.getLastEventAt())
                 .build();
     }
-
+    // This method takes a JSON string containing order items, converts it into Java objects,
+    // and then converts those objects into OrderItemResponse objects.
     private List<OrderItemResponse> deserializeItems(String itemsJson) {
         if (itemsJson == null || itemsJson.isBlank()) {
             return Collections.emptyList();

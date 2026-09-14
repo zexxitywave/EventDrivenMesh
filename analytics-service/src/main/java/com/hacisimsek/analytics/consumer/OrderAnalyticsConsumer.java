@@ -157,3 +157,30 @@ public class OrderAnalyticsConsumer {
 //PostgreSQL
 //      ↓
 //Kafka Producer
+
+
+
+//
+//
+//The consumer gets stuck forever on that one message.
+//
+//Message arrives: {"garbage": true}
+//        → Consumer tries to process
+//    → Exception thrown
+//      → Spring Kafka retries (default: infinite)
+//        → Fails again
+//          → Retries again
+//            → Fails again
+//              → Retries again...
+//        → Never moves to next message
+//The consumer never commits the offset for that failed message, so on every restart it re-reads the same poison pill and fails again. It's a permanent block.
+
+
+
+//Retry + Skip: after N retries, offset commits, consumer moves on. Message is lost forever.
+//
+//Retry + DLQ: after N retries, message goes to DLQ, offset commits, consumer moves on. Message is preserved for later inspection.
+//
+//No error handler: infinite retries. Consumer is stuck forever on that message.
+//
+//Production uses Retry + DLQ — nothing is lost, nothing is blocked.
