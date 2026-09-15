@@ -2,6 +2,9 @@ package com.hacisimsek.cart.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.cart.dto.AddToCartRequest;
+import com.hacisimsek.cart.dto.CheckoutItemRequest;
+import com.hacisimsek.cart.dto.CheckoutRequest;
+import com.hacisimsek.cart.dto.CheckoutResponse;
 import com.hacisimsek.cart.dto.ProductResponse;
 import com.hacisimsek.cart.dto.UpdateCartItemRequest;
 import com.hacisimsek.cart.model.Cart;
@@ -44,6 +47,7 @@ public class CartService {
     private static final String PRODUCT_BASE_URL = "http://product-service/api/products";
     private static final String INVENTORY_CHECK_URL =
             "http://inventory-service/api/inventory/check?productId={productId}&quantity={quantity}";
+    private static final String ORDER_SERVICE_URL = "http://order-service/api/v1/orders";
 
     // ── Add to Cart ───────────────────────────────────────────────────────────
 
@@ -195,6 +199,41 @@ public class CartService {
         log.debug("Cart saved — user: {}, items: {}, total: {}",
                 cart.getUserId(), cart.getItems().size(), cart.getGrandTotal());
         return cart;
+    }
+
+    // ── Checkout ──────────────────────────────────────────────────────────────
+
+    public CheckoutResponse checkout(UUID userId) {
+        Cart cart = getCartOrThrow(userId);
+        if (cart.getItems().isEmpty()) {
+            throw new RuntimeException("Cart is empty for user: " + userId);
+        }
+
+        CheckoutRequest orderRequest = new CheckoutRequest();
+        orderRequest.setCustomerId(userId);
+        orderRequest.setItems(cart.getItems().stream()
+                .map(item -> new CheckoutItemRequest(
+                        item.getProductId(),
+                        item.getProductName(),
+                        item.getQuantity(),
+                        item.getPrice()))
+                .collect(java.util.stream.Collectors.toList()));
+
+        try {
+            ResponseEntity<CheckoutResponse> response = restTemplate.postForEntity(
+                    ORDER_SERVICE_URL, orderRequest, CheckoutResponse.class);
+            CheckoutResponse order = response.getBody();
+            if (order == null) {
+                throw new RuntimeException("Order service returned empty response");
+            }
+            clearCart(userId);
+            log.info("Checkout completed for user: {}, orderId: {}", userId, order.getOrderId());
+            return order;
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            throw new RuntimeException("Order creation failed: " + e.getResponseBodyAsString());
+        } catch (Exception e) {
+            throw new RuntimeException("Order service is unavailable: " + e.getMessage());
+        }
     }
 
     private String cartKey(UUID userId) {

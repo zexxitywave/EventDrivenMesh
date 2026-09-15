@@ -1,6 +1,7 @@
 package com.hacisimsek.cart.controller;
 
 import com.hacisimsek.cart.dto.AddToCartRequest;
+import com.hacisimsek.cart.dto.CheckoutResponse;
 import com.hacisimsek.cart.dto.UpdateCartItemRequest;
 import com.hacisimsek.cart.model.Cart;
 import com.hacisimsek.cart.service.CartService;
@@ -75,5 +76,13 @@ public class CartController {
     public ResponseEntity<Map<String, String>> clearCart(@RequestHeader("X-User-Id") UUID userId) {
         cartService.clearCart(userId);
         return ResponseEntity.ok(Map.of("message", "Cart cleared successfully"));
+    }
+
+    /**
+     * Checkout — converts cart items into an order and clears the cart.
+     */
+    @PostMapping("/checkout")
+    public ResponseEntity<CheckoutResponse> checkout(@RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.ok(cartService.checkout(userId));
     }
 }
