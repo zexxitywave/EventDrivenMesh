@@ -31,6 +31,7 @@ through a central API Gateway with JWT authentication.
 
 ![Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-231F20?style=for-the-badge&logo=apachekafka&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
+![pgvector](https://img.shields.io/badge/pgvector-768--dim-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
 ![Redis](https://img.shields.io/badge/Redis-7-DC382D?style=for-the-badge&logo=redis&logoColor=white)
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
@@ -97,6 +98,7 @@ through a central API Gateway with JWT authentication.
 - **Analytics Service (new)** — CQRS pattern with a dedicated analytics PostgreSQL DB separate from transactional DBs. Batch Kafka consumer delivers ~500 events/sec throughput. Tracks revenue, top customers, and daily order trends.
 - **Poison Pill + DLQ Pattern** — The analytics consumer detects malformed/unprocessable events and routes them to `order-analytics-dlq` for safe reprocessing without blocking the main consumer.
 - **Idempotency via `event_id`** — A unique constraint on `event_id` in the analytics DB prevents duplicate event ingestion even under consumer restarts or replay.
+- **Semantic Product Search (pgvector)** — The product-service uses `pgvector` with a `vector(768)` embedding column and an HNSW cosine-distance index. At startup, `EmbeddingInitializer` backfills embeddings for all products via Ollama's `nomic-embed-text` model (768 dimensions). `GET /api/v1/products/search?keyword=...` now triggers a semantic vector search — queries are embedded on-the-fly and matched against the product index using cosine similarity, returning results ranked by relevance. A traditional keyword (ILIKE) fallback is also available via the existing `GET /api/v1/products` endpoint.
 - **Prometheus + Grafana Observability** — Micrometer-instrumented services expose HTTP latency p50/p95/p99, Kafka consumer throughput, JVM heap usage, and HikariCP connection pool metrics. Grafana dashboards at `localhost:3000`.
 - **GitHub Actions CI Pipeline** — Builds all 16 modules on every push to ensure the multi-module Maven project compiles cleanly across the entire codebase.
 
@@ -308,6 +310,7 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// (E
 | `shipping-service` | Creates shipment + tracking number once payment clears | `shipping_db` |
 | `notification-service` | Transactional email (Resend) with PDF invoice, in-app notifications, 3× retry | `notification_db` |
 | `analytics-service` | CQRS projection over `order-events`; summary / top-customers / revenue-per-day; DLQ for poison pills | `analytics_db` |
+| `product-service` | Product catalog with **semantic search** — pgvector `vector(768)` HNSW cosine index, Ollama `nomic-embed-text` embeddings, auto-backfill at startup | `product_db` |
 | `logging-service` | Aggregates business events + `service-logs` into an indexed, TTL'd (30-day) audit trail | `logging_db` |
 | `service-registry` | Eureka discovery | — |
 
@@ -425,6 +428,7 @@ The fastest way to run Zexxity is with Docker Compose. It spins up Kafka (KRaft)
 | Java | 21+ |
 | Docker Desktop | Latest |
 | Maven | 3.9+ |
+| Ollama | Latest (for semantic embeddings — `nomic-embed-text` model) |
 
 ### 1. Configure Environment
 
@@ -454,6 +458,10 @@ MAIL_PASSWORD=your_ses_smtp_password
 
 # Email — notification-service (Resend)
 RESEND_API_KEY=your_resend_api_key
+
+# Ollama (for pgvector semantic embeddings)
+OLLAMA_BASE_URL=http://localhost:11434
+OLLAMA_EMBEDDING_MODEL=nomic-embed-text
 ```
 
 ### 2. Start Infrastructure
@@ -467,7 +475,7 @@ This starts:
 | Container | Port | Notes |
 |---|---|---|
 | Kafka (KRaft) | `9095` | No ZooKeeper required (`29092` internal listener) |
-| PostgreSQL 16 | `5432` | Auto-creates 8 databases |
+| PostgreSQL 16 | `5432` | Auto-creates 8 databases, **pgvector** extension pre-installed (`pgvector/pgvector:pg16` image) |
 | MongoDB | `27017` | |
 | Redis 7 | `6379` | Persistence enabled |
 | Kafka UI | `8069` | http://localhost:8069 |
@@ -490,6 +498,13 @@ This starts:
 3. auth-service
 4. All remaining services (any order)
 ```
+
+> **Semantic search (pgvector)?** Start Ollama with the embedding model before the product-service:
+> ```bash
+> ollama pull nomic-embed-text
+> ollama serve   # keep running on port 11434
+> ```
+> The product-service's `EmbeddingInitializer` will auto-backfill embeddings at startup.
 
 > **Kafka reset on Windows?** Run `FIX-KAFKA.ps1` (PowerShell) or `FIX-KAFKA.bat`.
 
@@ -537,7 +552,7 @@ A comprehensive overview of all 16 microservices, their ports, data stores, comm
 | 3 | `common-library` | — | — | Shared Maven module | Kafka events, DTOs, constants |
 | 4 | `auth-service` | `8086` | PostgreSQL `auth_db` | REST | Registration, login, JWT, OAuth2, OTP |
 | 5 | `user-service` | `8087` | PostgreSQL `user_db` | REST | User profiles, addresses |
-| 6 | `product-service` | `8088` | PostgreSQL `product_db` | REST | Product catalog, categories, search |
+| 6 | `product-service` | `8088` | PostgreSQL `product_db` (pgvector) | REST | Product catalog, semantic search, categories, search |
 | 7 | `seller-service` | `8091` | PostgreSQL `seller_db` | REST | Merchant profiles, onboarding, verification |
 | 8 | `cart-service` | `8089` | Redis | REST | Ephemeral session cart, add/remove/update items |
 | 9 | `wishlist-service` | `8090` | MongoDB `wishlist_db` | REST | Customer wishlists, saved-for-later |
@@ -553,7 +568,7 @@ A comprehensive overview of all 16 microservices, their ports, data stores, comm
 
 | Store | Databases | Services |
 |---|---|---|
-| **PostgreSQL 16** | `auth_db`, `user_db`, `product_db`, `seller_db`, `order_db`, `payment_db`, `shipping_db`, `analytics_db` | auth, user, product, seller, order, payment, shipping, analytics |
+| **PostgreSQL 16** | `auth_db`, `user_db`, `product_db` (**pgvector** — `vector(768)`, HNSW cosine index), `seller_db`, `order_db`, `payment_db`, `shipping_db`, `analytics_db` | auth, user, product, seller, order, payment, shipping, analytics |
 | **MongoDB** | `inventory`, `wishlist_db`, `notification_db`, `logging_db` | inventory, wishlist, notification, logging |
 | **Redis** | — | cart |
 
@@ -767,9 +782,21 @@ Manages user profiles and shipping addresses. Uses the `X-User-Id` header (injec
 
 ### 6. Product Service
 
-**Port:** `8088` &nbsp;|&nbsp; **Database:** PostgreSQL `product_db`
+**Port:** `8088` &nbsp;|&nbsp; **Database:** PostgreSQL `product_db` &nbsp;|&nbsp; **Vector:** pgvector `vector(768)`
 
-Full product catalog with category hierarchy, full-text search, price filtering, pagination, and sorting.
+Full product catalog with category hierarchy, full-text search, price filtering, pagination, sorting, and **semantic vector search** powered by pgvector.
+
+**Semantic Search (pgvector)**
+
+| Concern | Implementation |
+|---|---|
+| Extension | `pgvector` on PostgreSQL 16 — `CREATE EXTENSION IF NOT EXISTS vector` |
+| Embedding column | `embedding vector(768)` — created via `data.sql`, not mapped by Hibernate (avoids `PGobject → bytea` mismatch) |
+| Embedding model | Ollama `nomic-embed-text` (768-dim) — called via `EmbeddingService` at `app.ollama.base-url` |
+| Index | HNSW cosine-distance index: `CREATE INDEX ... USING hnsw (embedding vector_cosine_ops)` |
+| Backfill | `EmbeddingInitializer` (Spring `CommandLineRunner`) auto-generates embeddings for products missing one at startup |
+| Search | `GET /api/v1/products/search?keyword=...&limit=10` — embeds the query, runs `ORDER BY embedding <=> cast(:queryVec AS vector) LIMIT :limit`, rehydrates ranked entities |
+| Fallback | Traditional keyword (ILIKE) search remains via `GET /api/v1/products` with `keyword` param |
 
 **API Endpoints**
 
@@ -779,10 +806,12 @@ Full product catalog with category hierarchy, full-text search, price filtering,
 | POST | `/api/v1/products/bulk` | Bulk create |
 | GET | `/api/v1/products/{id}` | Get by ID or SKU |
 | PUT/PATCH/DELETE | `/api/v1/products/{id}` | Update / change status / delete |
-| GET | `/api/v1/products` | Search with filters |
+| GET | `/api/v1/products` | Search with filters (keyword, category, price, brand) |
+| GET | `/api/v1/products/search` | **Semantic search** via pgvector cosine distance |
 | GET | `/api/v1/products/my-products` | Seller's own listings |
 
-**Search params:** `keyword`, `categoryId`, `minPrice`, `maxPrice`, `brand`, `page`, `size`, `sortBy`, `sortDir`
+**Search params (keyword):** `keyword`, `categoryId`, `minPrice`, `maxPrice`, `brand`, `page`, `size`, `sortBy`, `sortDir`
+**Search params (semantic):** `keyword` (query text), `limit` (max results, default 10)
 
 ---
 
@@ -1250,17 +1279,22 @@ ecommerce-microservices/
 ├── docker-compose.yml           # Kafka, PostgreSQL, MongoDB, Redis, Kafka UI
 ├── .env                         # Environment variables
 ├── scripts/
-│   └── create-multiple-postgres-dbs.sh  # Auto-creates 8 PostgreSQL databases
+│   ├── create-multiple-postgres-dbs.sh  # Auto-creates 8 PostgreSQL databases
+│   ├── embed-csv-products.ps1           # Batch-embed csv_products via Ollama
+│   ├── demo-pgvector.ps1               # pgvector cosine search demo
+│   ├── semantic-vs-keyword.ps1          # pgvector vs ILIKE benchmark (products)
+│   └── semantic-vs-keyword-csv.ps1      # pgvector vs ILIKE benchmark (csv_products)
 ├── k8s/                         # Kubernetes manifests (order-service reference)
 ├── monitoring/                  # Prometheus & Grafana config
 │   ├── prometheus.yml           # Scrape configs for all services
 │   └── grafana-dashboard.json   # Pre-built Grafana dashboard (8 panels)
+├── scripts/                     # pgvector embedding & benchmark scripts
 ├── common-library/              # Shared Kafka events & DTOs
 ├── service-registry/            # Eureka server
 ├── api-gateway/                 # Spring Cloud Gateway + JWT filter
 ├── auth-service/                # Authentication, JWT, OAuth2
 ├── user-service/                # User profiles & addresses
-├── product-service/             # Product catalog & categories
+├── product-service/             # Product catalog, categories, search, pgvector semantic search
 ├── seller-service/              # Merchant management & verification
 ├── cart-service/                # Redis shopping cart
 ├── wishlist-service/            # MongoDB wishlists
@@ -1284,6 +1318,8 @@ ecommerce-microservices/
 | Service Discovery | Netflix Eureka |
 | API Gateway | Spring Cloud Gateway |
 | Messaging | Apache Kafka (KRaft, Confluent 7.5.0) |
+| Vector DB | pgvector extension on PostgreSQL 16 — HNSW cosine index, 768-dim embeddings |
+| Embedding Model | Ollama `nomic-embed-text` (768 dimensions) |
 | Relational DB | PostgreSQL 16 (8 isolated databases) |
 | Document DB | MongoDB (4 databases) |
 | Cache | Redis 7 |
