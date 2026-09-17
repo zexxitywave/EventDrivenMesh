@@ -1,5 +1,6 @@
 package com.hacisimsek.seller.exception;
 
+import com.hacisimsek.seller.kyc.KycValidationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,13 @@ import java.util.stream.Collectors;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(KycValidationException.class)
+    public ResponseEntity<Map<String, String>> handleKycValidation(KycValidationException ex) {
+        log.warn("KYC validation failed: {}", ex.getMessage());
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(Map.of("error", ex.getMessage()));
+    }
 
     @ExceptionHandler(IllegalStateException.class)
     public ResponseEntity<Map<String, String>> handleConflict(IllegalStateException ex) {

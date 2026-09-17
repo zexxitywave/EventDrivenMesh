@@ -38,5 +38,10 @@ logging:
   level:
     com.hacisimsek.seller: DEBUG
 
+rapidapi:
+  kyc:
+    host: ${RAPIDAPI_KYC_HOST:idfy-verification-suite.p.rapidapi.com}
+    api-key: ${RAPIDAPI_KYC_KEY:}
+
 
 

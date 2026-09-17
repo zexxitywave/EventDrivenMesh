@@ -1,5 +1,6 @@
 package com.hacisimsek.seller.model;
 
+import com.hacisimsek.seller.model.KycStatus;
 import com.hacisimsek.seller.model.VerificationStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -51,6 +52,27 @@ public class SellerProfile {
     /** Tax / business registration number. */
     private String businessRegistrationNumber;
 
+    // ── KYC (PAN + Aadhaar) ──────────────────────────────────────────────
+
+    /** Indian Income Tax PAN, unique per seller. Always masked in API responses. */
+    @Column(unique = true)
+    private String panNumber;
+
+    /** Unique Aadhaar (UIDAI), 12 digits, Verhoeff-validated. Always masked in API responses. */
+    @Column(unique = true)
+    private String aadhaarNumber;
+
+    @Enumerated(EnumType.STRING)
+    @Builder.Default
+    private KycStatus kycStatus = KycStatus.NOT_SUBMITTED;
+
+    /** Reference ID returned by the KYC verification provider. */
+    private String kycReferenceId;
+
+    private String kycRejectionReason;
+
+    private Instant kycVerifiedAt;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     private VerificationStatus verificationStatus;
@@ -76,6 +98,7 @@ public class SellerProfile {
     @PrePersist
     protected void onCreate() {
         if (this.verificationStatus == null) this.verificationStatus = VerificationStatus.PENDING;
+        if (this.kycStatus == null)          this.kycStatus = KycStatus.NOT_SUBMITTED;
         if (this.rating == null)             this.rating = BigDecimal.ZERO;
         if (this.ratingCount == null)        this.ratingCount = 0;
         Instant now = Instant.now();

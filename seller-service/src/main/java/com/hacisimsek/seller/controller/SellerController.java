@@ -1,11 +1,14 @@
 package com.hacisimsek.seller.controller;
 
+import com.hacisimsek.seller.dto.KycStatusResponse;
+import com.hacisimsek.seller.dto.KycSubmissionRequest;
 import com.hacisimsek.seller.dto.OrderSummary;
 import com.hacisimsek.seller.dto.ProductSummary;
 import com.hacisimsek.seller.dto.SellerAnalyticsResponse;
 import com.hacisimsek.seller.dto.SellerProfileResponse;
 import com.hacisimsek.seller.dto.SellerRegistrationRequest;
 import com.hacisimsek.seller.dto.UpdateSellerProfileRequest;
+import com.hacisimsek.seller.service.KycService;
 import com.hacisimsek.seller.service.SellerService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -28,6 +31,7 @@ import java.util.UUID;
 public class SellerController {
 
     private final SellerService sellerService;
+    private final KycService kycService;
 
     /**
      * Register the authenticated user as a seller.
@@ -85,5 +89,23 @@ public class SellerController {
     public ResponseEntity<SellerAnalyticsResponse> getAnalytics(
             @RequestHeader("X-User-Id") UUID userId) {
         return ResponseEntity.ok(sellerService.getAnalytics(userId));
+    }
+
+    /**
+     * Submit PAN + Aadhaar (+ name/DOB as per PAN) for KYC verification.
+     * Format-validated and verified against the IDfy Income Tax PAN registry.
+     */
+    @PostMapping("/kyc")
+    public ResponseEntity<KycStatusResponse> submitKyc(
+            @RequestHeader("X-User-Id") UUID userId,
+            @Valid @RequestBody KycSubmissionRequest request) {
+        return ResponseEntity.ok(kycService.submitKyc(userId, request));
+    }
+
+    /** Get the authenticated seller's current KYC status. PAN/Aadhaar always masked. */
+    @GetMapping("/kyc")
+    public ResponseEntity<KycStatusResponse> getKycStatus(
+            @RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.ok(kycService.getKycStatus(userId));
     }
 }

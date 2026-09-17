@@ -31,6 +31,7 @@ public class SellerService {
 
     private final SellerRepository sellerRepository;
     private final RestTemplate restTemplate;
+    private final com.hacisimsek.seller.kyc.KycValidator kycValidator;
 
     private static final String PRODUCT_SERVICE_URL = "http://product-service/api/products";
     private static final String ORDER_SERVICE_URL   = "http://order-service/api/orders";
@@ -209,6 +210,9 @@ public class SellerService {
                 .phone(p.getPhone())
                 .businessAddress(p.getBusinessAddress())
                 .verificationStatus(p.getVerificationStatus())
+                .kycStatus(p.getKycStatus())
+                .panMasked(kycValidator.maskPan(p.getPanNumber()))
+                .aadhaarMasked(kycValidator.maskAadhaar(p.getAadhaarNumber()))
                 .rating(p.getRating())
                 .ratingCount(p.getRatingCount())
                 .createdAt(p.getCreatedAt())
