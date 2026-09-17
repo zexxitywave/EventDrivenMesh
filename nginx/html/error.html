@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Something went wrong</title>
+    <style>
+        body { font-family: system-ui, sans-serif; background: #fff; color: #333; display: flex; height: 100vh; align-items: center; justify-content: center; margin: 0; }
+        .box { text-align: center; }
+        h1 { font-size: 4rem; margin: 0; color: #dc3545; }
+        p  { font-size: 1.1rem; color: #666; margin: 8px 0; }
+        a  { color: #007bff; text-decoration: none; }
+        a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+    <div class="box">
+        <h1 id="code">Something went wrong</h1>
+        <p id="msg">Please try again later.</p>
+        <p><a href="/">Back to Home</a></p>
+    </div>
+    <script>
+        var c = document.getElementById('code').textContent.trim();
+        var msgs = {
+            '400': ['400', 'Bad request. Please check your request and try again.'],
+            '401': ['401', 'Unauthorized. Please sign in to continue.'],
+            '403': ['403', 'Forbidden. You do not have permission.'],
+            '404': ['404', 'Page not found.'],
+            '429': ['429', 'Too many requests. Please try again shortly.'],
+            '500': ['500', 'Internal server error. Please try again.'],
+            '502': ['502', 'Bad gateway. Please try again.'],
+            '503': ['503', 'Service unavailable. Please try again later.'],
+            '504': ['504', 'Gateway timeout. Please try again.']
+        };
+        if (msgs[c]) {
+            document.getElementById('code').textContent = msgs[c][0];
+            document.getElementById('msg').textContent = msgs[c][1];
+            document.title = msgs[c][0] + ' - Error';
+        }
+    </script>
+</body>
+</html>

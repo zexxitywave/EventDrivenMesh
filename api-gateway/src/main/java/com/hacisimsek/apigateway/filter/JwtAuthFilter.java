@@ -152,12 +152,34 @@ public class JwtAuthFilter extends AbstractGatewayFilterFactory<JwtAuthFilter.Co
 
     private Mono<Void> unauthorized(ServerHttpResponse response, String message) {
         response.setStatusCode(HttpStatus.UNAUTHORIZED);
-        response.getHeaders().setContentType(MediaType.APPLICATION_JSON);
-        String body = """
-                {"success":false,"message":"%s"}
+        response.getHeaders().setContentType(MediaType.TEXT_HTML);
+        String html = """
+                <!DOCTYPE html>
+                <html lang="en">
+                <head>
+                    <meta charset="utf-8">
+                    <meta name="robots" content="noindex">
+                    <title>401 - Error</title>
+                    <style>
+                        body { font-family: system-ui, sans-serif; background: #fff; color: #333; display: flex; height: 100vh; align-items: center; justify-content: center; margin: 0; }
+                        .box { text-align: center; }
+                        h1 { font-size: 4rem; margin: 0; color: #dc3545; }
+                        p  { font-size: 1.1rem; color: #666; margin: 8px 0; }
+                        a  { color: #007bff; text-decoration: none; }
+                        a:hover { text-decoration: underline; }
+                    </style>
+                </head>
+                <body>
+                    <div class="box">
+                        <h1>401</h1>
+                        <p>%s</p>
+                        <p><a href="/">Back to Home</a></p>
+                    </div>
+                </body>
+                </html>
                 """.formatted(message);
         DataBuffer buffer = response.bufferFactory()
-                .wrap(body.getBytes(StandardCharsets.UTF_8));
+                .wrap(html.getBytes(StandardCharsets.UTF_8));
         return response.writeWith(Mono.just(buffer));
     }
 
