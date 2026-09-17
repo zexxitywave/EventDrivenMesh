@@ -44,9 +44,9 @@ public class CartService {
     private long cartTtlSeconds;
 
     private static final String CART_KEY_PREFIX  = "cart:";
-    private static final String PRODUCT_BASE_URL = "http://product-service/api/products";
+    private static final String PRODUCT_BASE_URL = "http://product-service/api/v1/products";
     private static final String INVENTORY_CHECK_URL =
-            "http://inventory-service/api/inventory/check?productId={productId}&quantity={quantity}";
+            "http://inventory-service/api/v1/inventory/check?productId={productId}&quantity={quantity}";
     private static final String ORDER_SERVICE_URL = "http://order-service/api/v1/orders";
 
     // ── Add to Cart ───────────────────────────────────────────────────────────
