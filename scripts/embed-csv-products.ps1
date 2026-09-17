@@ -9,7 +9,7 @@ $Utf8      = New-Object System.Text.UTF8Encoding($false)
 
 docker exec postgres psql -U postgres -d product_db -c "DROP TABLE IF EXISTS csv_products_emb; CREATE TABLE csv_products_emb (product_id int PRIMARY KEY, embedding text);" 2>$null | Out-Null
 
-$rows = @(docker exec postgres psql -U postgres -d product_db -t -A -F "|" -c "SELECT product_id, concat(name,' ',category) FROM csv_products ORDER BY product_id;" 2>$null)
+$rows = @(docker exec postgres psql -U postgres -d product_db -t -A -F "|" -c "SELECT product_id, concat(name,' ',category,' ',COALESCE(description,'')) FROM csv_products ORDER BY product_id;" 2>$null)
 $total = $rows.Count
 Write-Host "Rows to embed: $total  (target 1000)"
 
