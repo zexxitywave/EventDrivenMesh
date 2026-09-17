@@ -18,10 +18,14 @@ public class KycSubmissionRequest {
             message = "PAN must match the format ABCDE1234F")
     private String panNumber;
 
-    @NotBlank(message = "Aadhaar number is required")
-    @Size(min = 12, max = 12, message = "Aadhaar must be exactly 12 digits")
-    @Pattern(regexp = "[0-9]{12}", message = "Aadhaar must contain exactly 12 digits")
-    private String aadhaarNumber;
+    // ── Aadhaar verification disabled ──────────────────────────────────────
+    // Aadhaar collection + UIDAI verification is intentionally commented out;
+    // KYC currently verifies only the PAN. Re-enable to require Aadhaar.
+    //
+    //    @NotBlank(message = "Aadhaar number is required")
+    //    @Size(min = 12, max = 12, message = "Aadhaar must be exactly 12 digits")
+    //    @Pattern(regexp = "[0-9]{12}", message = "Aadhaar must contain exactly 12 digits")
+    //    private String aadhaarNumber;
 
     /** Full name exactly as printed on the PAN card. Used to match the PAN registry. */
     @NotBlank(message = "Full name as per PAN is required")

@@ -11,6 +11,5 @@ public interface KycVerificationProvider {
 
     String providerName();
 
-    KycVerificationResult verify(String panNumber, String aadhaarNumber,
-                                 String fullName, LocalDate dateOfBirth);
+    KycVerificationResult verify(String panNumber, /* String aadhaarNumber */ String fullName, LocalDate dateOfBirth);
 }

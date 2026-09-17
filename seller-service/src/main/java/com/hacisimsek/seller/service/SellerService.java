@@ -212,7 +212,7 @@ public class SellerService {
                 .verificationStatus(p.getVerificationStatus())
                 .kycStatus(p.getKycStatus())
                 .panMasked(kycValidator.maskPan(p.getPanNumber()))
-                .aadhaarMasked(kycValidator.maskAadhaar(p.getAadhaarNumber()))
+                // .aadhaarMasked(kycValidator.maskAadhaar(p.getAadhaarNumber()))
                 .rating(p.getRating())
                 .ratingCount(p.getRatingCount())
                 .createdAt(p.getCreatedAt())

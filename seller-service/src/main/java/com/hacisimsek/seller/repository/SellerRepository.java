@@ -20,7 +20,8 @@ public interface SellerRepository extends JpaRepository<SellerProfile, UUID> {
 
     boolean existsByPanNumber(String panNumber);
 
-    boolean existsByAadhaarNumber(String aadhaarNumber);
+    // Aadhaar verification disabled.
+    // boolean existsByAadhaarNumber(String aadhaarNumber);
 
     List<SellerProfile> findByVerificationStatus(VerificationStatus status);
 

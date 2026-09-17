@@ -63,8 +63,8 @@ public class RapidApiKycVerificationProvider implements KycVerificationProvider 
     }
 
     @Override
-    public KycVerificationResult verify(String panNumber, String aadhaarNumber,
-                                        String fullName, LocalDate dateOfBirth) {
+    public KycVerificationResult verify(String panNumber, /* String aadhaarNumber */ String fullName,
+                                        LocalDate dateOfBirth) {
         ensureConfigured();
 
         String url = "https://" + properties.getHost() + VERIFY_PATH;

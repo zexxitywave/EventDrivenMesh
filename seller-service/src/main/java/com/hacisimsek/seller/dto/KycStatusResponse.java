@@ -18,7 +18,7 @@ import java.time.Instant;
 public class KycStatusResponse {
     private KycStatus kycStatus;
     private String panMasked;
-    private String aadhaarMasked;
+    // private String aadhaarMasked;
     private String kycReferenceId;
     private String rejectionReason;
     private Instant kycVerifiedAt;

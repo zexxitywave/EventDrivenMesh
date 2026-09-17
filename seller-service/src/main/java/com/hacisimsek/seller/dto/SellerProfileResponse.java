@@ -25,7 +25,7 @@ public class SellerProfileResponse {
     private VerificationStatus verificationStatus;
     private KycStatus kycStatus;
     private String panMasked;
-    private String aadhaarMasked;
+    // private String aadhaarMasked;
     private BigDecimal rating;
     private Integer ratingCount;
     private Instant createdAt;

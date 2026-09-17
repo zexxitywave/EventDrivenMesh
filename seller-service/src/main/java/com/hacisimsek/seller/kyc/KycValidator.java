@@ -21,7 +21,8 @@ import java.util.regex.Pattern;
 public class KycValidator {
 
     private static final Pattern PAN_PATTERN = Pattern.compile("[A-Z]{5}[0-9]{4}[A-Z]");
-    private static final Pattern AADHAAR_PATTERN = Pattern.compile("[0-9]{12}");
+    // Aadhaar verification disabled.
+    // private static final Pattern AADHAAR_PATTERN = Pattern.compile("[0-9]{12}");
 
     // Verhoeff multiplication table d[i][j]
     private static final int[][] D = {
@@ -63,33 +64,31 @@ public class KycValidator {
     }
 
     /** Validates Aadhaar using UIDAI's Verhoeff checksum over the full 12 digits. */
-    public String validateAndNormalizeAadhaar(String aadhaarNumber) {
-        if (aadhaarNumber == null) {
-            throw new KycValidationException("Aadhaar number is required");
-        }
-        String normalized = aadhaarNumber.replaceAll("[\\s-]", "");
-        if (!AADHAAR_PATTERN.matcher(normalized).matches()) {
-            throw new KycValidationException(
-                    "Invalid Aadhaar format. Expected 12 digits, got: " + normalized);
-        }
-        if (!verhoeffValidate(normalized)) {
-            throw new KycValidationException("Aadhaar failed checksum validation — not a valid UIDAI number");
-        }
-        return normalized;
-    }
-
-    /**
-     * Verhoeff checksum — the algorithm UIDAI uses for Aadhaar.
-     * The 12th digit is the check digit over the first 11 digits.
-     */
-    private boolean verhoeffValidate(String number) {
-        int check = 0;
-        for (int i = 0; i < number.length(); i++) {
-            int digit = number.charAt(number.length() - 1 - i) - '0';
-            check = D[check][P[i % 8][digit]];
-        }
-        return check == 0;
-    }
+    // ── Aadhaar verification disabled — kept for reference ──────────────
+    // public String validateAndNormalizeAadhaar(String aadhaarNumber) {
+    //     if (aadhaarNumber == null) {
+    //         throw new KycValidationException("Aadhaar number is required");
+    //     }
+    //     String normalized = aadhaarNumber.replaceAll("[\\s-]", "");
+    //     if (!AADHAAR_PATTERN.matcher(normalized).matches()) {
+    //         throw new KycValidationException(
+    //                 "Invalid Aadhaar format. Expected 12 digits, got: " + normalized);
+    //     }
+    //     if (!verhoeffValidate(normalized)) {
+    //         throw new KycValidationException("Aadhaar failed checksum validation — not a valid UIDAI number");
+    //     }
+    //     return normalized;
+    // }
+    //
+    // private boolean verhoeffValidate(String number) {
+    //     int check = 0;
+    //     for (int i = 0; i < number.length(); i++) {
+    //         int digit = number.charAt(number.length() - 1 - i) - '0';
+    //         check = D[check][P[i % 8][digit]];
+    //     }
+    //     return check == 0;
+    // }
+    // ─────────────────────────────────────────────────────────────────────
 
     /** Masks PAN: ABCDE1234F → ABCDE****F */
     public String maskPan(String pan) {
@@ -98,8 +97,10 @@ public class KycValidator {
     }
 
     /** Masks Aadhaar: 123456789012 → XXXX-XXXX-9012 */
-    public String maskAadhaar(String aadhaar) {
-        if (aadhaar == null || aadhaar.length() != 12) return null;
-        return "XXXX-XXXX-" + aadhaar.substring(8);
-    }
+    // ── Aadhaar verification disabled — kept for reference ──────────────
+    // public String maskAadhaar(String aadhaar) {
+    //     if (aadhaar == null || aadhaar.length() != 12) return null;
+    //     return "XXXX-XXXX-" + aadhaar.substring(8);
+    // }
+    // ─────────────────────────────────────────────────────────────────────
 }

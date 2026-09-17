@@ -35,21 +35,23 @@ public class KycService {
         }
 
         String pan = kycValidator.validateAndNormalizePan(request.getPanNumber());
-        String aadhaar = kycValidator.validateAndNormalizeAadhaar(request.getAadhaarNumber());
+        // Aadhaar verification disabled — see KycSubmissionRequest.
+        // String aadhaar = kycValidator.validateAndNormalizeAadhaar(request.getAadhaarNumber());
 
         if (sellerRepository.existsByPanNumber(pan)) {
             throw new KycValidationException("PAN is already registered to another seller");
         }
-        if (sellerRepository.existsByAadhaarNumber(aadhaar)) {
-            throw new KycValidationException("Aadhaar is already registered to another seller");
-        }
+        // Aadhaar uniqueness check disabled while Aadhaar verification is off.
+        // if (sellerRepository.existsByAadhaarNumber(aadhaar)) {
+        //     throw new KycValidationException("Aadhaar is already registered to another seller");
+        // }
 
         KycVerificationResult result = kycVerificationProvider.verify(
-                pan, aadhaar, request.getFullName(), request.getDateOfBirth());
+                pan, request.getFullName(), request.getDateOfBirth());
 
         if (result.isVerified()) {
             seller.setPanNumber(pan);
-            seller.setAadhaarNumber(aadhaar);
+            // seller.setAadhaarNumber(aadhaar);
             seller.setKycStatus(KycStatus.VERIFIED);
             seller.setKycReferenceId(result.getReferenceId());
             seller.setKycVerifiedAt(Instant.now());
@@ -78,7 +80,7 @@ public class KycService {
         return KycStatusResponse.builder()
                 .kycStatus(seller.getKycStatus())
                 .panMasked(kycValidator.maskPan(seller.getPanNumber()))
-                .aadhaarMasked(kycValidator.maskAadhaar(seller.getAadhaarNumber()))
+                // .aadhaarMasked(kycValidator.maskAadhaar(seller.getAadhaarNumber()))
                 .kycReferenceId(seller.getKycReferenceId())
                 .rejectionReason(seller.getKycRejectionReason())
                 .kycVerifiedAt(seller.getKycVerifiedAt())

@@ -58,9 +58,10 @@ public class SellerProfile {
     @Column(unique = true)
     private String panNumber;
 
-    /** Unique Aadhaar (UIDAI), 12 digits, Verhoeff-validated. Always masked in API responses. */
-    @Column(unique = true)
-    private String aadhaarNumber;
+    // Aadhaar verification disabled — field retained in DB but not collected or mapped.
+    // /** Unique Aadhaar (UIDAI), 12 digits, Verhoeff-validated. Always masked in API responses. */
+    // @Column(unique = true)
+    // private String aadhaarNumber;
 
     @Enumerated(EnumType.STRING)
     @Builder.Default
