@@ -3,6 +3,7 @@ package com.hacisimsek.seller.kyc;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -49,7 +50,7 @@ public class RapidApiKycVerificationProvider implements KycVerificationProvider 
     private final ObjectMapper objectMapper;
 
     public RapidApiKycVerificationProvider(RapidApiProperties properties,
-                                           RestTemplate restTemplate,
+                                           @Qualifier("externalRestTemplate") RestTemplate restTemplate,
                                            ObjectMapper objectMapper) {
         this.properties = properties;
         this.restTemplate = restTemplate;
