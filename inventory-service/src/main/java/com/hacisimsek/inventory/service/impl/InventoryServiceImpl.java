@@ -171,6 +171,7 @@ public class InventoryServiceImpl implements InventoryService {
                 orderCreatedEvent.getOrderId(),
                 orderCreatedEvent.getCustomerId(),
                 orderCreatedEvent.getCustomerEmail(),
+                orderCreatedEvent.getShippingAddress(),
                 orderCreatedEvent.getTotalAmount()
         ));
     }
