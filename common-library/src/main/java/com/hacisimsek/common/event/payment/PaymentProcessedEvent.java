@@ -17,13 +17,15 @@ public class PaymentProcessedEvent extends BaseEvent {
     private UUID paymentId;
     private UUID customerId;
     private String customerEmail;
+    private String shippingAddress;
 
     public PaymentProcessedEvent(UUID correlationId, UUID orderId, UUID paymentId,
-                                  UUID customerId, String customerEmail) {
+                                  UUID customerId, String customerEmail, String shippingAddress) {
         super(correlationId);
         this.orderId = orderId;
         this.paymentId = paymentId;
         this.customerId = customerId;
         this.customerEmail = customerEmail;
+        this.shippingAddress = shippingAddress;
     }
 }

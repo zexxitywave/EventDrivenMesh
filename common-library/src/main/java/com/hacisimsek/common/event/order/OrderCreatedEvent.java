@@ -21,6 +21,8 @@ public class OrderCreatedEvent extends BaseEvent {
     private UUID customerId;
     private String customerEmail;   // NEW
 
+    private String shippingAddress; // real address captured at order time, flows to shipping-service
+
     private List<OrderItemDto> items;
     private BigDecimal totalAmount;
 
@@ -29,6 +31,7 @@ public class OrderCreatedEvent extends BaseEvent {
             UUID orderId,
             UUID customerId,
             String customerEmail,
+            String shippingAddress,
             List<OrderItemDto> items,
             BigDecimal totalAmount) {
 
@@ -36,6 +39,7 @@ public class OrderCreatedEvent extends BaseEvent {
         this.orderId = orderId;
         this.customerId = customerId;
         this.customerEmail = customerEmail;
+        this.shippingAddress = shippingAddress;
         this.items = items;
         this.totalAmount = totalAmount;
     }

@@ -17,14 +17,16 @@ public class InventoryReservedEvent extends BaseEvent {
     private UUID orderId;
     private UUID customerId;
     private String customerEmail;
+    private String shippingAddress;
     private BigDecimal totalAmount;
 
     public InventoryReservedEvent(UUID correlationId, UUID orderId, UUID customerId,
-                                   String customerEmail, BigDecimal totalAmount) {
+                                   String customerEmail, String shippingAddress, BigDecimal totalAmount) {
         super(correlationId);
         this.orderId = orderId;
         this.customerId = customerId;
         this.customerEmail = customerEmail;
+        this.shippingAddress = shippingAddress;
         this.totalAmount = totalAmount;
     }
 }
