@@ -83,6 +83,7 @@ public class OrderServiceImpl implements OrderService {
         Order order = Order.builder()
                 .customerId(orderRequest.getCustomerId())
                 .customerEmail(orderRequest.getCustomerEmail())
+                .shippingAddress(orderRequest.getShippingAddress())
                 .totalAmount(totalAmount)
                 .correlationId(correlationId)
                 .status(Order.OrderStatus.PENDING)
@@ -106,6 +107,7 @@ public class OrderServiceImpl implements OrderService {
                 savedOrder.getId(),
                 savedOrder.getCustomerId(),
                 savedOrder.getCustomerEmail(),
+                savedOrder.getShippingAddress(),
                 itemDtos,
                 savedOrder.getTotalAmount()
         );
@@ -315,6 +317,7 @@ public class OrderServiceImpl implements OrderService {
                 .correlationId(order.getCorrelationId())
                 .customerId(order.getCustomerId())
                 .customerEmail(order.getCustomerEmail())
+                .shippingAddress(order.getShippingAddress())
                 .totalAmount(order.getTotalAmount())
                 .status(order.getStatus())
                 .items(itemResponses)

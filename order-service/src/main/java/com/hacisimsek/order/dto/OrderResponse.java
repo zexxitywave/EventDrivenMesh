@@ -18,6 +18,7 @@ public class OrderResponse {
     private UUID orderId;
     private UUID customerId;
     private String customerEmail;
+    private String shippingAddress;
     private BigDecimal totalAmount;
     private Order.OrderStatus status;
     private UUID correlationId;

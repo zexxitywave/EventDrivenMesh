@@ -18,6 +18,8 @@ public class OrderRequest {
 
     private String customerEmail; // optional — propagated through saga when provided
 
+    private String shippingAddress; // real delivery address — geocoded by shipping-service
+
     @NotEmpty
     private List<OrderItemRequest> items;
 }
