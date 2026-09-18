@@ -92,6 +92,7 @@ public class PaymentServiceImpl implements PaymentService {
                 .customerId(customerId)
                 .correlationId(event.getCorrelationId())
                 .customerEmail(event.getCustomerEmail())
+                .shippingAddress(event.getShippingAddress())
                 .amount(amount)
                 .status(Payment.PaymentStatus.PENDING)
                 .gateway(Payment.PaymentGateway.MOCK)
@@ -113,7 +114,8 @@ public class PaymentServiceImpl implements PaymentService {
             paymentRepository.save(payment);
 
             kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
-                    event.getCorrelationId(), orderId, payment.getId(), customerId, event.getCustomerEmail()));
+                    event.getCorrelationId(), orderId, payment.getId(), customerId, event.getCustomerEmail(),
+                    payment.getShippingAddress()));
             paymentsProcessedCounter.increment();
             log.info("Saga: payment completed for order={}, txn={}", orderId, payment.getTransactionId());
             logPublisher.info(SERVICE_NAME,
@@ -338,7 +340,7 @@ public class PaymentServiceImpl implements PaymentService {
             // Notify saga
             kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
                     payment.getCorrelationId(), payment.getOrderId(), payment.getId(),
-                    payment.getCustomerId(), payment.getCustomerEmail()));
+                    payment.getCustomerId(), payment.getCustomerEmail(), payment.getShippingAddress()));
             log.info("Payment verified and completed: id={}, txn={}", payment.getId(), payment.getTransactionId());
         } else {
             payment.setStatus(Payment.PaymentStatus.FAILED);
@@ -483,7 +485,7 @@ public class PaymentServiceImpl implements PaymentService {
 
                         kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
                                 payment.getCorrelationId(), payment.getOrderId(), payment.getId(),
-                                payment.getCustomerId(), payment.getCustomerEmail()));
+                                payment.getCustomerId(), payment.getCustomerEmail(), payment.getShippingAddress()));
 
                         log.info("[Webhook] payment.captured → COMPLETED: paymentId={}, txn={}",
                                 payment.getId(), payment.getTransactionId());

@@ -41,6 +41,10 @@ public class Payment {
 
     private String customerEmail;
 
+    /** Delivery address captured at order time — relayed to shipping-service. */
+    @Column(length = 500)
+    private String shippingAddress;
+
     @Column(nullable = false, precision = 12, scale = 2)
     private BigDecimal amount;
 
