@@ -1,11 +1,13 @@
 package com.hacisimsek.shipping.controller;
 
+import com.hacisimsek.shipping.dto.DeliveryZoneSummary;
 import com.hacisimsek.shipping.model.Shipment;
 import com.hacisimsek.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -23,5 +25,10 @@ public class ShippingController {
     @GetMapping("/order/{orderId}")
     public ResponseEntity<Shipment> getShipmentByOrderId(@PathVariable UUID orderId) {
         return ResponseEntity.ok(shippingService.getShipmentByOrderId(orderId));
+    }
+
+    @GetMapping("/zones")
+    public ResponseEntity<List<DeliveryZoneSummary>> getDeliveryZones() {
+        return ResponseEntity.ok(shippingService.getZoneSummaries());
     }
 }

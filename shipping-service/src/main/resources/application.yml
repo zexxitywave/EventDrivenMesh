@@ -1,4 +1,4 @@
-server:
+﻿server:
   port: 8085
 
 spring:
@@ -73,13 +73,37 @@ management:
       percentiles:
         http.server.requests: 0.5, 0.95, 0.99
 
-# ── Debug / Testing ───────────────────────────────────────────────────────────
+# â”€â”€ Debug / Testing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 # Set to true to simulate a shipping failure and observe the full saga rollback:
-#   - order status → FAILED
+#   - order status â†’ FAILED
 #   - inventory stock released (compensation via InventorySagaHandler)
 #   - notification sent to customer
 shipping:
-  force-failure: false
+  force-failure: true
+  h3:
+    resolution: 8
+    zone-resolution: 6
+  geocoding:
+    base-url: https://nominatim.openstreetmap.org
+    user-agent: EventDrivenMesh-shipping/0.1 (dev)
+    timeout-ms: 5000
+  hubs:
+    - name: New Delhi Hub
+      lat: 28.6139
+      lng: 77.2090
+    - name: Mumbai Hub
+      lat: 19.0760
+      lng: 72.8777
+    - name: Bengaluru Hub
+      lat: 12.9716
+      lng: 77.5946
+    - name: Kolkata Hub
+      lat: 22.5726
+      lng: 88.3639
+    - name: Chennai Hub
+      lat: 13.0827
+      lng: 80.2707
+
 
 ---
 # Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
@@ -104,30 +128,4 @@ chaos:
       latency-range-end: 3000
       exceptions-active: true
       kill-application-active: false
-#
-# docker exec -it postgres psql -U postgres
-# \l list database
-# \c order_db
-# SELECT * FROM orders;
 
-
-
-
-
-
-
-#
-#  docker exec -it mongodb mongosh
-#  show dbs                 -- list databases (like \l)
-#  use notification_db      -- switch into a database
-#  show collections         -- list "tables" (collections)
-#  db.getCollectionNames()  -- same thing in one command
-#  db.notifications.find()  -- SELECT * FROM notifications
-#  db.notifications.find().limit(10).pretty()   -- nicer readable output
-#db.notifications.find({}, { _id: 0 })        -- without the _id field noise
-
-
-
-
-#  SELECT product_id, name, category, price, rating, num_reviews, stock_quantity, discount, sales, date_added
-#  FROM csv_products;

@@ -4,6 +4,9 @@ import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentProcessedEvent;
 import com.hacisimsek.common.logging.LogPublisher;
+import com.hacisimsek.shipping.dto.DeliveryZoneSummary;
+import com.hacisimsek.shipping.geo.DeliveryZoneService;
+import com.hacisimsek.shipping.geo.GeocodingClient;
 import com.hacisimsek.shipping.model.Shipment;
 import com.hacisimsek.shipping.repository.ShipmentRepository;
 import com.hacisimsek.shipping.service.ShippingService;
@@ -15,9 +18,11 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.List;
 import java.util.Map;
 import java.util.Random;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,6 +32,8 @@ public class ShippingServiceImpl implements ShippingService {
     private final ShipmentRepository shipmentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final LogPublisher logPublisher;
+    private final GeocodingClient geocodingClient;
+    private final DeliveryZoneService deliveryZoneService;
 
     private static final String SERVICE_NAME = "shipping-service";
     private static final String[] CARRIERS = {"DHL", "FedEx", "UPS", "USPS"};
@@ -64,20 +71,45 @@ public class ShippingServiceImpl implements ShippingService {
         }
 
         try {
-            // Create the shipment record
+            // Real address captured at order time, geocoded here (free Nominatim/OSM).
+            String address = paymentEvent.getShippingAddress();
+            if (address == null || address.isBlank()) {
+                address = "123 Main St, New York, NY 10001"; // demo fallback
+            }
+
+            var geo = geocodingClient.geocode(address);
+            DeliveryZoneService.ZoneAssignment assignment = null;
+            if (geo.isPresent()) {
+                assignment = deliveryZoneService.assign(geo.get());
+                log.info("[Shipping] geocoded {} -> cell={} zone={} hub={} dist={}km carrier={}",
+                        address, assignment.h3Cell(), assignment.zoneId(),
+                        assignment.hubName(), assignment.distanceKm(), assignment.carrier());
+            } else {
+                log.warn("[Shipping] no geocode for '{}' — creating shipment without geo fields", address);
+            }
+
+            Instant eta = assignment != null
+                    ? assignment.estimatedDeliveryDate()
+                    : Instant.now().plus(3, ChronoUnit.DAYS);
+
             Shipment shipment = Shipment.builder()
                     .orderId(paymentEvent.getOrderId())
                     .customerId(paymentEvent.getCustomerId() != null ? paymentEvent.getCustomerId() : UUID.randomUUID())
                     .correlationId(paymentEvent.getCorrelationId())
                     .status(Shipment.ShipmentStatus.PROCESSING)
-                    .carrierName(getRandomCarrier())
+                    .carrierName(assignment != null ? assignment.carrier() : getRandomCarrier())
                     .trackingNumber(generateTrackingNumber())
                     .shippedDate(Instant.now())
-                    .estimatedDeliveryDate(Instant.now().plus(3, ChronoUnit.DAYS))
-                    // Minimal shipping details for demo
-                    .shippingAddress("123 Main St, New York, NY 10001")
+                    .estimatedDeliveryDate(eta)
+                    .shippingAddress(address)
                     .recipientName("John Doe")
                     .recipientPhone("(212) 555-1234")
+                    .latitude(geo.map(point -> point.lat()).orElse(null))
+                    .longitude(geo.map(point -> point.lng()).orElse(null))
+                    .h3Cell(assignment != null ? assignment.h3Cell() : null)
+                    .zoneId(assignment != null ? assignment.zoneId() : null)
+                    .hubName(assignment != null ? assignment.hubName() : null)
+                    .deliveryDistanceKm(assignment != null ? assignment.distanceKm() : null)
                     .build();
 
             Shipment savedShipment = shipmentRepository.save(shipment);
@@ -113,7 +145,8 @@ public class ShippingServiceImpl implements ShippingService {
                     Map.of("orderId", paymentEvent.getOrderId().toString(),
                            "shipmentId", savedShipment.getId().toString(),
                            "trackingNumber", savedShipment.getTrackingNumber(),
-                           "carrier", savedShipment.getCarrierName()));
+                           "carrier", savedShipment.getCarrierName(),
+                           "zoneId", savedShipment.getZoneId() != null ? savedShipment.getZoneId() : "unassigned"));
 //┌─────────────────────────────────────────────┐
 //│ level: INFO                                 │
 //│ service: shipping-service                   │
@@ -162,6 +195,34 @@ public class ShippingServiceImpl implements ShippingService {
     public Shipment getShipmentById(UUID shipmentId) {
         return shipmentRepository.findById(shipmentId)
                 .orElseThrow(() -> new RuntimeException("Shipment not found with ID: " + shipmentId));
+    }
+
+    @Override
+    public List<DeliveryZoneSummary> getZoneSummaries() {
+        return shipmentRepository.findAllByZoneIdIsNotNull().stream()
+                .collect(Collectors.groupingBy(Shipment::getZoneId))
+                .entrySet().stream()
+                .map(entry -> {
+                    List<Shipment> inZone = entry.getValue();
+                    Shipment first = inZone.get(0);
+                    double avgKm = inZone.stream()
+                            .mapToDouble(s -> s.getDeliveryDistanceKm() != null ? s.getDeliveryDistanceKm() : 0.0)
+                            .average().orElse(0.0);
+                    List<String> carriers = inZone.stream()
+                            .map(Shipment::getCarrierName)
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
+                    return new DeliveryZoneSummary(
+                            entry.getKey(),
+                            first.getHubName() != null ? first.getHubName() : "Unassigned",
+                            inZone.size(),
+                            carriers,
+                            Math.round(avgKm * 100.0) / 100.0,
+                            first.getH3Cell());
+                })
+                .sorted((a, b) -> Long.compare(b.shipmentCount(), a.shipmentCount()))
+                .collect(Collectors.toList());
     }
 
     private String getRandomCarrier() {

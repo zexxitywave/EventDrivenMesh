@@ -36,6 +36,13 @@ public class Shipment {
     private String recipientName;
     private String recipientPhone;
 
+    private Double latitude;
+    private Double longitude;
+    private String h3Cell;
+    private String zoneId;
+    private String hubName;
+    private Double deliveryDistanceKm;
+
     @Column(updatable = false)
     private Instant createdAt;
     private String createdBy;
