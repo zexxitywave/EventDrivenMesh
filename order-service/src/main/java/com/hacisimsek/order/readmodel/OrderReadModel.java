@@ -48,6 +48,9 @@ public class OrderReadModel {
     @Column(name = "total_amount")
     private BigDecimal totalAmount;
 
+    @Column(name = "delivery_charge")
+    private BigDecimal deliveryCharge;
+
     @Column(name = "item_count")
     private Integer itemCount;
 

@@ -30,6 +30,7 @@ public class OrderReadResponse {
     private UUID customerId;
     private String customerEmail;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryCharge;
     private Order.OrderStatus status;
     private UUID correlationId;
     private Integer itemCount;

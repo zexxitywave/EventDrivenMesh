@@ -26,6 +26,7 @@ public class Order {
 
     private UUID customerId;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryCharge;
 
     private String shippingAddress;
 

@@ -87,6 +87,11 @@ shipping:
     base-url: https://nominatim.openstreetmap.org
     user-agent: EventDrivenMesh-shipping/0.1 (dev)
     timeout-ms: 5000
+  pricing:
+    base-fee: 49.00
+    per-km: 1.50
+    max-charge: 549.00
+    fallback-charge: 99.00
   hubs:
     - name: New Delhi Hub
       lat: 28.6139

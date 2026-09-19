@@ -83,6 +83,11 @@ logging:
   level:
     com.hacisimsek.order: INFO
 
+order:
+  shipping:
+    quote-url: ${SHIPPING_QUOTE_URL:http://shipping-service/api/v1/shipping/quotes}
+    fallback-delivery-charge: ${FALLBACK_DELIVERY_CHARGE:99.00}
+
 ---
 # Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
 # Start with: --spring.profiles.active=chaos-monkey

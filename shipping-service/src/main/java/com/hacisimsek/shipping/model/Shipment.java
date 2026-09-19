@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -42,6 +43,7 @@ public class Shipment {
     private String zoneId;
     private String hubName;
     private Double deliveryDistanceKm;
+    private BigDecimal deliveryCharge;
 
     @Column(updatable = false)
     private Instant createdAt;

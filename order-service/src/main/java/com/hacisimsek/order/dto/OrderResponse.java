@@ -20,6 +20,7 @@ public class OrderResponse {
     private String customerEmail;
     private String shippingAddress;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryCharge;
     private Order.OrderStatus status;
     private UUID correlationId;
     private List<OrderItemResponse> items;

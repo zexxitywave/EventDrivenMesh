@@ -25,6 +25,7 @@ public class OrderEventPayload {
     private String customerEmail;
     private UUID correlationId;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryCharge;
     private List<OrderItemDto> items;
     private Instant timestamp;
 }

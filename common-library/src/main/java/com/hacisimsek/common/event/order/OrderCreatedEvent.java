@@ -25,6 +25,7 @@ public class OrderCreatedEvent extends BaseEvent {
 
     private List<OrderItemDto> items;
     private BigDecimal totalAmount;
+    private BigDecimal deliveryCharge;
 
     public OrderCreatedEvent(
             UUID correlationId,
@@ -33,7 +34,8 @@ public class OrderCreatedEvent extends BaseEvent {
             String customerEmail,
             String shippingAddress,
             List<OrderItemDto> items,
-            BigDecimal totalAmount) {
+            BigDecimal totalAmount,
+            BigDecimal deliveryCharge) {
 
         super(correlationId);
         this.orderId = orderId;
@@ -42,5 +44,6 @@ public class OrderCreatedEvent extends BaseEvent {
         this.shippingAddress = shippingAddress;
         this.items = items;
         this.totalAmount = totalAmount;
+        this.deliveryCharge = deliveryCharge;
     }
 }

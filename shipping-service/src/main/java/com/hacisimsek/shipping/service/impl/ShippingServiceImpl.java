@@ -1,14 +1,14 @@
 package com.hacisimsek.shipping.service.impl;
 
+import com.hacisimsek.common.dto.ShippingQuoteResponse;
 import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
 import com.hacisimsek.common.event.shipping.ShipmentProcessedEvent;
 import com.hacisimsek.common.logging.LogPublisher;
 import com.hacisimsek.shipping.dto.DeliveryZoneSummary;
-import com.hacisimsek.shipping.geo.DeliveryZoneService;
-import com.hacisimsek.shipping.geo.GeocodingClient;
 import com.hacisimsek.shipping.model.Shipment;
 import com.hacisimsek.shipping.repository.ShipmentRepository;
+import com.hacisimsek.shipping.service.ShippingQuoteService;
 import com.hacisimsek.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -17,7 +17,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
-import java.time.temporal.ChronoUnit;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
@@ -32,11 +31,9 @@ public class ShippingServiceImpl implements ShippingService {
     private final ShipmentRepository shipmentRepository;
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private final LogPublisher logPublisher;
-    private final GeocodingClient geocodingClient;
-    private final DeliveryZoneService deliveryZoneService;
+    private final ShippingQuoteService shippingQuoteService;
 
     private static final String SERVICE_NAME = "shipping-service";
-    private static final String[] CARRIERS = {"DHL", "FedEx", "UPS", "USPS"};
 
     @org.springframework.beans.factory.annotation.Value("${shipping.force-failure:false}")
     private boolean forceFailure;
@@ -77,39 +74,30 @@ public class ShippingServiceImpl implements ShippingService {
                 address = "123 Main St, New York, NY 10001"; // demo fallback
             }
 
-            var geo = geocodingClient.geocode(address);
-            DeliveryZoneService.ZoneAssignment assignment = null;
-            if (geo.isPresent()) {
-                assignment = deliveryZoneService.assign(geo.get());
-                log.info("[Shipping] geocoded {} -> cell={} zone={} hub={} dist={}km carrier={}",
-                        address, assignment.h3Cell(), assignment.zoneId(),
-                        assignment.hubName(), assignment.distanceKm(), assignment.carrier());
-            } else {
-                log.warn("[Shipping] no geocode for '{}' — creating shipment without geo fields", address);
-            }
-
-            Instant eta = assignment != null
-                    ? assignment.estimatedDeliveryDate()
-                    : Instant.now().plus(3, ChronoUnit.DAYS);
+            ShippingQuoteResponse quote = shippingQuoteService.quote(address);
+            log.info("[Shipping] quote for order {} — address={} carrier={} zone={} hub={} dist={}km charge={} eta={}",
+                    paymentEvent.getOrderId(), address, quote.carrier(), quote.zoneId(),
+                    quote.hubName(), quote.distanceKm(), quote.deliveryCharge(), quote.estimatedDeliveryDate());
 
             Shipment shipment = Shipment.builder()
                     .orderId(paymentEvent.getOrderId())
                     .customerId(paymentEvent.getCustomerId() != null ? paymentEvent.getCustomerId() : UUID.randomUUID())
                     .correlationId(paymentEvent.getCorrelationId())
                     .status(Shipment.ShipmentStatus.PROCESSING)
-                    .carrierName(assignment != null ? assignment.carrier() : getRandomCarrier())
+                    .carrierName(quote.carrier())
                     .trackingNumber(generateTrackingNumber())
                     .shippedDate(Instant.now())
-                    .estimatedDeliveryDate(eta)
+                    .estimatedDeliveryDate(quote.estimatedDeliveryDate())
                     .shippingAddress(address)
                     .recipientName("John Doe")
                     .recipientPhone("(212) 555-1234")
-                    .latitude(geo.map(point -> point.lat()).orElse(null))
-                    .longitude(geo.map(point -> point.lng()).orElse(null))
-                    .h3Cell(assignment != null ? assignment.h3Cell() : null)
-                    .zoneId(assignment != null ? assignment.zoneId() : null)
-                    .hubName(assignment != null ? assignment.hubName() : null)
-                    .deliveryDistanceKm(assignment != null ? assignment.distanceKm() : null)
+                    .latitude(quote.latitude())
+                    .longitude(quote.longitude())
+                    .h3Cell(quote.h3Cell())
+                    .zoneId(quote.zoneId())
+                    .hubName(quote.hubName())
+                    .deliveryDistanceKm(quote.distanceKm())
+                    .deliveryCharge(quote.deliveryCharge())
                     .build();
 
             Shipment savedShipment = shipmentRepository.save(shipment);
@@ -223,10 +211,6 @@ public class ShippingServiceImpl implements ShippingService {
                 })
                 .sorted((a, b) -> Long.compare(b.shipmentCount(), a.shipmentCount()))
                 .collect(Collectors.toList());
-    }
-
-    private String getRandomCarrier() {
-        return CARRIERS[new Random().nextInt(CARRIERS.length)];
     }
 
     private String generateTrackingNumber() {

@@ -116,6 +116,7 @@ public class OrderReadProjection {
             if (payload.getCustomerEmail() != null) readModel.setCustomerEmail(payload.getCustomerEmail());
             if (payload.getCorrelationId() != null) readModel.setCorrelationId(payload.getCorrelationId());
             if (payload.getTotalAmount() != null) readModel.setTotalAmount(payload.getTotalAmount());
+            if (payload.getDeliveryCharge() != null) readModel.setDeliveryCharge(payload.getDeliveryCharge());
             if (payload.getItems() != null) {
                 readModel.setItemCount(payload.getItems().size());
                 readModel.setItemsJson(objectMapper.writeValueAsString(payload.getItems()));

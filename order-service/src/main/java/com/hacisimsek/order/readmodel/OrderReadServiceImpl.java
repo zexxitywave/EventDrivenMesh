@@ -59,6 +59,7 @@ public class OrderReadServiceImpl implements OrderReadService {
                 .customerId(m.getCustomerId())
                 .customerEmail(m.getCustomerEmail())
                 .totalAmount(m.getTotalAmount())
+                .deliveryCharge(m.getDeliveryCharge())
                 .status(m.getStatus())
                 .correlationId(m.getCorrelationId())
                 .itemCount(m.getItemCount())

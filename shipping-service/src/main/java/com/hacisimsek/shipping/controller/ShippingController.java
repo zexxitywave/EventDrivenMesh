@@ -1,7 +1,10 @@
 package com.hacisimsek.shipping.controller;
 
+import com.hacisimsek.common.dto.ShippingQuoteRequest;
+import com.hacisimsek.common.dto.ShippingQuoteResponse;
 import com.hacisimsek.shipping.dto.DeliveryZoneSummary;
 import com.hacisimsek.shipping.model.Shipment;
+import com.hacisimsek.shipping.service.ShippingQuoteService;
 import com.hacisimsek.shipping.service.ShippingService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -16,6 +19,12 @@ import java.util.UUID;
 public class ShippingController {
 
     private final ShippingService shippingService;
+    private final ShippingQuoteService shippingQuoteService;
+
+    @PostMapping("/quotes")
+    public ResponseEntity<ShippingQuoteResponse> getDeliveryQuote(@RequestBody ShippingQuoteRequest request) {
+        return ResponseEntity.ok(shippingQuoteService.quote(request.address()));
+    }
 
     @GetMapping("/{shipmentId}")
     public ResponseEntity<Shipment> getShipmentById(@PathVariable UUID shipmentId) {

@@ -5,6 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.hacisimsek.common.dto.OrderItemDto;
 import com.hacisimsek.common.event.order.OrderCreatedEvent;
 import com.hacisimsek.common.logging.LogPublisher;
+import com.hacisimsek.order.client.ShippingQuoteClient;
 import com.hacisimsek.order.dto.OrderItemResponse;
 import com.hacisimsek.order.dto.OrderRequest;
 import com.hacisimsek.order.dto.OrderResponse;
@@ -41,6 +42,7 @@ public class OrderServiceImpl implements OrderService {
     private final OrderStatusEmitter orderStatusEmitter;
     private final OrderEventService orderEventService;
     private final LogPublisher logPublisher;
+    private final ShippingQuoteClient shippingQuoteClient;
     private final Counter ordersCreatedCounter;
 
     public OrderServiceImpl(OrderRepository orderRepository,
@@ -49,6 +51,7 @@ public class OrderServiceImpl implements OrderService {
                             OrderStatusEmitter orderStatusEmitter,
                             OrderEventService orderEventService,
                             LogPublisher logPublisher,
+                            ShippingQuoteClient shippingQuoteClient,
                             MeterRegistry meterRegistry) {
         this.orderRepository = orderRepository;
         this.outboxEventRepository = outboxEventRepository;
@@ -56,6 +59,7 @@ public class OrderServiceImpl implements OrderService {
         this.orderStatusEmitter = orderStatusEmitter;
         this.orderEventService = orderEventService;
         this.logPublisher = logPublisher;
+        this.shippingQuoteClient = shippingQuoteClient;
         this.ordersCreatedCounter = Counter.builder("zexxity.orders.created")
                 .description("Total number of orders successfully created")
                 .register(meterRegistry);
@@ -74,9 +78,16 @@ public class OrderServiceImpl implements OrderService {
                         .build())
                 .collect(Collectors.toList());
 
-        BigDecimal totalAmount = orderItems.stream()
+        // ── 1b. Price delivery BEFORE payment ────────────────────────────────
+        // Delivery is quoted from shipping-service up front so the customer pays
+        // items + delivery in a single payment amount (totalAmount), and the
+        // saga reaches payment already knowing the full order value.
+        BigDecimal subtotal = orderItems.stream()
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        BigDecimal deliveryCharge = shippingQuoteClient.getDeliveryCharge(orderRequest.getShippingAddress());
+        BigDecimal totalAmount = subtotal.add(deliveryCharge);
 
         UUID correlationId = UUID.randomUUID();
 
@@ -85,6 +96,7 @@ public class OrderServiceImpl implements OrderService {
                 .customerEmail(orderRequest.getCustomerEmail())
                 .shippingAddress(orderRequest.getShippingAddress())
                 .totalAmount(totalAmount)
+                .deliveryCharge(deliveryCharge)
                 .correlationId(correlationId)
                 .status(Order.OrderStatus.PENDING)
                 .items(orderItems)
@@ -109,7 +121,8 @@ public class OrderServiceImpl implements OrderService {
                 savedOrder.getCustomerEmail(),
                 savedOrder.getShippingAddress(),
                 itemDtos,
-                savedOrder.getTotalAmount()
+                savedOrder.getTotalAmount(),
+                savedOrder.getDeliveryCharge()
         );
 
         // ── 3. Write to the Outbox in the SAME transaction ───────────────────
@@ -145,6 +158,7 @@ public class OrderServiceImpl implements OrderService {
                 "Order created: " + savedOrder.getId(),
                 Map.of("orderId", savedOrder.getId().toString(),
                         "totalAmount", totalAmount.toPlainString(),
+                        "deliveryCharge", deliveryCharge.toPlainString(),
                         "itemCount", String.valueOf(itemDtos.size())));
 
         // Append ORDER_CREATED event to the immutable event log
@@ -319,6 +333,7 @@ public class OrderServiceImpl implements OrderService {
                 .customerEmail(order.getCustomerEmail())
                 .shippingAddress(order.getShippingAddress())
                 .totalAmount(order.getTotalAmount())
+                .deliveryCharge(order.getDeliveryCharge())
                 .status(order.getStatus())
                 .items(itemResponses)
                 .createdAt(order.getCreatedAt())
