@@ -79,7 +79,7 @@ management:
 #   - inventory stock released (compensation via InventorySagaHandler)
 #   - notification sent to customer
 shipping:
-  force-failure: true
+  force-failure: false
   h3:
     resolution: 8
     zone-resolution: 6

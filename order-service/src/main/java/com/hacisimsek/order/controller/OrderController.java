@@ -46,8 +46,17 @@ public class OrderController {
     @PostMapping("/bulk")
     @ResponseStatus(HttpStatus.CREATED)
     public List<OrderResponse> createOrders(@Valid @RequestBody BulkOrderRequest bulkOrderRequest) {
-        log.info("Bulk order request received — creating {} orders", bulkOrderRequest.getOrders().size());
-        return orderService.createOrders(bulkOrderRequest.getOrders());
+        List<OrderRequest> orders = bulkOrderRequest.getOrders();
+        Integer count = bulkOrderRequest.getCount();
+        if (count != null && count > orders.size()) {
+            OrderRequest template = orders.get(0);
+            orders = new java.util.ArrayList<>(count);
+            for (int i = 0; i < count; i++) {
+                orders.add(template);
+            }
+        }
+        log.info("Bulk order request received — creating {} orders", orders.size());
+        return orderService.createOrders(orders);
     }
 
     // ── CQRS reads: served from the order_reads projection (never the write table) ──
