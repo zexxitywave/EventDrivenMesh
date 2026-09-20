@@ -90,6 +90,7 @@ through a central API Gateway with JWT authentication.
 ## ✨ Key Highlights
 
 - **Event-Driven Saga** — Checkout flows are orchestrated through Kafka events with automatic compensating rollbacks. No single point of failure.
+- **Pre-Payment Delivery Quotes** — order-service prices delivery at checkout by calling shipping-service (`POST /api/v1/shipping/quotes`, via Eureka `lb://`), so `totalAmount` = items subtotal + delivery charge is charged to the customer in **one payment amount**. Delivery = fixed base fee + per-km × distance to the nearest hub (capped), configured via `shipping.pricing.*`; if shipping/geocoding is unavailable it falls back to a flat `order.shipping.fallback-delivery-charge` so checkout never breaks.
 - **Polyglot Persistence** — Each service owns its data store. PostgreSQL for transactions, MongoDB for documents, Redis for session cache.
 - **Gateway-Level Security** — JWT is validated once at the API Gateway. All downstream services receive trusted identity headers — no repeated token parsing.
 - **PDF Invoice Generation** — On every successful order, the notification service auto-generates a styled PDF invoice (via OpenPDF / iText) and attaches it to the confirmation email. Invoices are stored as binary in MongoDB and downloadable anytime via `GET /api/v1/notifications/invoice/{orderId}`.
@@ -157,6 +158,7 @@ graph TB
     SELLER -- REST --> ORDER
     CART -- REST --> PRODUCT
     CART -- REST --> INV
+    ORDER -- REST --> SHIP
 
     AUTH --- PG
     USER --- PG
@@ -196,7 +198,7 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 |---|---|
 | Event-driven, choreographed microservices | **No central saga orchestrator.** Each service reacts to one event and produces the next (`order → inventory → payment → shipping → notification`) |
 | Polyglot persistence | PostgreSQL for transactional state, MongoDB for documents & logs, Redis for ephemeral session cart |
-| Sync only where it pays | REST is confined to the gateway edges and cheap internal lookups (cart→product, cart→inventory, seller→product/order); every state transition is a Kafka event |
+| Sync only where it pays | REST is confined to the gateway edges and cheap internal lookups (cart→product, cart→inventory, seller→product/order, order→shipping delivery quote); every state transition is a Kafka event |
 | CQRS | `analytics-service` keeps a dedicated PostgreSQL read model projected from `order-events`, never touching transactional DBs |
 | Idempotent by design | Events carry `eventId`/`correlationId`; analytics de-duplicates on `event_id`; payment rows are keyed by `correlation_id` |
 | Zero-trust at the edge | Gateway validates JWT once and injects `X-User-Id` / `X-User-Email` / `X-User-Role`; downstream services trust these headers |
@@ -205,7 +207,7 @@ EventDrivenMesh is a headless e-commerce backend. Clients never talk to a servic
 ### 3. Logical Architecture
 
 **Two cooperating planes.** One edge for HTTP, one backbone for events:
-- **Sync plane** — the *entry surface*. The **API Gateway** validates the JWT once, applies rate limits, and routes every request to `/api/v1/**` over Eureka/`lb://`; downstream services trust the injected `X-User-Id` / `X-User-Email` / `X-User-Role` headers. The same plane serves cheap internal reads (`cart`→`product`/`inventory`, `seller`→`product`/`order`).
+- **Sync plane** — the *entry surface*. The **API Gateway** validates the JWT once, applies rate limits, and routes every request to `/api/v1/**` over Eureka/`lb://`; downstream services trust the injected `X-User-Id` / `X-User-Email` / `X-User-Role` headers. The same plane serves cheap internal reads (`cart`→`product`/`inventory`, `seller`→`product`/`order`, `order`→`shipping` delivery quote).
 - **Async plane** — the *saga backbone*. No central orchestrator — the saga is choreographed: each service consumes the one event it needs, performs a step, and publishes the event that triggers the next (`order → inventory → payment → shipping → notification`). The bus also feeds the `analytics-service` CQRS read model, the 30-day `logging-service` audit trail, and `notification-service` fan-out — `order-service` tracks the saga status machine on every hop.
 - **Resilience** — poisoned events are diverted to `order-analytics-dlq`; participants emit compensating events (reservation failure, payment failure, shipping failure) that the saga reacts to — no orchestrator node, no single point of failure; DLQ depth is surfaced in Prometheus/Grafana.
 
@@ -304,10 +306,10 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// (E
 | Service | Role in the HLD | State |
 |---|---|---|
 | `api-gateway` | Entry point · JWT validation · rate limiting · `lb://` routing · identity headers | — |
-| `order-service` | Saga trigger & state tracker — publishes `OrderCreatedEvent`, applies every participant event to the order status machine | `order_db` |
+| `order-service` | Saga trigger & state tracker — prices delivery via the shipping quote, publishes `OrderCreatedEvent`, applies every participant event to the order status machine | `order_db` |
 | `inventory-service` | Stock reservation / release, low-stock alerts | MongoDB `inventory` |
 | `payment-service` | Payment lifecycle — pre-creates the payment on reservation, then `initiate` / `verify` (manual) or auto-process (mock), plus refunds | `payment_db` |
-| `shipping-service` | Creates shipment + tracking number once payment clears | `shipping_db` |
+| `shipping-service` | Quotes delivery charge + ETA pre-payment (geocoding → H3 zone → nearest hub → pricing), then creates shipment + tracking number once payment clears | `shipping_db` |
 | `notification-service` | Transactional email (Resend) with PDF invoice, in-app notifications, 3× retry | `notification_db` |
 | `analytics-service` | CQRS projection over `order-events`; summary / top-customers / revenue-per-day; DLQ for poison pills | `analytics_db` |
 | `product-service` | Product catalog with **semantic search** — pgvector `vector(768)` HNSW cosine index, Ollama `nomic-embed-text` embeddings, auto-backfill at startup | `product_db` |
@@ -324,6 +326,8 @@ Buyer / Seller -- REST /api/v1/** (JWT + rate-limit) --> API Gateway -- lb:// (E
 | inventory-service | reserves stock → `InventoryReservedEvent` | `InventoryReservationFailedEvent`; releases stock if payment later fails |
 | payment-service | captures → `PaymentProcessedEvent` | `PaymentFailedEvent` — money never moves before a successful capture |
 | shipping-service | creates shipment + tracking → `ShipmentProcessedEvent` | `ShipmentFailedEvent` → order `FAILED` |
+
+> **Delivery charge** — at order creation, order-service asks shipping-service for a quote (`POST /api/v1/shipping/quotes`, synchronous, Eureka `lb://`) and prices the delivery **before** the order reaches payment. `deliveryCharge` is stored on the order and included in `totalAmount = items subtotal + delivery charge`, so payment captures items + delivery in one amount. If shipping/geocoding is unavailable the quote falls back to `order.shipping.fallback-delivery-charge` (99.00) so checkout never breaks.
 
 **5.2 Real (Razorpay) payment path — correlation preservation**
 
@@ -383,7 +387,9 @@ sequenceDiagram
     participant NS as Notification Service
 
     C->>OS: POST /api/v1/orders
-    OS->>OS: Save Order (PENDING)
+    OS->>SS: POST /api/v1/shipping/quotes (delivery quote)
+    SS-->>OS: deliveryCharge + ETA
+    OS->>OS: Save Order (PENDING) — total = items + delivery charge
     OS-->>IS: OrderCreatedEvent [order-events]
 
     IS->>IS: Check & reserve stock
@@ -611,7 +617,7 @@ Malformed event    → analytics-service → order-analytics-dlq             →
 | **Cart** | — | — | — | ✓ | — | — | — | — | ✓ | — | — | — | — | — |
 | **Seller** | — | — | — | ✓ | — | — | — | ✓ | — | — | — | — | — | — |
 | **Wishlist** | — | — | — | ✓ | — | ✓ | — | — | — | — | — | — | — | — |
-| **Order** | — | — | — | — | — | — | — | — | — | — | — | — | — | — |
+| **Order** | — | — | — | — | — | — | — | — | — | — | ✓ | — | — | — |
 
 > Arrows indicate **synchronous REST** calls between services. All state transitions flow asynchronously via Kafka events.
 
@@ -682,7 +688,7 @@ Contains all shared Kafka event classes and DTOs. Every saga participant imports
 
 | Class | Topic | Key Fields |
 |---|---|---|
-| `OrderCreatedEvent` | `order-events` | orderId, customerId, items, totalAmount |
+| `OrderCreatedEvent` | `order-events` | orderId, customerId, items, totalAmount, deliveryCharge |
 | `InventoryReservedEvent` | `inventory-events` | orderId, customerId, totalAmount |
 | `InventoryReservationFailedEvent` | `inventory-events` | orderId, reason |
 | `PaymentProcessedEvent` | `payment-events` | orderId, paymentId, customerId |
@@ -879,15 +885,18 @@ Save products for later. Compound unique index on `{userId, productId}` prevents
 
 Creates orders and drives the entire saga by publishing `OrderCreatedEvent` then reacting to events from three downstream services.
 
+Prices delivery **at order creation**: order-service calls shipping-service's synchronous quote endpoint (`POST /api/v1/shipping/quotes`) over Eureka `lb://shipping-service`, adds the quoted charge to the items subtotal, and persists `totalAmount` and `deliveryCharge` on the order. If shipping/geocoding is unavailable it falls back to `order.shipping.fallback-delivery-charge` (99.00) so order creation never fails.
+
 **API Endpoints**
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/v1/orders` | Place order — triggers saga |
+| POST | `/api/v1/orders` | Place order — quotes delivery, prices total, triggers saga |
 | GET | `/api/v1/orders/{orderId}` | Get by ID |
 | GET | `/api/v1/orders/customer/{customerId}` | Orders by customer |
 
-**Kafka:** Publishes → `order-events` &nbsp;|&nbsp; Consumes → `inventory-events`, `payment-events`, `shipping-events`
+**Kafka:** Publishes → `order-events` (carries `totalAmount` **including** the delivery charge) &nbsp;|&nbsp; Consumes → `inventory-events`, `payment-events`, `shipping-events`
+&nbsp;|&nbsp; **REST:** `POST /api/v1/shipping/quotes` (delivery pricing)
 
 **Order Status Lifecycle**
 
@@ -953,16 +962,25 @@ Supports Razorpay, Stripe, and a Mock adapter. Handles automatic saga-driven pay
 
 **Port:** `8085` &nbsp;|&nbsp; **Database:** PostgreSQL `shipping_db`
 
-Creates shipments when payment completes. Assigns tracking numbers and carrier, then publishes `ShipmentProcessedEvent`.
+Quotes delivery **up front** (before payment) and creates shipments when payment completes. Geocodes the order address (OSM Nominatim), snaps it to an H3 zone, finds the nearest hub, assigns carrier + ETA, prices the delivery, and persists `deliveryCharge` on the shipment. On `PaymentProcessedEvent` it creates the shipment + tracking number and publishes `ShipmentProcessedEvent`.
+
+**Delivery pricing (`shipping.pricing.*`) — default (INR)**
+
+- `deliveryCharge = baseFee + perKm × distanceToNearestHub`, capped at `maxCharge` (549.00).
+- Geocoding failure → flat `fallbackCharge` (99.00).
+- Defaults: `baseFee = 49.00`, `perKm = 1.50`, `maxCharge = 549.00`, `fallbackCharge = 99.00`.
 
 **API Endpoints**
 
 | Method | Path | Description |
 |---|---|---|
+| POST | `/api/v1/shipping/quotes` | Pre-payment delivery quote — deliveryCharge, distance, zone, hub, carrier, ETA (called by order-service at checkout) |
+| GET | `/api/v1/shipping/zones` | Zone summaries (hub, order counts, carriers, avg distance) |
 | GET | `/api/v1/shipping/{shipmentId}` | Get shipment |
 | GET | `/api/v1/shipping/order/{orderId}` | Shipment by order |
 
 **Kafka:** Consumes → `payment-events` &nbsp;|&nbsp; Publishes → `shipping-events`
+&nbsp;|&nbsp; **REST:** `POST /api/v1/shipping/quotes` (delivery pricing)
 
 ---
 
@@ -1298,10 +1316,10 @@ ecommerce-microservices/
 ├── seller-service/              # Merchant management & verification
 ├── cart-service/                # Redis shopping cart
 ├── wishlist-service/            # MongoDB wishlists
-├── order-service/               # Orders + saga orchestration
+├── order-service/               # Orders + saga orchestration (pre-payment delivery quote)
 ├── inventory-service/           # Stock management
 ├── payment-service/             # Razorpay / Stripe / Mock payments
-├── shipping-service/            # Shipment tracking
+├── shipping-service/            # Delivery quotes, H3 routing, shipment tracking
 ├── notification-service/        # Email + in-app notifications
 ├── logging-service/             # Centralized log aggregation (30-day TTL)
 └── analytics-service/           # CQRS analytics — batch Kafka consumer + REST API
