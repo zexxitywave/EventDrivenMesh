@@ -1,6 +1,6 @@
 ﻿server:
   port: 8085
-
+    
 spring:
   application:
     name: shipping-service
@@ -39,7 +39,7 @@ spring:
         heartbeat.interval.ms: 10000
 #       How often the consumer sends heartbeats
         max.poll.interval.ms: 300000
-#       Maximum time between poll() calls while processing
+#       Maximum time between poll() calls while processingggg
     listener:
       ack-mode: record
 
