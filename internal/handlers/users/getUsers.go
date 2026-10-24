@@ -20,7 +20,7 @@ func GetUsers(c *fiber.Ctx) error {
 		})
 	}
 	defer rows.Close()
-	
+
 	var users []models.User
 	for rows.Next() {
 		var user models.User

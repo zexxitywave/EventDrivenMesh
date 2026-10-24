@@ -15,6 +15,18 @@ func CreateUser(c *fiber.Ctx) error {
 		})
 	}
 
+	for priority, channel := range map[string]string{
+		"low":    user.Preference.Low,
+		"medium": user.Preference.Medium,
+		"high":   user.Preference.High,
+	} {
+		if !models.IsValidChannel(channel) {
+			return c.Status(fiber.StatusBadRequest).JSON(fiber.Map{
+				"error": "Invalid " + priority + " notification channel: " + channel,
+			})
+		}
+	}
+
 	user.Id = uuid.New()
 
 	err := db.DB.Exec("INSERT INTO users (id, username, email, phone, status, preference_low_channel, preference_medium_channel, preference_high_channel) VALUES (?, ?, ?, ?, ?, ?, ?, ?)", user.Id, user.Username, user.Email, user.Phone, user.Status, user.Preference.Low, user.Preference.Medium, user.Preference.High).Error

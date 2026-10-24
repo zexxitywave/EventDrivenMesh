@@ -10,4 +10,5 @@ type Notification struct {
 	Recipient uuid.UUID `json:"recipient_id"` // Recipient of the notification (user)
 	Message   Message   `json:"message"`      // Message to be sent
 	Status    string    `json:"status"`       // Status of the notification (pending, sent, failed)
+	Channel   string    `json:"channel"`      // Delivery channel resolved from the user preference
 }

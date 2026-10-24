@@ -51,6 +51,55 @@ README.md                # Project documentation
 - **Metrics Collection**: Integration with Prometheus for collecting metrics related to the performance of the notification service.
 - **Visualization**: Setting up Grafana dashboards for real-time monitoring and visualization of key metrics, such as message throughput, worker utilization, and error rates.
 
+## API Endpoints
+
+| Method   | Path                | Description                                                      |
+| -------- | ------------------- | ---------------------------------------------------------------- |
+| `GET`    | `/`                 | Service banner                                                   |
+| `GET`    | `/health`           | Health check                                                     |
+| `GET`    | `/users`            | List all users with their notification preferences               |
+| `GET`    | `/users/get/:id`    | Fetch a single user, `404` when the id is unknown               |
+| `POST`   | `/users/create`     | Create a user, the preference channels must be email/sms/push    |
+| `DELETE` | `/users/delete/:id` | Delete a user                                                    |
+| `POST`   | `/notify`           | Queue a notification for a recipient                             |
+| `GET`    | `/stats`            | Live snapshot of every queue (ready, in flight, consumers, workers) |
+
+### Queueing a notification
+
+```bash
+curl -X POST http://127.0.0.1:3000/notify \
+  -H "Content-Type: application/json" \
+  -d '{
+        "priority": "high",
+        "recipient_id": "f94e7405-849a-4ee5-aad6-0531cd7912b3",
+        "message": { "title": "Hello", "body": "World" }
+      }'
+```
+
+The delivery channel is resolved from the preference of the recipient for the
+given priority, so the example above is routed to the `notifications_email_high`
+queue. The endpoint answers with `201` once the broker confirmed the publish,
+with `404` when the recipient does not exist and with `400` when the recipient
+has no channel configured for that priority.
+
+## Configuration
+
+Every value below can be set in `.env`.
+
+| Variable          | Default   | Description                                                |
+| ----------------- | --------- | ---------------------------------------------------------- |
+| `PORT`            | `3000`    | Port of the HTTP server                                   |
+| `DB_*`            | -         | PostgreSQL connection, the schema is created automatically |
+| `RABBITMQ_URL`    | -         | AMQP connection string                                    |
+| `PREFETCH_COUNT`  | `10`      | Messages a single worker may hold unacknowledged           |
+| `PROCESSING_DELAY`| `0s`      | Artificial delay of the delivery, useful for load tests    |
+| `SCALER_INTERVAL` | `7s`      | How often the scheduler rebalances the workers             |
+
+Each queue can be tuned on its own, the key is the channel and the priority in
+upper case, for example `EMAIL_HIGH_RPM`, `EMAIL_HIGH_WORKERS` and
+`EMAIL_HIGH_MAX_WORKERS`. The rate limit is per queue, the number of workers
+decides how many consumers of that queue are started.
+
 ## Installation and Setup
 
 1. Clone the repository:
