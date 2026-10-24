@@ -1,0 +1,77 @@
+server:
+  port: 8082
+
+spring:
+  application:
+    name: inventory-service
+
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/inventory
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
+    consumer:
+      group-id: inventory-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.interval.ms: 300000
+    listener:
+      ack-mode: record
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,chaosmonkey
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+---
+# Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
+# Start with: --spring.profiles.active=chaos-monkey
+# Runtime control: GET  /actuator/chaosmonkey        (status)
+#                  POST /actuator/chaosmonkey/assaults (tune assaults live)
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey
+
+chaos:
+  monkey:
+    enabled: true
+    watcher:
+      rest-controller: true
+      service: true
+      repository: false
+    assaults:
+      latency-active: true
+      latency-range-start: 1000
+      latency-range-end: 3000
+      exceptions-active: true
+      kill-application-active: false

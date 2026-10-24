@@ -1,0 +1,131 @@
+﻿server:
+  port: 8085
+
+spring:
+  application:
+    name: shipping-service
+
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/shipping_db?options=-c%20TimeZone=UTC&sslmode=disable
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
+    consumer:
+      group-id: shipping-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+#       How long Kafka waits without heartbeats before considering consumer dead
+        heartbeat.interval.ms: 10000
+#       How often the consumer sends heartbeats
+        max.poll.interval.ms: 300000
+#       Maximum time between poll() calls while processing
+    listener:
+      ack-mode: record
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,chaosmonkey
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+# â”€â”€ Debug / Testing â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+# Set to true to simulate a shipping failure and observe the full saga rollback:
+#   - order status â†’ FAILED
+#   - inventory stock released (compensation via InventorySagaHandler)
+#   - notification sent to customer
+shipping:
+  force-failure: false
+  h3:
+    resolution: 8
+    zone-resolution: 6
+  geocoding:
+    base-url: https://nominatim.openstreetmap.org
+    user-agent: EventDrivenMesh-shipping/0.1 (dev)
+    timeout-ms: 5000
+  hubs:
+    - name: New Delhi Hub
+      lat: 28.6139
+      lng: 77.2090
+    - name: Mumbai Hub
+      lat: 19.0760
+      lng: 72.8777
+    - name: Bengaluru Hub
+      lat: 12.9716
+      lng: 77.5946
+    - name: Kolkata Hub
+      lat: 22.5726
+      lng: 88.3639
+    - name: Chennai Hub
+      lat: 13.0827
+      lng: 80.2707
+
+
+---
+# Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
+# Start with: --spring.profiles.active=chaos-monkey
+# Runtime control: GET  /actuator/chaosmonkey        (status)
+#                  POST /actuator/chaosmonkey/assaults (tune assaults live)
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey
+
+chaos:
+  monkey:
+    enabled: true
+    watcher:
+      rest-controller: true
+      service: true
+      repository: false
+    assaults:
+      latency-active: true
+      latency-range-start: 1000
+      latency-range-end: 3000
+      exceptions-active: true
+      kill-application-active: false
+

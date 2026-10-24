@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Razorpay Test Checkout</title>
+  <style>
+    body { font-family: Arial, sans-serif; max-width: 500px; margin: 60px auto; padding: 20px; }
+    input { width: 100%; padding: 10px; margin: 8px 0; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px; }
+    button { width: 100%; padding: 12px; background: #2d6df6; color: white; border: none; border-radius: 4px; font-size: 16px; cursor: pointer; }
+    button:hover { background: #1a56d6; }
+    pre { background: #f4f4f4; padding: 15px; border-radius: 4px; word-break: break-all; font-size: 12px; }
+    label { font-weight: bold; font-size: 13px; }
+    h2 { color: #333; }
+    .result { margin-top: 20px; }
+    .success { color: green; } .error { color: red; }
+  </style>
+</head>
+<body>
+  <h2>EventDrivenMesh — Razorpay Test</h2>
+
+  <label>Razorpay Key ID</label>
+  <input id="keyId" placeholder="rzp_test_xxxxxxxxxxxxxxxx" />
+
+  <label>Gateway Order ID (from /api/payments/initiate)</label>
+  <input id="gatewayOrderId" placeholder="order_xxxxxxxxxxxxxxxx" />
+
+  <label>Amount (in INR)</label>
+  <input id="amount" type="number" value="89999" />
+
+  <label>Your Name</label>
+  <input id="name" value="Jagdish Kumar" />
+
+  <label>Your Email</label>
+  <input id="email" value="jagdishkumarsahu2004@gmail.com" />
+
+  <label>Phone</label>
+  <input id="phone" value="9999999999" />
+
+  <br/><br/>
+  <button onclick="pay()">Pay with Razorpay</button>
+
+  <div class="result">
+    <div id="status"></div>
+    <pre id="output" style="display:none"></pre>
+  </div>
+
+  <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+  <script>
+    function pay() {
+      const keyId        = document.getElementById('keyId').value.trim();
+      const orderId      = document.getElementById('gatewayOrderId').value.trim();
+      const amount       = parseFloat(document.getElementById('amount').value) * 100;
+      const name         = document.getElementById('name').value.trim();
+      const email        = document.getElementById('email').value.trim();
+      const phone        = document.getElementById('phone').value.trim();
+
+      if (!keyId || !orderId) {
+        alert('Please fill in Key ID and Gateway Order ID first.');
+        return;
+      }
+
+      const options = {
+        key: keyId,
+        amount: amount,
+        currency: 'INR',
+        name: 'EventDrivenMesh',
+        description: 'Order Payment',
+        order_id: orderId,
+        prefill: { name, email, contact: phone },
+        theme: { color: '#2d6df6' },
+        handler: function (response) {
+          document.getElementById('status').innerHTML =
+            '<p class="success">✅ Payment successful! Now call /api/payments/verify with the details below.</p>';
+
+          const out = {
+            gatewayOrderId:   response.razorpay_order_id,
+            gatewayPaymentId: response.razorpay_payment_id,
+            gatewaySignature: response.razorpay_signature
+          };
+
+          document.getElementById('output').style.display = 'block';
+          document.getElementById('output').textContent = JSON.stringify(out, null, 2);
+        },
+        modal: {
+          ondismiss: function() {
+            document.getElementById('status').innerHTML =
+              '<p class="error">❌ Payment cancelled by user.</p>';
+          }
+        }
+      };
+
+      const rzp = new Razorpay(options);
+      rzp.open();
+    }
+  </script>
+
+  <hr style="margin-top:40px"/>
+  <h3>Test Cards (Razorpay test mode)</h3>
+  <table style="width:100%; font-size:13px; border-collapse:collapse;">
+    <tr style="background:#eee"><th>Card</th><th>Expiry</th><th>CVV</th><th>Result</th></tr>
+    <tr><td>4111 1111 1111 1111</td><td>Any future</td><td>Any</td><td>✅ Success</td></tr>
+    <tr><td>5267 3181 8797 5449</td><td>Any future</td><td>Any</td><td>✅ Success (Mastercard)</td></tr>
+    <tr><td>4000 0000 0000 0002</td><td>Any future</td><td>Any</td><td>❌ Decline</td></tr>
+  </table>
+</body>
+</html>

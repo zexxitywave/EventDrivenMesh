@@ -1,0 +1,94 @@
+global:
+  # How long to wait before re-sending a resolved alert
+  resolve_timeout: 5m
+  # Default SMTP settings — override via env vars in production
+  smtp_smarthost: '${MAIL_HOST:smtp.resend.com}:${MAIL_PORT:587}'
+  smtp_from: 'alerts@zexxity.online'
+  smtp_auth_username: '${MAIL_USERNAME:resend}'
+  smtp_auth_password: '${MAIL_PASSWORD}'
+  smtp_require_tls: true
+
+# ── Routing tree ──────────────────────────────────────────────────────────────
+route:
+  # Default receiver for all alerts
+  receiver: 'email-alerts'
+
+  # Group alerts by alertname + service so one email covers all instances
+  group_by: [ 'alertname', 'job' ]
+
+  # Wait 30s before sending the first notification (collects related alerts)
+  group_wait: 30s
+
+  # Wait 5m before sending a notification for a new group
+  group_interval: 5m
+
+  # Re-send if an alert is still firing after 4h
+  repeat_interval: 4h
+
+  routes:
+    # Critical alerts (ServiceDown, CriticalHeapUsage) go to both email + Slack
+    - match:
+        severity: critical
+      receiver: 'critical-alerts'
+      continue: true   # also send to default email receiver
+
+    # Payment-specific failures get their own route (PCI compliance audit trail)
+    - match:
+        job: payment-service
+      receiver: 'payment-alerts'
+      continue: true
+
+# ── Inhibition rules ──────────────────────────────────────────────────────────
+# Suppress warning-level alerts when a critical alert is already firing
+# for the same service — avoids alert storms
+inhibit_rules:
+  - source_match:
+      severity: critical
+    target_match:
+      severity: warning
+    equal: [ 'alertname', 'job' ]
+
+# ── Receivers ─────────────────────────────────────────────────────────────────
+receivers:
+
+  # Default receiver — email for all alerts
+  - name: 'email-alerts'
+    email_configs:
+      - to: '${ALERT_EMAIL:devteam@zexxity.online}'
+        send_resolved: true
+        headers:
+          Subject: '[{{ .Status | toUpper }}] {{ .CommonAnnotations.summary }}'
+        html: |
+          <h3>{{ .CommonAnnotations.summary }}</h3>
+          <p>{{ .CommonAnnotations.description }}</p>
+          <ul>
+          {{ range .Alerts }}
+            <li><b>{{ .Labels.job }}</b> — {{ .Annotations.description }}</li>
+          {{ end }}
+          </ul>
+
+  # Critical alerts — Slack webhook + email
+  - name: 'critical-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/placeholder}'
+        channel: '#alerts-critical'
+        send_resolved: true
+        title: '{{ .Status | toUpper }}: {{ .CommonAnnotations.summary }}'
+        text: |
+          *Description:* {{ .CommonAnnotations.description }}
+          *Services affected:*
+          {{ range .Alerts }}• {{ .Labels.job }} ({{ .Labels.severity }})
+          {{ end }}
+        color: '{{ if eq .Status "firing" }}danger{{ else }}good{{ end }}'
+    email_configs:
+      - to: '${ALERT_EMAIL:devteam@zexxity.online}'
+        send_resolved: true
+
+  # Payment service alerts — separate channel for audit
+  - name: 'payment-alerts'
+    slack_configs:
+      - api_url: '${SLACK_WEBHOOK_URL:https://hooks.slack.com/services/placeholder}'
+        channel: '#alerts-payments'
+        send_resolved: true
+        title: 'Payment Alert: {{ .CommonAnnotations.summary }}'
+        text: '{{ .CommonAnnotations.description }}'

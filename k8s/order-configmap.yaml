@@ -1,0 +1,50 @@
+apiVersion: v1
+kind: ConfigMap
+
+metadata:
+  name: order-service-config
+
+data:
+  # ── NOTE ──────────────────────────────────────────────────────────────────
+  # Services (postgres, kafka, redis, mongodb) run in Docker Compose on the
+  # host machine. From inside a K8s pod on Docker Desktop, the host is
+  # reachable via host.docker.internal.
+  #
+  # The application-k8s.yml already has host.docker.internal hardcoded for
+  # DB and Kafka. These env vars override any defaults for other services
+  # and carry runtime config that changes between environments.
+  # ──────────────────────────────────────────────────────────────────────────
+
+  # ── Database ──────────────────────────────────────────────────────────────
+  DB_HOST: "host.docker.internal"
+  DB_PORT: "5432"
+
+  # ── Kafka ─────────────────────────────────────────────────────────────────
+  # Kafka EXTERNAL listener is on localhost:9095 on the host (docker-compose)
+  # From inside a pod that maps to host.docker.internal:9095
+  KAFKA_BOOTSTRAP_SERVERS: "host.docker.internal:9095"
+
+  # ── Eureka ────────────────────────────────────────────────────────────────
+  EUREKA_HOST: "host.docker.internal"
+
+  # ── Redis ─────────────────────────────────────────────────────────────────
+  REDIS_HOST: "host.docker.internal"
+  REDIS_PORT: "6379"
+
+  # ── MongoDB ───────────────────────────────────────────────────────────────
+  MONGO_HOST: "host.docker.internal"
+  MONGO_PORT: "27017"
+
+  # ── Spring Boot Actuator ──────────────────────────────────────────────────
+  MANAGEMENT_ENDPOINTS_WEB_EXPOSURE_INCLUDE: "*"
+  MANAGEMENT_ENDPOINT_HEALTH_SHOW_DETAILS: "always"
+  MANAGEMENT_HEALTH_LIVENESSSTATE_ENABLED: "true"
+  MANAGEMENT_HEALTH_READINESSSTATE_ENABLED: "true"
+
+  # ── JVM ───────────────────────────────────────────────────────────────────
+  JAVA_OPTS: "-XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -XX:+ExitOnOutOfMemoryError"
+
+  # ── Graceful Shutdown ─────────────────────────────────────────────────────
+  SPRING_LIFECYCLE_TIMEOUT_PER_SHUTDOWN_PHASE: "30s"
+  SERVER_SHUTDOWN: "graceful"
+

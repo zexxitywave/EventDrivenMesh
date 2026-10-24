@@ -1,0 +1,601 @@
+package com.hacisimsek.payment.service.impl;
+
+import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
+import java.util.Map;
+import java.util.Optional;
+import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
+import com.hacisimsek.common.logging.LogPublisher;
+import com.hacisimsek.payment.exception.PaymentAlreadyExistsException;
+import com.hacisimsek.payment.exception.PaymentNotInitiatedException;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hacisimsek.common.event.inventory.InventoryReservedEvent;
+import com.hacisimsek.common.event.payment.PaymentFailedEvent;
+import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
+import com.hacisimsek.payment.dto.GatewayOrderResponse;
+import com.hacisimsek.payment.dto.InitiatePaymentRequest;
+import com.hacisimsek.payment.dto.PaymentResponse;
+import com.hacisimsek.payment.dto.RefundRequest;
+import com.hacisimsek.payment.dto.VerifyPaymentRequest;
+import com.hacisimsek.payment.gateway.GatewayOrderResult;
+import com.hacisimsek.payment.gateway.PaymentGatewayAdapter;
+import com.hacisimsek.payment.model.Payment;
+import com.hacisimsek.payment.model.OrderCorrelation;
+import com.hacisimsek.payment.repository.PaymentRepository;
+import com.hacisimsek.payment.repository.OrderCorrelationRepository;
+import com.hacisimsek.payment.service.PaymentService;
+
+import io.micrometer.core.instrument.Counter;
+import io.micrometer.core.instrument.MeterRegistry;
+import lombok.extern.slf4j.Slf4j;
+
+@Service
+@Slf4j
+public class PaymentServiceImpl implements PaymentService {
+
+    private final PaymentRepository paymentRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final List<PaymentGatewayAdapter> gatewayAdapters;
+    private final ObjectMapper objectMapper;
+    private final LogPublisher logPublisher;
+    private final OrderCorrelationRepository orderCorrelationRepository;
+    private final Counter paymentsProcessedCounter;
+    private final Counter paymentsFailedCounter;
+    private static final String PAYMENT_TOPIC = "payment-events";
+    private static final String DEFAULT_CURRENCY = "INR";
+    private static final String SERVICE_NAME = "payment-service";
+
+    public PaymentServiceImpl(PaymentRepository paymentRepository,
+                               KafkaTemplate<String, Object> kafkaTemplate,
+                               List<PaymentGatewayAdapter> gatewayAdapters,
+                               ObjectMapper objectMapper,
+                               LogPublisher logPublisher,
+                               OrderCorrelationRepository orderCorrelationRepository,
+                               MeterRegistry meterRegistry) {
+        this.paymentRepository = paymentRepository;
+        this.kafkaTemplate = kafkaTemplate;
+        this.gatewayAdapters = gatewayAdapters;
+        this.objectMapper = objectMapper;
+        this.logPublisher = logPublisher;
+        this.orderCorrelationRepository = orderCorrelationRepository;
+        this.paymentsProcessedCounter = Counter.builder("zexxity.payments.processed")
+                .description("Total payments successfully processed")
+                .register(meterRegistry);
+        this.paymentsFailedCounter = Counter.builder("zexxity.payments.failed")
+                .description("Total payments that failed")
+                .register(meterRegistry);
+    }
+
+    // ── Saga-driven auto processing (existing flow) ───────────────────────────
+
+    @Override
+    @Transactional
+    // @Transactional defines a transaction boundary. It ensures that the database operations inside that boundary are treated as a single unit of work:
+    // if they all succeed, they're committed; if the transaction fails, the changes are rolled back
+    public void processPayment(InventoryReservedEvent event) {
+        log.info("Saga: processing payment for order={}", event.getOrderId());
+
+        UUID orderId   = event.getOrderId();
+        UUID customerId = event.getCustomerId();
+        BigDecimal amount = event.getTotalAmount() != null ? event.getTotalAmount() : BigDecimal.valueOf(100);
+
+        Payment payment = Payment.builder()
+                .orderId(orderId)
+                .customerId(customerId)
+                .correlationId(event.getCorrelationId())
+                .customerEmail(event.getCustomerEmail())
+                .shippingAddress(event.getShippingAddress())
+                .amount(amount)
+                .status(Payment.PaymentStatus.PENDING)
+                .gateway(Payment.PaymentGateway.MOCK)
+                .paymentMethod("SAGA_AUTO")
+                .build();
+
+        paymentRepository.save(payment);
+
+        // In saga mode, use the MOCK adapter (always succeeds in dev, configurable for testing)
+        PaymentGatewayAdapter adapter = resolveAdapter(Payment.PaymentGateway.MOCK);
+        GatewayOrderResult orderResult = adapter.createOrder(payment.getId(), amount, DEFAULT_CURRENCY);
+        boolean success = adapter.verifyAndCapture(orderResult.getGatewayOrderId(), orderResult.getGatewayOrderId(), null);
+
+        if (success) {
+            payment.setStatus(Payment.PaymentStatus.COMPLETED);
+            payment.setPaymentDate(Instant.now());
+            payment.setGatewayOrderId(orderResult.getGatewayOrderId());
+            payment.setTransactionId(generateTransactionId());
+            paymentRepository.save(payment);
+
+            kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
+                    event.getCorrelationId(), orderId, payment.getId(), customerId, event.getCustomerEmail(),
+                    payment.getShippingAddress()));
+            paymentsProcessedCounter.increment();
+            log.info("Saga: payment completed for order={}, txn={}", orderId, payment.getTransactionId());
+            logPublisher.info(SERVICE_NAME,
+                    event.getCorrelationId() != null ? event.getCorrelationId().toString() : null,
+                    "Payment completed for order: " + orderId,
+                    Map.of("orderId", orderId.toString(),
+                           "paymentId", payment.getId().toString(),
+                           "transactionId", payment.getTransactionId(),
+                           "gateway", "MOCK"));
+        } else {
+            payment.setStatus(Payment.PaymentStatus.FAILED);
+            payment.setFailureReason("Saga payment processing failed");
+            paymentRepository.save(payment);
+
+            kafkaTemplate.send(PAYMENT_TOPIC, new PaymentFailedEvent(
+                    event.getCorrelationId(), orderId, customerId,
+                    event.getCustomerEmail(), "Payment processing failed"));
+            paymentsFailedCounter.increment();
+            log.error("Saga: payment failed for order={}", orderId);
+            logPublisher.error(SERVICE_NAME,
+                    event.getCorrelationId() != null ? event.getCorrelationId().toString() : null,
+                    "Payment failed for order: " + orderId,
+                    Map.of("orderId", orderId.toString(),
+                           "paymentId", payment.getId().toString(),
+                           "reason", "Saga payment processing failed"));
+        }
+    }
+
+    // ── Initiate (gateway order creation) ────────────────────────────────────
+
+    @Override
+    @Transactional
+    public void preparePayment(InventoryReservedEvent event) {
+        UUID orderId = event.getOrderId();
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(orderId);
+        if (existingPayment.isPresent()) {
+            // If /initiate won the race and created the payment before this
+            // Kafka-driven call, backfill the correlationId so the saga trace
+            // stays intact regardless of delivery order.
+            if (existingPayment.get().getCorrelationId() == null) {
+                existingPayment.get().setCorrelationId(event.getCorrelationId());
+                paymentRepository.save(existingPayment.get());
+                log.info("preparePayment: backfilled correlationId {} onto existing payment {} for order={}",
+                        event.getCorrelationId(), existingPayment.get().getId(), orderId);
+            } else {
+                log.info("preparePayment: payment already exists for order={} — leaving as-is", orderId);
+            }
+            return;
+        }
+
+        Payment payment = Payment.builder()
+                .orderId(orderId)
+                .customerId(event.getCustomerId())
+                .correlationId(event.getCorrelationId())
+                .customerEmail(event.getCustomerEmail())
+                .amount(event.getTotalAmount() != null ? event.getTotalAmount() : BigDecimal.valueOf(100))
+                .status(Payment.PaymentStatus.PENDING)
+                .gateway(Payment.PaymentGateway.RAZORPAY) // default — /initiate may override
+                .paymentMethod("PENDING_INITIATE")
+                .build();
+        paymentRepository.save(payment);
+
+        log.info("preparePayment: created PENDING payment {} for order={} with correlationId={}",
+                payment.getId(), orderId, event.getCorrelationId());
+    }
+
+    @Override
+    @Transactional
+    public GatewayOrderResponse initiatePayment(InitiatePaymentRequest request) {
+        Payment.PaymentGateway gateway = request.getGateway() != null
+                ? request.getGateway() : Payment.PaymentGateway.RAZORPAY;
+
+        Optional<Payment> existingPayment = paymentRepository.findByOrderId(request.getOrderId());
+        Payment payment = null;
+        if (existingPayment.isPresent()) {
+            Payment existing = existingPayment.get();
+            // Already fully paid — hard block
+            if (existing.getStatus() == Payment.PaymentStatus.COMPLETED
+                    || existing.getStatus() == Payment.PaymentStatus.REFUNDED) {
+                throw new PaymentAlreadyExistsException(
+                    "Payment already completed for order: " + request.getOrderId()
+                    + " | txn: " + existing.getTransactionId());
+            }
+            // PENDING with a gateway order already created — resume the existing
+            // session so the frontend re-opens the checkout popup without
+            // creating a duplicate gateway order.
+            if (existing.getStatus() == Payment.PaymentStatus.PENDING
+                    && existing.getGatewayOrderId() != null) {
+                log.info("Resuming existing PENDING payment {} for order {} — gateway order {}",
+                        existing.getId(), request.getOrderId(), existing.getGatewayOrderId());
+                return resumePayment(existing);
+            }
+            // PENDING with no gateway order yet — either pre-prepared by the saga
+            // (preparePayment carries the correlationId) or a partial run from an
+            // earlier request. Complete it now instead of discarding it so the
+            // correlation ID keeps flowing through the saga.
+            if (existing.getStatus() == Payment.PaymentStatus.PENDING) {
+                log.info("Completing pre-prepared PENDING payment {} for order {}",
+                        existing.getId(), request.getOrderId());
+                existing.setGateway(gateway);
+                existing.setAmount(request.getAmount());
+                if (request.getPaymentMethod() != null) {
+                    existing.setPaymentMethod(request.getPaymentMethod());
+                }
+                if (existing.getCorrelationId() == null) {
+                    existing.setCorrelationId(resolveCorrelationId(existingPayment, request));
+                }
+                payment = existing;
+            }
+            // FAILED — retry below with a fresh payment, carrying correlation forward
+        }
+
+        if (payment == null) {
+            UUID correlationId = resolveCorrelationId(existingPayment, request);
+            payment = Payment.builder()
+                    .orderId(request.getOrderId())
+                    .customerId(request.getCustomerId())
+                    .customerEmail(request.getCustomerEmail())
+                    .correlationId(correlationId)
+                    .amount(request.getAmount())
+                    .status(Payment.PaymentStatus.PENDING)
+                    .gateway(gateway)
+                    .paymentMethod(request.getPaymentMethod())
+                    .build();
+            payment = paymentRepository.save(payment);
+        }
+
+        PaymentGatewayAdapter adapter = resolveAdapter(gateway);
+        GatewayOrderResult result = adapter.createOrder(payment.getId(), request.getAmount(), DEFAULT_CURRENCY);
+
+        payment.setGatewayOrderId(result.getGatewayOrderId());
+        paymentRepository.save(payment);
+
+        log.info("Payment initiated: id={}, gateway={}, gatewayOrderId={}",
+                payment.getId(), gateway, result.getGatewayOrderId());
+
+        return GatewayOrderResponse.builder()
+                .paymentId(payment.getId())
+                .gatewayOrderId(result.getGatewayOrderId())
+                .gatewayKey(result.getPublicKey())
+                .amount(request.getAmount())
+                .currency(DEFAULT_CURRENCY)
+                .status(Payment.PaymentStatus.PENDING.name())
+                .build();
+    }
+
+    /**
+     * Resolves the saga correlation ID for an initiate request, in priority order:
+     *   1. correlation already stored on the payment record
+     *   2. correlation supplied by the client (from the order response)
+     *   3. correlation persisted by OrderCorrelationHandler when OrderCreatedEvent
+     *      was observed (covers the case where /initiate wins the race against
+     *      the Kafka-driven preparePayment)
+     */
+    private UUID resolveCorrelationId(Optional<Payment> existingPayment, InitiatePaymentRequest request) {
+        if (existingPayment.isPresent() && existingPayment.get().getCorrelationId() != null) {
+            return existingPayment.get().getCorrelationId();
+        }
+        if (request.getCorrelationId() != null) {
+            return request.getCorrelationId();
+        }
+        return orderCorrelationRepository.findByOrderId(request.getOrderId())
+                .map(OrderCorrelation::getCorrelationId)
+                .orElse(null);
+    }
+
+    // ── Verify and Capture ────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public PaymentResponse verifyPayment(VerifyPaymentRequest request) {
+        Payment payment = paymentRepository.findById(request.getPaymentId())
+                .orElseThrow(() -> new RuntimeException("Payment not found: " + request.getPaymentId()));
+
+        if (payment.getStatus() == Payment.PaymentStatus.COMPLETED) {
+            log.warn("Payment {} already completed — returning existing record", payment.getId());
+            return toResponse(payment);
+        }
+
+        // Hard gate: a payment can only be verified against the gateway order that
+        // /initiate actually issued to the gateway. Prevents completing payments on
+        // arbitrary order ids obtained outside the backend (e.g. pasting any id into
+        // the Razorpay checkout directly).
+        if (payment.getGatewayOrderId() == null || payment.getGatewayOrderId().isBlank()) {
+            throw new PaymentNotInitiatedException(
+                    "Payment " + payment.getId() + " has no gateway order — "
+                            + "/api/v1/payments/initiate must be called before /verify");
+        }
+        if (!payment.getGatewayOrderId().equals(request.getGatewayOrderId())) {
+            throw new PaymentNotInitiatedException(
+                    "gatewayOrderId " + request.getGatewayOrderId() + " does not match the order "
+                            + "issued at initiate (" + payment.getGatewayOrderId() + ")");
+        }
+
+        // Safety net: if the payment carries no correlation yet (e.g. /initiate won
+        // the race before the correlation sink was populated), resolve it now so the
+        // PaymentProcessedEvent / PaymentFailedEvent keep the saga trace intact.
+        if (payment.getCorrelationId() == null) {
+            UUID resolved = orderCorrelationRepository.findByOrderId(payment.getOrderId())
+                    .map(OrderCorrelation::getCorrelationId)
+                    .orElse(null);
+            if (resolved != null) {
+                payment.setCorrelationId(resolved);
+                paymentRepository.save(payment);
+                log.info("verifyPayment: resolved correlation {} for payment {} from order-correlation sink",
+                        resolved, payment.getId());
+            }
+        }
+
+        PaymentGatewayAdapter adapter = resolveAdapter(payment.getGateway());
+        boolean verified = adapter.verifyAndCapture(
+                request.getGatewayPaymentId(), request.getGatewayOrderId(), request.getGatewaySignature());
+
+        if (verified) {
+            payment.setStatus(Payment.PaymentStatus.COMPLETED);
+            payment.setGatewayPaymentId(request.getGatewayPaymentId());
+            payment.setGatewaySignature(request.getGatewaySignature());
+            payment.setTransactionId(generateTransactionId());
+            payment.setPaymentDate(Instant.now());
+            paymentRepository.save(payment);
+
+            // Notify saga
+            kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
+                    payment.getCorrelationId(), payment.getOrderId(), payment.getId(),
+                    payment.getCustomerId(), payment.getCustomerEmail(), payment.getShippingAddress()));
+            log.info("Payment verified and completed: id={}, txn={}", payment.getId(), payment.getTransactionId());
+        } else {
+            payment.setStatus(Payment.PaymentStatus.FAILED);
+            payment.setFailureReason("Gateway signature verification failed");
+            paymentRepository.save(payment);
+
+            kafkaTemplate.send(PAYMENT_TOPIC, new PaymentFailedEvent(
+                    payment.getCorrelationId(), payment.getOrderId(),
+                    payment.getCustomerId(), payment.getCustomerEmail(),
+                    "Signature verification failed"));
+            log.error("Payment verification failed: id={}", payment.getId());
+        }
+
+        return toResponse(payment);
+    }
+
+    // ── Refund ────────────────────────────────────────────────────────────────
+
+    @Override
+    @Transactional
+    public PaymentResponse refundPayment(RefundRequest request) {
+        Payment payment = paymentRepository.findById(request.getPaymentId())
+                .orElseThrow(() -> new RuntimeException("Payment not found: " + request.getPaymentId()));
+
+        if (payment.getStatus() != Payment.PaymentStatus.COMPLETED
+                && payment.getStatus() != Payment.PaymentStatus.PARTIALLY_REFUNDED) {
+            throw new IllegalStateException("Cannot refund payment in status: " + payment.getStatus());
+        }
+
+        if (payment.getGatewayPaymentId() == null) {
+            throw new IllegalStateException("No gateway payment ID on record — cannot initiate refund");
+        }
+
+        BigDecimal refundAmount = request.getAmount() != null ? request.getAmount() : payment.getAmount();
+        BigDecimal alreadyRefunded = payment.getRefundedAmount() != null ? payment.getRefundedAmount() : BigDecimal.ZERO;
+        BigDecimal newTotal = alreadyRefunded.add(refundAmount);
+
+        if (newTotal.compareTo(payment.getAmount()) > 0) {
+            throw new IllegalStateException(
+                    "Refund amount " + newTotal + " exceeds original payment " + payment.getAmount());
+        }
+
+        PaymentGatewayAdapter adapter = resolveAdapter(payment.getGateway());
+        String refundId = adapter.refund(payment.getGatewayPaymentId(), refundAmount);
+
+        payment.setRefundedAmount(newTotal);
+        payment.setRefundDate(Instant.now());
+        payment.setStatus(newTotal.compareTo(payment.getAmount()) == 0
+                ? Payment.PaymentStatus.REFUNDED
+                : Payment.PaymentStatus.PARTIALLY_REFUNDED);
+        paymentRepository.save(payment);
+
+        log.info("Refund processed: paymentId={}, refundId={}, amount={}, status={}",
+                payment.getId(), refundId, refundAmount, payment.getStatus());
+        return toResponse(payment);
+    }
+
+    // ── Queries ───────────────────────────────────────────────────────────────
+
+    @Override
+    public PaymentResponse getPaymentById(UUID paymentId) {
+        return toResponse(paymentRepository.findById(paymentId)
+                .orElseThrow(() -> new RuntimeException("Payment not found: " + paymentId)));
+    }
+
+    @Override
+    public PaymentResponse getPaymentByOrderId(UUID orderId) {
+        return toResponse(paymentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Payment not found for order: " + orderId)));
+    }
+
+    @Override
+    public List<PaymentResponse> getPaymentsByCustomerId(UUID customerId) {
+        return paymentRepository.findByCustomerId(customerId)
+                .stream().map(this::toResponse).collect(Collectors.toList());
+    }
+
+    // ── Webhook event handler ─────────────────────────────────────────────────
+
+    /**
+     * Called by WebhookController after signature has already been verified.
+     *
+     * Razorpay webhook payload structure:
+     * {
+     *   "event": "payment.captured",
+     *   "payload": {
+     *     "payment": {
+     *       "entity": {
+     *         "id": "pay_xxx",
+     *         "order_id": "order_xxx",
+     *         "amount": 50000,
+     *         "error_description": "..."
+     *       }
+     *     },
+     *     "refund": {
+     *       "entity": { "id": "rfnd_xxx", "payment_id": "pay_xxx", "amount": 10000 }
+     *     }
+     *   }
+     * }
+     */
+    @Override
+    @Transactional
+    public void handleWebhookEvent(String eventType, String webhookPayload) {
+        log.info("[Webhook] Received Razorpay event: {}", eventType);
+
+        try {
+            JsonNode root = objectMapper.readTree(webhookPayload);
+
+            switch (eventType) {
+// root
+// │
+// └── payload
+//      │
+//      └── payment
+//           │
+//           └── entity
+//                │
+//                ├── id
+//                ├── order_id
+//                ├── amount
+//                └── status
+
+                case "payment.captured" -> {
+                    JsonNode entity = root.path("payload").path("payment").path("entity");
+                    String gatewayPaymentId = entity.path("id").asText();
+                    String gatewayOrderId   = entity.path("order_id").asText();
+
+                    //Your code receives the entire JSON as:
+
+                    //String webhookPayload
+
+                    paymentRepository.findByGatewayOrderId(gatewayOrderId).ifPresentOrElse(payment -> {
+                        if (payment.getStatus() == Payment.PaymentStatus.COMPLETED) {
+                            log.info("[Webhook] payment.captured — already COMPLETED, skipping: {}", payment.getId());
+                            return;
+                        }
+                        payment.setStatus(Payment.PaymentStatus.COMPLETED);
+                        payment.setGatewayPaymentId(gatewayPaymentId);
+                        payment.setTransactionId(generateTransactionId());
+                        payment.setPaymentDate(Instant.now());
+                        paymentRepository.save(payment);
+
+                        kafkaTemplate.send(PAYMENT_TOPIC, new PaymentProcessedEvent(
+                                payment.getCorrelationId(), payment.getOrderId(), payment.getId(),
+                                payment.getCustomerId(), payment.getCustomerEmail(), payment.getShippingAddress()));
+
+                        log.info("[Webhook] payment.captured → COMPLETED: paymentId={}, txn={}",
+                                payment.getId(), payment.getTransactionId());
+
+                    }, () -> log.warn("[Webhook] payment.captured — no payment found for gatewayOrderId={}", gatewayOrderId));
+                }
+
+                case "payment.failed" -> {
+                    JsonNode entity = root.path("payload").path("payment").path("entity");
+                    String gatewayOrderId  = entity.path("order_id").asText();
+                    String errorDesc       = entity.path("error_description").asText("Payment failed at gateway");
+
+                    paymentRepository.findByGatewayOrderId(gatewayOrderId).ifPresentOrElse(payment -> {
+                        if (payment.getStatus() == Payment.PaymentStatus.FAILED) {
+                            log.info("[Webhook] payment.failed — already FAILED, skipping: {}", payment.getId());
+                            return;
+                        }
+                        payment.setStatus(Payment.PaymentStatus.FAILED);
+                        payment.setFailureReason(errorDesc);
+                        paymentRepository.save(payment);
+
+                        kafkaTemplate.send(PAYMENT_TOPIC, new PaymentFailedEvent(
+                                payment.getCorrelationId(), payment.getOrderId(),
+                                payment.getCustomerId(), payment.getCustomerEmail(), errorDesc));
+
+                        log.error("[Webhook] payment.failed → FAILED: paymentId={}, reason={}",
+                                payment.getId(), errorDesc);
+
+                    }, () -> log.warn("[Webhook] payment.failed — no payment found for gatewayOrderId={}", gatewayOrderId));
+                }
+
+                case "refund.created" -> {
+                    JsonNode entity          = root.path("payload").path("refund").path("entity");
+                    String gatewayPaymentId  = entity.path("payment_id").asText();
+                    long   refundPaise       = entity.path("amount").asLong(0);
+                    BigDecimal refundAmount  = BigDecimal.valueOf(refundPaise).divide(BigDecimal.valueOf(100));
+
+                    paymentRepository.findByGatewayPaymentId(gatewayPaymentId).ifPresentOrElse(payment -> {
+                        BigDecimal alreadyRefunded = payment.getRefundedAmount() != null
+                                ? payment.getRefundedAmount() : BigDecimal.ZERO;
+                        BigDecimal newTotal = alreadyRefunded.add(refundAmount);
+
+                        payment.setRefundedAmount(newTotal);
+                        payment.setRefundDate(Instant.now());
+                        payment.setStatus(newTotal.compareTo(payment.getAmount()) >= 0
+                                ? Payment.PaymentStatus.REFUNDED
+                                : Payment.PaymentStatus.PARTIALLY_REFUNDED);
+                        paymentRepository.save(payment);
+
+                        log.info("[Webhook] refund.created → {}: paymentId={}, refundAmount={}",
+                                payment.getStatus(), payment.getId(), refundAmount);
+
+                    }, () -> log.warn("[Webhook] refund.created — no payment found for gatewayPaymentId={}", gatewayPaymentId));
+                }
+
+                default -> log.info("[Webhook] Unhandled event type: {} — ignoring", eventType);
+            }
+
+        } catch (Exception e) {
+            log.error("[Webhook] Failed to process event {}: {}", eventType, e.getMessage(), e);
+            throw new RuntimeException("Webhook processing failed for event: " + eventType, e);
+        }
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    private GatewayOrderResponse resumePayment(Payment existing) {
+        PaymentGatewayAdapter adapter = resolveAdapter(existing.getGateway());
+        return GatewayOrderResponse.builder()
+                .paymentId(existing.getId())
+                .gatewayOrderId(existing.getGatewayOrderId())
+                .gatewayKey(adapter.getPublicKey())
+                .amount(existing.getAmount())
+                .currency(DEFAULT_CURRENCY)
+                .status(Payment.PaymentStatus.PENDING.name())
+                .build();
+    }
+
+    private PaymentGatewayAdapter resolveAdapter(Payment.PaymentGateway gateway) {
+        Map<Payment.PaymentGateway, PaymentGatewayAdapter> index = gatewayAdapters.stream()
+                .collect(Collectors.toMap(PaymentGatewayAdapter::getGateway, Function.identity()));
+        PaymentGatewayAdapter adapter = index.get(gateway);
+        if (adapter == null) {
+            // Fallback to MOCK so the service never hard-crashes during development
+            adapter = index.get(Payment.PaymentGateway.MOCK);
+            if (adapter == null) throw new IllegalStateException("No gateway adapter found for: " + gateway);
+        }
+        return adapter;
+    }
+
+    private String generateTransactionId() {
+        return "TXN-" + UUID.randomUUID().toString().replace("-", "").substring(0, 12).toUpperCase();
+    }
+
+    private PaymentResponse toResponse(Payment p) {
+        return PaymentResponse.builder()
+                .id(p.getId())
+                .orderId(p.getOrderId())
+                .customerId(p.getCustomerId())
+                .amount(p.getAmount())
+                .refundedAmount(p.getRefundedAmount())
+                .status(p.getStatus())
+                .gateway(p.getGateway())
+                .paymentMethod(p.getPaymentMethod())
+                .gatewayPaymentId(p.getGatewayPaymentId())
+                .transactionId(p.getTransactionId())
+                .failureReason(p.getFailureReason())
+                .paymentDate(p.getPaymentDate())
+                .refundDate(p.getRefundDate())
+                .createdAt(p.getCreatedAt())
+                .build();
+    }
+}

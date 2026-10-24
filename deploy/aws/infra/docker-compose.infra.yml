@@ -1,0 +1,15 @@
+# Compose override to run the shared infra (Postgres/Kafka/Redis/Mongo) on an
+# AWS EC2 host and let other VPC instances reach the Kafka broker.
+#
+# The base docker-compose.yml advertises EXTERNAL://localhost:9095, which makes
+# sense for local dev but breaks remote clients (they get told to connect to
+# their own localhost). Here the broker advertises this host's reachable IP.
+#
+# Usage (from the repo root on the infra EC2):
+#   KAFKA_EXTERNAL_HOST=<private-ip-of-this-host> \
+#     docker compose -f docker-compose.yml -f deploy/aws/infra/docker-compose.infra.yml \
+#     up -d kafka mongodb redis postgres kafka-ui
+services:
+  kafka:
+    environment:
+      KAFKA_ADVERTISED_LISTENERS: INTERNAL://kafka:29092,EXTERNAL://${KAFKA_EXTERNAL_HOST}:9095,CONTROLLER://kafka:19092

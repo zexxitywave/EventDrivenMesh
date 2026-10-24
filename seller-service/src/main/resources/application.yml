@@ -1,0 +1,47 @@
+server:
+  port: 8091
+
+spring:
+  application:
+    name: seller-service
+
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/seller_db?options=-c%20TimeZone=UTC&sslmode=disable
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+logging:
+  level:
+    com.hacisimsek.seller: DEBUG
+
+rapidapi:
+  kyc:
+    host: ${RAPIDAPI_KYC_HOST:idfy-verification-suite.p.rapidapi.com}
+    api-key: ${RAPIDAPI_KYC_KEY:}
+
+
+

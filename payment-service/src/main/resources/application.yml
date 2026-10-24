@@ -1,0 +1,165 @@
+server:
+  port: 8083
+
+spring:
+  application:
+    name: payment-service
+
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/payment_db?options=-c%20TimeZone=UTC&sslmode=disable
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        jdbc:
+          time_zone: UTC
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
+    consumer:
+      group-id: payment-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.interval.ms: 300000
+    listener:
+      ack-mode: record
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+  instance:
+    prefer-ip-address: true
+
+payment:
+  razorpay:
+    key-id: ${RAZORPAY_KEY_ID:rzp_test_placeholder}
+    key-secret: ${RAZORPAY_KEY_SECRET:rzp_secret_placeholder}
+    webhook-secret: ${RAZORPAY_WEBHOOK_SECRET:rzp_webhook_placeholder}
+  stripe:
+    secret-key: ${STRIPE_SECRET_KEY:sk_test_placeholder}
+    publishable-key: ${STRIPE_PUBLISHABLE_KEY:pk_test_placeholder}
+  # true  = saga auto-processes via MOCK (no browser needed)
+  # false = saga waits for manual Razorpay payment via /initiate endpoint
+  saga-auto-process: true
+  mock:
+    # true = MockGatewayAdapter.verifyAndCapture returns false → PaymentFailedEvent
+    # triggers: inventory stock released, order → CANCELLED
+    force-failure: false
+
+
+
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,chaosmonkey
+  endpoint:
+    health:
+      show-details: always
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+---
+# Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
+# Start with: --spring.profiles.active=chaos-monkey
+# Runtime control: GET  /actuator/chaosmonkey        (status)
+#                  POST /actuator/chaosmonkey/assaults (tune assaults live)
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey
+
+chaos:
+  monkey:
+    enabled: true
+    watcher:
+      rest-controller: true
+      service: true
+      repository: false
+    assaults:
+      latency-active: true
+      latency-range-start: 1000
+      latency-range-end: 3000
+      exceptions-active: true
+      kill-application-active: false
+
+
+
+
+#http://localhost:8083/index.html
+
+#
+#  POST http://localhost:8080/api/payments/verify
+#Authorization: Bearer {{accessToken}}
+#Content-Type: application/json
+#
+#  {
+#    "orderId": "98c44782-f8ec-4ff0-bf22-e276ffb43a4e",
+#    "gatewayOrderId": "order_TVKdLP8PiirJ3I...",
+#    "gatewayPaymentId": "pay_xxx",
+#    "gatewaySignature": "signature_xxx"
+#  }
+
+
+
+#  POST http://localhost:8080/api/payments/verify
+#Authorization: Bearer {{accessToken}}
+#Content-Type: application/json
+#
+#  {
+#    "orderId": "98c44782-f8ec-4ff0-bf22-e276ffb43a4e",
+#    "gatewayOrderId": "order_xxx",
+#    "gatewayPaymentId": "pay_xxx",
+#    "gatewaySignature": "signature_from_razorpay"
+#  }
+
+
+#
+#  POST http://localhost:8080/api/payments/initiate
+#Authorization: Bearer {{accessToken}}
+#Content-Type: application/json
+#
+#  {
+#    "orderId": "98c44782-f8ec-4ff0-bf22-e276ffb43a4e",
+#    "customerId": "11111111-1111-1111-1111-111111111111",
+#    "amount": 89999.00,
+#    "currency": "INR",
+#    "gateway": "RAZORPAY"
+#  }
+#
+#GET http://localhost:8080/api/orders/98c44782-f8ec-4ff0-bf22-e276ffb43a4e
+
+
+
+#
+#  SELECT *
+#  FROM transactions
+#  WHERE created_at >= CURRENT_TIMESTAMP - INTERVAL '5 days'
+#  ORDER BY created_at DESC;

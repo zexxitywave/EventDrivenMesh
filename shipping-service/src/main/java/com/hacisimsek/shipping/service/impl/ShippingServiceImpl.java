@@ -1,0 +1,256 @@
+package com.hacisimsek.shipping.service.impl;
+
+import com.hacisimsek.common.event.payment.PaymentProcessedEvent;
+import com.hacisimsek.common.event.shipping.ShipmentFailedEvent;
+import com.hacisimsek.common.event.shipping.ShipmentProcessedEvent;
+import com.hacisimsek.common.logging.LogPublisher;
+import com.hacisimsek.shipping.dto.DeliveryZoneSummary;
+import com.hacisimsek.shipping.geo.DeliveryZoneService;
+import com.hacisimsek.shipping.geo.GeocodingClient;
+import com.hacisimsek.shipping.model.Shipment;
+import com.hacisimsek.shipping.repository.ShipmentRepository;
+import com.hacisimsek.shipping.service.ShippingService;
+import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.UUID;
+import java.util.stream.Collectors;
+
+@Service
+@RequiredArgsConstructor
+@Slf4j
+public class ShippingServiceImpl implements ShippingService {
+
+    private final ShipmentRepository shipmentRepository;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final LogPublisher logPublisher;
+    private final GeocodingClient geocodingClient;
+    private final DeliveryZoneService deliveryZoneService;
+
+    private static final String SERVICE_NAME = "shipping-service";
+    private static final String[] CARRIERS = {"DHL", "FedEx", "UPS", "USPS"};
+
+    @org.springframework.beans.factory.annotation.Value("${shipping.force-failure:false}")
+    private boolean forceFailure;
+
+    @Override
+    @Transactional
+    public void processShipping(PaymentProcessedEvent paymentEvent) {
+        log.info("Processing shipping for order: {}", paymentEvent.getOrderId());
+
+        // ── Debug: force failure to test saga compensation ───────────────────
+        // Set shipping.force-failure=true in application.yml or as env var
+        // to simulate a shipping failure and observe the full saga rollback.
+        if (forceFailure) {
+            log.warn("[DEBUG] force-failure=true — simulating shipment failure for order: {}",
+                    paymentEvent.getOrderId());
+
+            logPublisher.error(SERVICE_NAME,
+                    paymentEvent.getCorrelationId() != null ? paymentEvent.getCorrelationId().toString() : null,
+                    "Shipment FORCE FAILED for order: " + paymentEvent.getOrderId(),
+                    Map.of("orderId", paymentEvent.getOrderId().toString(),
+                           "reason", "force-failure flag enabled for saga testing"));
+
+            ShipmentFailedEvent failedEvent = new ShipmentFailedEvent(
+                    paymentEvent.getCorrelationId(),
+                    paymentEvent.getOrderId(),
+                    paymentEvent.getCustomerId(),
+                    paymentEvent.getCustomerEmail(),
+                    "Simulated shipment failure (force-failure=true)"
+            );
+            kafkaTemplate.send("shipping-events", failedEvent);
+            return;
+        }
+
+        try {
+            // Real address captured at order time, geocoded here (free Nominatim/OSM).
+            String address = paymentEvent.getShippingAddress();
+            if (address == null || address.isBlank()) {
+                address = "123 Main St, New York, NY 10001"; // demo fallback
+            }
+
+            var geo = geocodingClient.geocode(address);
+            DeliveryZoneService.ZoneAssignment assignment = null;
+            if (geo.isPresent()) {
+                assignment = deliveryZoneService.assign(geo.get());
+                log.info("[Shipping] geocoded {} -> cell={} zone={} hub={} dist={}km carrier={}",
+                        address, assignment.h3Cell(), assignment.zoneId(),
+                        assignment.hubName(), assignment.distanceKm(), assignment.carrier());
+            } else {
+                log.warn("[Shipping] no geocode for '{}' — creating shipment without geo fields", address);
+            }
+
+            Instant eta = assignment != null
+                    ? assignment.estimatedDeliveryDate()
+                    : Instant.now().plus(3, ChronoUnit.DAYS);
+
+            Shipment shipment = Shipment.builder()
+                    .orderId(paymentEvent.getOrderId())
+                    .customerId(paymentEvent.getCustomerId() != null ? paymentEvent.getCustomerId() : UUID.randomUUID())
+                    .correlationId(paymentEvent.getCorrelationId())
+                    .status(Shipment.ShipmentStatus.PROCESSING)
+                    .carrierName(assignment != null ? assignment.carrier() : getRandomCarrier())
+                    .trackingNumber(generateTrackingNumber())
+                    .shippedDate(Instant.now())
+                    .estimatedDeliveryDate(eta)
+                    .shippingAddress(address)
+                    .recipientName("John Doe")
+                    .recipientPhone("(212) 555-1234")
+                    .latitude(geo.map(point -> point.lat()).orElse(null))
+                    .longitude(geo.map(point -> point.lng()).orElse(null))
+                    .h3Cell(assignment != null ? assignment.h3Cell() : null)
+                    .zoneId(assignment != null ? assignment.zoneId() : null)
+                    .hubName(assignment != null ? assignment.hubName() : null)
+                    .deliveryDistanceKm(assignment != null ? assignment.distanceKm() : null)
+                    .build();
+
+            Shipment savedShipment = shipmentRepository.save(shipment);
+
+            // Update shipment status to shipped
+            savedShipment.setStatus(Shipment.ShipmentStatus.SHIPPED);
+            shipmentRepository.save(savedShipment);
+
+            // Send shipment processed event
+            ShipmentProcessedEvent shipmentEvent = new ShipmentProcessedEvent(
+                    paymentEvent.getCorrelationId(),
+                    paymentEvent.getOrderId(),
+                    savedShipment.getId(),
+                    savedShipment.getCustomerId(),
+                    paymentEvent.getCustomerEmail(),
+                    savedShipment.getTrackingNumber()
+            );
+//            ShipmentProcessedEvent shipmentEvent = ShipmentProcessedEvent.builder()
+//                    .correlationId(paymentEvent.getCorrelationId())
+//                    .orderId(paymentEvent.getOrderId())
+//                    .shipmentId(savedShipment.getId())
+//                    .customerId(savedShipment.getCustomerId())
+//                    .customerEmail(paymentEvent.getCustomerEmail())
+//                    .trackingNumber(savedShipment.getTrackingNumber())
+//                    .build();
+
+            kafkaTemplate.send("shipping-events", shipmentEvent);
+            log.info("Order shipped successfully. Order ID: {}, Tracking: {}",
+                    paymentEvent.getOrderId(), savedShipment.getTrackingNumber());
+            logPublisher.info(SERVICE_NAME,
+                    paymentEvent.getCorrelationId() != null ? paymentEvent.getCorrelationId().toString() : null,
+                    "Shipment created for order: " + paymentEvent.getOrderId() + " | tracking: " + savedShipment.getTrackingNumber(),
+                    Map.of("orderId", paymentEvent.getOrderId().toString(),
+                           "shipmentId", savedShipment.getId().toString(),
+                           "trackingNumber", savedShipment.getTrackingNumber(),
+                           "carrier", savedShipment.getCarrierName(),
+                           "zoneId", savedShipment.getZoneId() != null ? savedShipment.getZoneId() : "unassigned"));
+//┌─────────────────────────────────────────────┐
+//│ level: INFO                                 │
+//│ service: shipping-service                   │
+//│ correlationId: corr-123                     │
+//│                                             │
+//│ message:                                    │
+//│ "Shipment created for order: ORD-1001       │
+//│  | tracking: TRK-987654"                    │
+//│                                             │
+//│ metadata:                                   │
+//│   orderId:       ORD-1001                   │
+//│   shipmentId:    SHIP-5001                  │
+//│   trackingNumber: TRK-987654                │
+//│   carrier:       DHL                        │
+//└─────────────────────────────────────────────┘
+
+
+        } catch (Exception e) {
+            log.error("Failed to process shipping for order: {}", paymentEvent.getOrderId(), e);
+            logPublisher.error(SERVICE_NAME,
+                    paymentEvent.getCorrelationId() != null ? paymentEvent.getCorrelationId().toString() : null,
+                    "Shipment failed for order: " + paymentEvent.getOrderId(),
+                    e,
+                    Map.of("orderId", paymentEvent.getOrderId().toString(),
+                           "reason", e.getMessage() != null ? e.getMessage() : "unknown"));
+
+            ShipmentFailedEvent failedEvent = new ShipmentFailedEvent(
+                    paymentEvent.getCorrelationId(),
+                    paymentEvent.getOrderId(),
+                    paymentEvent.getCustomerId(),
+                    paymentEvent.getCustomerEmail(),
+                    "Failed to process shipment: " + e.getMessage()
+            );
+
+            kafkaTemplate.send("shipping-events", failedEvent);
+        }
+    }
+
+    @Override
+    public Shipment getShipmentByOrderId(UUID orderId) {
+        return shipmentRepository.findByOrderId(orderId)
+                .orElseThrow(() -> new RuntimeException("Shipment not found for order: " + orderId));
+    }
+
+    @Override
+    public Shipment getShipmentById(UUID shipmentId) {
+        return shipmentRepository.findById(shipmentId)
+                .orElseThrow(() -> new RuntimeException("Shipment not found with ID: " + shipmentId));
+    }
+
+    @Override
+    public List<DeliveryZoneSummary> getZoneSummaries() {
+        return shipmentRepository.findAllByZoneIdIsNotNull().stream()
+                .collect(Collectors.groupingBy(Shipment::getZoneId))
+                .entrySet().stream()
+                .map(entry -> {
+                    List<Shipment> inZone = entry.getValue();
+                    Shipment first = inZone.get(0);
+                    double avgKm = inZone.stream()
+                            .mapToDouble(s -> s.getDeliveryDistanceKm() != null ? s.getDeliveryDistanceKm() : 0.0)
+                            .average().orElse(0.0);
+                    List<String> carriers = inZone.stream()
+                            .map(Shipment::getCarrierName)
+                            .distinct()
+                            .sorted()
+                            .collect(Collectors.toList());
+                    return new DeliveryZoneSummary(
+                            entry.getKey(),
+                            first.getHubName() != null ? first.getHubName() : "Unassigned",
+                            inZone.size(),
+                            carriers,
+                            Math.round(avgKm * 100.0) / 100.0,
+                            first.getH3Cell());
+                })
+                .sorted((a, b) -> Long.compare(b.shipmentCount(), a.shipmentCount()))
+                .collect(Collectors.toList());
+    }
+
+    private String getRandomCarrier() {
+        return CARRIERS[new Random().nextInt(CARRIERS.length)];
+    }
+
+    private String generateTrackingNumber() {
+        // Format: 2 letters + 9 digits + 2 letters
+        String letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+        StringBuilder sb = new StringBuilder();
+
+        Random random = new Random();
+
+        // First 2 letters
+        for (int i = 0; i < 2; i++) {
+            sb.append(letters.charAt(random.nextInt(letters.length())));
+        }
+
+        // 9 digits
+        for (int i = 0; i < 9; i++) {
+            sb.append(random.nextInt(10));
+        }
+
+        // Last 2 letters
+        for (int i = 0; i < 2; i++) {
+            sb.append(letters.charAt(random.nextInt(letters.length())));
+        }
+
+        return sb.toString();
+    }
+}

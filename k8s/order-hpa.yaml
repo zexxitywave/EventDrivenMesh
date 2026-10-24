@@ -1,0 +1,60 @@
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+
+metadata:
+  name: order-service-hpa
+
+spec:
+  # ── Target Deployment ────────────────────────────────────────────────────
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: order-service
+
+  # ── Pod count boundaries ─────────────────────────────────────────────────
+  minReplicas: 2   # never go below 2 (resilience baseline)
+  maxReplicas: 8   # cap to protect DB connection pool
+
+  # ── Scaling Metrics ──────────────────────────────────────────────────────
+  metrics:
+    # Scale up when average CPU across all pods exceeds 60%
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: 60
+
+    # Scale up when average memory across all pods exceeds 70%
+    - type: Resource
+      resource:
+        name: memory
+        target:
+          type: Utilization
+          averageUtilization: 70
+
+  # ── Scaling Behavior ─────────────────────────────────────────────────────
+  behavior:
+    scaleUp:
+      # React fast to traffic spikes
+      stabilizationWindowSeconds: 30
+      policies:
+        # Allow adding up to 2 pods every 30 seconds
+        - type: Pods
+          value: 2
+          periodSeconds: 30
+        # OR allow 100% increase every 60 seconds (whichever is larger)
+        - type: Percent
+          value: 100
+          periodSeconds: 60
+      selectPolicy: Max
+
+    scaleDown:
+      # Wait 2 minutes of sustained low traffic before removing pods
+      # Prevents flapping during brief load dips
+      stabilizationWindowSeconds: 120
+      policies:
+        # Remove at most 1 pod every 60 seconds on scale-down
+        - type: Pods
+          value: 1
+          periodSeconds: 60

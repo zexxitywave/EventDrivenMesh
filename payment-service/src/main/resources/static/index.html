@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Zexxity Store — Checkout</title>
+
+    <link rel="stylesheet" href="/css/style.css">
+
+    <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+</head>
+<body>
+
+<div class="container">
+
+    <!-- Step 1: Order lookup form -->
+    <div class="card" id="lookupSection">
+        <h1 class="store-title">Zexxity Store</h1>
+        <p class="subtitle">Enter your Order ID to proceed to payment</p>
+
+        <div class="form-group">
+            <label for="orderIdInput">Order ID</label>
+            <input
+                type="text"
+                id="orderIdInput"
+                placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            />
+        </div>
+
+        <div class="form-group">
+            <label for="customerIdInput">Customer ID</label>
+            <input
+                type="text"
+                id="customerIdInput"
+                placeholder="e.g. 3fa85f64-5717-4562-b3fc-2c963f66afa6"
+            />
+        </div>
+
+        <button id="loadOrderBtn">Load Order</button>
+
+        <div id="lookupError" class="error-msg"></div>
+    </div>
+
+    <!-- Step 2: Order summary + Pay button -->
+    <div class="card hidden" id="orderSection">
+        <h1 class="store-title">Order Summary</h1>
+
+        <div id="orderItems" class="order-items"></div>
+
+        <div class="total-row">
+            <span>Total</span>
+            <span id="orderTotal" class="total-amount"></span>
+        </div>
+
+        <div class="meta-row">
+            <span class="meta-label">Order ID</span>
+            <span id="displayOrderId" class="meta-value"></span>
+        </div>
+        <div class="meta-row">
+            <span class="meta-label">Status</span>
+            <span id="displayOrderStatus" class="meta-value"></span>
+        </div>
+
+        <div class="form-group" style="margin-top: 16px;">
+            <label for="gatewaySelect">Payment Gateway</label>
+            <select id="gatewaySelect">
+                <option value="RAZORPAY">Razorpay</option>
+                <option value="MOCK">Mock (Dev)</option>
+            </select>
+        </div>
+
+        <button id="payBtn">Pay Now</button>
+        <button id="backBtn" class="btn-secondary">← Back</button>
+
+        <div id="status"></div>
+    </div>
+
+</div>
+
+<script src="/js/app.js"></script>
+
+</body>
+</html>

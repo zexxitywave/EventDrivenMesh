@@ -1,0 +1,101 @@
+{
+  "title": "E-Commerce Microservices",
+  "uid": "ecommerce-main",
+  "schemaVersion": 38,
+  "version": 1,
+  "refresh": "15s",
+  "panels": [
+    {
+      "id": 1,
+      "title": "HTTP Request Rate (req/sec)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 0, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "rate(http_server_requests_seconds_count{job=~\"order-service|analytics-service\"}[1m])",
+        "legendFormat": "{{service}} {{uri}}"
+      }]
+    },
+    {
+      "id": 2,
+      "title": "HTTP Latency p99 (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 0, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "histogram_quantile(0.99, rate(http_server_requests_seconds_bucket{job=~\"order-service|analytics-service\"}[1m])) * 1000",
+        "legendFormat": "{{service}} p99"
+      }]
+    },
+    {
+      "id": 3,
+      "title": "HTTP Latency p50 / p95 (ms)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 8, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "histogram_quantile(0.50, rate(http_server_requests_seconds_bucket{job=\"order-service\"}[1m])) * 1000",
+          "legendFormat": "order-service p50"
+        },
+        {
+          "expr": "histogram_quantile(0.95, rate(http_server_requests_seconds_bucket{job=\"order-service\"}[1m])) * 1000",
+          "legendFormat": "order-service p95"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "title": "Kafka Events Consumed (analytics-service)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 8, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "rate(spring_kafka_listener_seconds_count{job=\"analytics-service\"}[1m])",
+        "legendFormat": "batches/sec"
+      }]
+    },
+    {
+      "id": 5,
+      "title": "JVM Heap Used (MB)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 16, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "jvm_memory_used_bytes{job=~\"order-service|analytics-service\", area=\"heap\"} / 1048576",
+        "legendFormat": "{{service}} heap MB"
+      }]
+    },
+    {
+      "id": 6,
+      "title": "DB Connection Pool (HikariCP)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 16, "w": 12, "h": 8 },
+      "targets": [
+        {
+          "expr": "hikaricp_connections_active{job=~\"order-service|analytics-service\"}",
+          "legendFormat": "{{service}} active"
+        },
+        {
+          "expr": "hikaricp_connections_idle{job=~\"order-service|analytics-service\"}",
+          "legendFormat": "{{service}} idle"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "title": "CPU Usage (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 0, "y": 24, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "process_cpu_usage{job=~\"order-service|analytics-service\"} * 100",
+        "legendFormat": "{{service}} CPU%"
+      }]
+    },
+    {
+      "id": 8,
+      "title": "HTTP Error Rate (%)",
+      "type": "timeseries",
+      "gridPos": { "x": 12, "y": 24, "w": 12, "h": 8 },
+      "targets": [{
+        "expr": "rate(http_server_requests_seconds_count{job=\"order-service\", status=~\"4..|5..\"}[1m]) / rate(http_server_requests_seconds_count{job=\"order-service\"}[1m]) * 100",
+        "legendFormat": "order-service error%"
+      }]
+    }
+  ]
+}

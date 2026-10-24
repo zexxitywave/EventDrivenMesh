@@ -1,0 +1,108 @@
+server:
+  port: ${SERVER_PORT:8081}
+  shutdown: graceful
+
+spring:
+  application:
+    name: order-service
+  lifecycle:
+    timeout-per-shutdown-phase: 30s
+
+  datasource:
+    url: jdbc:postgresql://${DB_HOST:localhost}:${DB_PORT:5432}/order_db
+    username: ${DB_USER:postgres}
+    password: ${DB_PASSWORD:postgres}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: ${DB_POOL_MAX:10}
+      minimum-idle: ${DB_POOL_MIN:2}
+      connection-timeout: 30000
+      idle-timeout: 600000
+      max-lifetime: 1800000
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: false
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: true
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.interval.ms: 300000
+    listener:
+      ack-mode: record
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:${EUREKA_PORT:8761}/eureka/
+  instance:
+    prefer-ip-address: true
+    instance-id: ${EUREKA_INSTANCE_ID:${spring.application.name}:${INSTANCE_ID:${HOSTNAME:${server.port}}}}
+    metadata-map:
+      instanceId: ${INSTANCE_ID:${HOSTNAME:${server.port}}}
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,prometheus,metrics,chaosmonkey
+  endpoint:
+    health:
+      show-details: always
+      probes:
+        enabled: true
+    prometheus:
+      enabled: true
+  metrics:
+    tags:
+      application: ${spring.application.name}
+      instance: ${INSTANCE_ID:${HOSTNAME:${server.port}}}
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+
+logging:
+  level:
+    com.hacisimsek.order: INFO
+
+---
+# Chaos Monkey for Spring Boot — activates ONLY with the 'chaos-monkey' profile.
+# Start with: --spring.profiles.active=chaos-monkey
+# Runtime control: GET  /actuator/chaosmonkey        (status)
+#                  POST /actuator/chaosmonkey/assaults (tune assaults live)
+spring:
+  config:
+    activate:
+      on-profile: chaos-monkey
+
+chaos:
+  monkey:
+    enabled: true
+    watcher:
+      rest-controller: true
+      service: true
+      repository: false
+    assaults:
+      latency-active: true
+      latency-range-start: 1000
+      latency-range-end: 3000
+      exceptions-active: true
+      kill-application-active: false

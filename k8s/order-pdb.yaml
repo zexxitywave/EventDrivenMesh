@@ -1,0 +1,21 @@
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+
+metadata:
+  name: order-service-pdb
+
+spec:
+  # ── Selector must match Deployment pod labels ────────────────────────────
+  selector:
+    matchLabels:
+      app: order-service
+
+  # ── Minimum available pods during voluntary disruptions ─────────────────
+  # Voluntary disruptions = node drain, rolling update, cluster upgrade
+  # With minAvailable: 1, Kubernetes will never voluntarily take down
+  # the last running pod. At least 1 pod stays up at all times.
+  #
+  # Use minAvailable OR maxUnavailable, not both.
+  # minAvailable: 1  → absolute count
+  # minAvailable: "50%"  → percentage (rounds up)
+  minAvailable: 1

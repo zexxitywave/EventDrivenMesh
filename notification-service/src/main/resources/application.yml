@@ -1,0 +1,64 @@
+server:
+  port: 8084
+
+spring:
+  application:
+    name: notification-service
+
+  data:
+    mongodb:
+      uri: mongodb://${MONGO_HOST:localhost}:${MONGO_PORT:27017}/notification_db
+
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+
+  kafka:
+    bootstrap-servers: ${KAFKA_BOOTSTRAP_SERVERS:localhost:9095}
+    consumer:
+      group-id: notification-service-group
+      auto-offset-reset: earliest
+      enable-auto-commit: false
+      properties:
+        session.timeout.ms: 30000
+        heartbeat.interval.ms: 10000
+        max.poll.interval.ms: 300000
+
+    listener:
+      ack-mode: record
+
+  mail:
+    host: smtp.resend.com
+    port: 587
+    username: resend
+    password: ${MAIL_PASSWORD}
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: false
+          starttls:
+            enable: true
+
+  aop:
+    proxy-target-class: true
+
+app:
+  notification:
+    from-email: noreply@zexxity.online
+    max-retry-attempts: 3
+    retry-base-delay-minutes: 10
+    dlq-topic: notification-dlq
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://${EUREKA_HOST:localhost}:8761/eureka/
+
+  instance:
+    prefer-ip-address: true
+
+
+

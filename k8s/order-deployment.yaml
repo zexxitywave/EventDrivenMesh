@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+
+metadata:
+  name: order-service
+  labels:
+    app: order-service
+    version: v1
+
+spec:
+  replicas: 2
+
+  selector:
+    matchLabels:
+      app: order-service
+
+  # Zero-downtime rolling update:
+  # maxUnavailable: 0  = never kill old pod before new one passes readiness
+  # maxSurge: 1        = spin up 1 extra pod during the update
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+
+  template:
+    metadata:
+      labels:
+        app: order-service
+        version: v1
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/path: "/actuator/prometheus"
+        prometheus.io/port: "8051"
+
+    spec:
+      terminationGracePeriodSeconds: 60
+
+      affinity:
+        podAntiAffinity:
+          preferredDuringSchedulingIgnoredDuringExecution:
+            - weight: 100
+              podAffinityTerm:
+                labelSelector:
+                  matchExpressions:
+                    - key: app
+                      operator: In
+                      values:
+                        - order-service
+                topologyKey: kubernetes.io/hostname
+
+      containers:
+        - name: order-service
+          image: order-service:latest
+          imagePullPolicy: Never
+
+          ports:
+            - name: http
+              containerPort: 8051
+
+          envFrom:
+            - configMapRef:
+                name: order-service-config
+            - secretRef:
+                name: order-service-secret
+
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: k8s
+            - name: POD_NAME
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.name
+            - name: POD_NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+
+          resources:
+            requests:
+              cpu: 250m
+              memory: 512Mi
+            limits:
+              cpu: 500m
+              memory: 1Gi
+
+          # Startup probe: gives Spring Boot up to 300s to start (30 x 10s)
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: 8051
+            failureThreshold: 30
+            periodSeconds: 10
+
+          # Liveness probe: restarts pod if it becomes unresponsive
+          livenessProbe:
+            httpGet:
+              path: /actuator/health/liveness
+              port: 8051
+            initialDelaySeconds: 0
+            periodSeconds: 15
+            failureThreshold: 3
+            timeoutSeconds: 5
+
+          # Readiness probe: removes pod from Service until it can serve traffic
+          readinessProbe:
+            httpGet:
+              path: /actuator/health/readiness
+              port: 8051
+            initialDelaySeconds: 0
+            periodSeconds: 10
+            failureThreshold: 3
+            timeoutSeconds: 5
+
+          # preStop: give load balancer 10s to drain connections before SIGTERM
+          lifecycle:
+            preStop:
+              exec:
+                command: ["sh", "-c", "sleep 10"]
