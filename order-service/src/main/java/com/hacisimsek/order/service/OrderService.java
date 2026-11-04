@@ -2,8 +2,10 @@ package com.hacisimsek.order.service;
 
 import com.hacisimsek.order.dto.OrderRequest;
 import com.hacisimsek.order.dto.OrderResponse;
+import com.hacisimsek.order.dto.PurchaseCheckResponse;
 import com.hacisimsek.order.model.Order;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -39,4 +41,13 @@ public interface OrderService {
     void recordCompensationEvent(UUID orderId, UUID correlationId,
                                  String eventType, String previousStatus,
                                  String newStatus, String details);
+
+    /**
+     * Purchase check for abandoned-cart recovery.
+     *
+     * @param customerId customer whose orders should be inspected
+     * @param productIds cart product IDs; null/empty means "any product"
+     * @param since      only orders created at/after this instant count
+     */
+    PurchaseCheckResponse checkPurchased(UUID customerId, List<UUID> productIds, Instant since);
 }

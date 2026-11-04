@@ -19,6 +19,15 @@ public class Cart implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
+    /**
+     * Abandoned-cart recovery state, advanced by the n8n workflow through
+     * {@code PATCH /api/v1/cart/internal/{userId}/reminder-state}.
+     */
+    private ReminderStage reminderStage = ReminderStage.NONE;
+
+    /** When the last recovery email was sent for this abandoned period. */
+    private Instant lastReminderAt;
+
     public Cart() {}
 
     public Cart(UUID cartId, UUID userId, List<CartItem> items,
@@ -29,6 +38,7 @@ public class Cart implements Serializable {
         this.grandTotal = grandTotal != null ? grandTotal : BigDecimal.ZERO;
         this.createdAt = createdAt;
         this.updatedAt = updatedAt;
+        this.reminderStage = ReminderStage.NONE;
     }
 
     // Builder
@@ -41,6 +51,8 @@ public class Cart implements Serializable {
         private BigDecimal grandTotal = BigDecimal.ZERO;
         private Instant createdAt;
         private Instant updatedAt;
+        private ReminderStage reminderStage = ReminderStage.NONE;
+        private Instant lastReminderAt;
 
         public Builder cartId(UUID cartId) { this.cartId = cartId; return this; }
         public Builder userId(UUID userId) { this.userId = userId; return this; }
@@ -48,8 +60,13 @@ public class Cart implements Serializable {
         public Builder grandTotal(BigDecimal grandTotal) { this.grandTotal = grandTotal; return this; }
         public Builder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
         public Builder updatedAt(Instant updatedAt) { this.updatedAt = updatedAt; return this; }
+        public Builder reminderStage(ReminderStage reminderStage) { this.reminderStage = reminderStage; return this; }
+        public Builder lastReminderAt(Instant lastReminderAt) { this.lastReminderAt = lastReminderAt; return this; }
         public Cart build() {
-            return new Cart(cartId, userId, items, grandTotal, createdAt, updatedAt);
+            Cart cart = new Cart(cartId, userId, items, grandTotal, createdAt, updatedAt);
+            cart.setReminderStage(reminderStage);
+            cart.setLastReminderAt(lastReminderAt);
+            return cart;
         }
     }
 
@@ -83,4 +100,10 @@ public class Cart implements Serializable {
 
     public Instant getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(Instant updatedAt) { this.updatedAt = updatedAt; }
+
+    public ReminderStage getReminderStage() { return reminderStage; }
+    public void setReminderStage(ReminderStage reminderStage) { this.reminderStage = reminderStage; }
+
+    public Instant getLastReminderAt() { return lastReminderAt; }
+    public void setLastReminderAt(Instant lastReminderAt) { this.lastReminderAt = lastReminderAt; }
 }

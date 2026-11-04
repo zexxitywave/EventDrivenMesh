@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Location Service</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+      background: #f0f4f8;
+      color: #1a202c;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 2rem 1rem;
+    }
+
+    h1   { font-size: 1.75rem; font-weight: 700; margin-bottom: .25rem; }
+    .sub { color: #718096; margin-bottom: 2rem; }
+
+    .card {
+      background: #fff;
+      border-radius: 12px;
+      box-shadow: 0 4px 20px rgba(0,0,0,.08);
+      padding: 2rem;
+      width: 100%;
+      max-width: 540px;
+    }
+
+    /* Buttons */
+    .btn {
+      display: inline-flex; align-items: center; gap: .5rem;
+      padding: .75rem 1.5rem; border: none; border-radius: 8px;
+      font-size: 1rem; font-weight: 600; cursor: pointer;
+      transition: background .2s, transform .1s;
+      width: 100%; justify-content: center;
+    }
+    .btn:active   { transform: scale(.98); }
+    .btn-primary  { background: #4f46e5; color: #fff; }
+    .btn-primary:hover   { background: #4338ca; }
+    .btn-primary:disabled { background: #a5b4fc; cursor: not-allowed; transform: none; }
+    .btn-secondary { background: #e2e8f0; color: #2d3748; margin-top: .75rem; }
+    .btn-secondary:hover { background: #cbd5e0; }
+    .btn-secondary:disabled { opacity: .5; cursor: not-allowed; transform: none; }
+
+    /* Status */
+    #status {
+      margin-top: 1.25rem; padding: .75rem 1rem;
+      border-radius: 8px; font-size: .9rem; display: none;
+    }
+    #status.info    { background: #ebf8ff; color: #2b6cb0; border: 1px solid #bee3f8; }
+    #status.success { background: #f0fff4; color: #276749; border: 1px solid #c6f6d5; }
+    #status.warning { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; }
+    #status.error   { background: #fff5f5; color: #c53030; border: 1px solid #fed7d7; }
+
+    /* Accuracy badge */
+    .acc-badge {
+      display: inline-block;
+      padding: .2rem .6rem; border-radius: 999px;
+      font-size: .78rem; font-weight: 700; margin-left: .4rem;
+    }
+    .acc-good    { background: #c6f6d5; color: #22543d; }
+    .acc-fair    { background: #fefcbf; color: #744210; }
+    .acc-poor    { background: #fed7d7; color: #742a2a; }
+
+    /* Result grid */
+    #result { margin-top: 1.5rem; display: none; }
+    #result h2 { font-size: 1rem; font-weight: 600; margin-bottom: .75rem; color: #4a5568; }
+
+    .field        { display: flex; flex-direction: column; margin-bottom: .75rem; }
+    .field label  { font-size: .72rem; font-weight: 700; color: #718096;
+                    text-transform: uppercase; letter-spacing: .05em; margin-bottom: .2rem; }
+    .field span   { font-size: .95rem; color: #1a202c; word-break: break-word; }
+
+    .coords { display: grid; grid-template-columns: 1fr 1fr; gap: .75rem; }
+
+    /* Map link */
+    #mapLink { display: none; margin-top: 1rem; text-align: center; }
+    #mapLink a { color: #4f46e5; font-size: .9rem; font-weight: 600; text-decoration: none; }
+    #mapLink a:hover { text-decoration: underline; }
+
+    /* Hint box */
+    .hint {
+      margin-top: 1rem; padding: .65rem .9rem;
+      background: #f7fafc; border-left: 3px solid #a0aec0;
+      border-radius: 4px; font-size: .82rem; color: #4a5568; display: none;
+    }
+
+    /* Spinner */
+    .spinner {
+      width: 18px; height: 18px;
+      border: 3px solid rgba(255,255,255,.4);
+      border-top-color: #fff; border-radius: 50%;
+      animation: spin .7s linear infinite; display: none;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* Progress bar for high-accuracy wait */
+    #progressWrap { display: none; margin-top: .75rem; }
+    #progressBar  {
+      height: 4px; background: #e2e8f0; border-radius: 2px; overflow: hidden;
+    }
+    #progressFill {
+      height: 100%; width: 0%; background: #4f46e5;
+      transition: width .4s linear;
+    }
+    #progressLabel { font-size: .78rem; color: #718096; margin-top: .3rem; }
+  </style>
+</head>
+<body>
+
+  <h1>📍 Location Service</h1>
+  <p class="sub">Detects your position and stores it securely.</p>
+
+  <div class="card">
+
+    <!-- Primary detect button -->
+    <button class="btn btn-primary" id="detectBtn" onclick="detectLocation(false)">
+      <span class="spinner" id="spinner"></span>
+      <span id="btnText">Detect My Location</span>
+    </button>
+
+    <!-- High-accuracy retry (shown after a coarse result) -->
+    <button class="btn btn-secondary" id="retryBtn"
+            onclick="detectLocation(true)" style="display:none">
+      🎯 Retry with Maximum Accuracy (takes up to 30 s)
+    </button>
+
+    <!-- Progress bar shown during high-accuracy wait -->
+    <div id="progressWrap">
+      <div id="progressBar"><div id="progressFill"></div></div>
+      <div id="progressLabel">Waiting for a precise fix… 0 s / 30 s</div>
+    </div>
+
+    <div id="status"></div>
+
+    <!-- Hint shown when accuracy is poor -->
+    <div class="hint" id="accuracyHint">
+      💡 <strong>Desktop/laptop?</strong> Your device has no GPS chip, so the browser
+      uses Wi-Fi / IP triangulation (typically ±50–500 m). For street-level accuracy,
+      open this page on a <strong>mobile phone</strong> browser and allow GPS.
+    </div>
+
+    <div id="result">
+      <h2>Your Location Details</h2>
+
+      <div class="field">
+        <label>Full Address</label>
+        <span id="resAddress">—</span>
+      </div>
+
+      <div class="coords">
+        <div class="field"><label>Latitude</label><span id="resLat">—</span></div>
+        <div class="field"><label>Longitude</label><span id="resLon">—</span></div>
+      </div>
+
+      <div class="coords">
+        <div class="field"><label>City</label><span id="resCity">—</span></div>
+        <div class="field"><label>Country</label><span id="resCountry">—</span></div>
+      </div>
+
+      <div class="field">
+        <label>Accuracy</label>
+        <span id="resAccuracy">—</span>
+      </div>
+
+      <div class="field">
+        <label>Saved at</label>
+        <span id="resSavedAt">—</span>
+      </div>
+    </div>
+
+    <div id="mapLink">
+      <a id="mapAnchor" target="_blank" rel="noopener noreferrer">🗺️ View on Google Maps</a>
+    </div>
+
+  </div>
+
+  <script>
+    // ── Helpers ───────────────────────────────────────────────────────────────
+
+    function setStatus(msg, type) {
+      const el = document.getElementById('status');
+      el.textContent   = msg;
+      el.className     = type;
+      el.style.display = 'block';
+    }
+
+    function setLoading(loading) {
+      document.getElementById('detectBtn').disabled          = loading;
+      document.getElementById('spinner').style.display       = loading ? 'block' : 'none';
+      document.getElementById('btnText').textContent         = loading ? 'Detecting…' : 'Detect My Location';
+    }
+
+    function accuracyClass(metres) {
+      if (metres <= 50)  return 'acc-good';
+      if (metres <= 200) return 'acc-fair';
+      return 'acc-poor';
+    }
+
+    function accuracyLabel(metres) {
+      if (metres <= 50)  return 'Good';
+      if (metres <= 200) return 'Fair';
+      return 'Poor';
+    }
+
+    function displayResult(data) {
+      document.getElementById('resAddress').textContent  = data.address || 'Not available';
+      document.getElementById('resLat').textContent      = data.latitude?.toFixed(7)  ?? '—';
+      document.getElementById('resLon').textContent      = data.longitude?.toFixed(7) ?? '—';
+      document.getElementById('resCity').textContent     = data.city    || '—';
+      document.getElementById('resCountry').textContent  = data.country || '—';
+
+      if (data.accuracy != null) {
+        const m   = Math.round(data.accuracy);
+        const cls = accuracyClass(m);
+        const lbl = accuracyLabel(m);
+        document.getElementById('resAccuracy').innerHTML =
+          `±${m} metres <span class="acc-badge ${cls}">${lbl}</span>`;
+
+        // Show hint + retry for poor accuracy
+        if (m > 200) {
+          document.getElementById('accuracyHint').style.display = 'block';
+          document.getElementById('retryBtn').style.display     = 'block';
+        }
+      } else {
+        document.getElementById('resAccuracy').textContent = '—';
+      }
+
+      document.getElementById('resSavedAt').textContent = data.createdAt
+          ? new Date(data.createdAt).toLocaleString() : '—';
+
+      document.getElementById('result').style.display  = 'block';
+
+      const anchor = document.getElementById('mapAnchor');
+      anchor.href  = `https://www.google.com/maps?q=${data.latitude},${data.longitude}`;
+      document.getElementById('mapLink').style.display = 'block';
+    }
+
+    // ── High-accuracy progress bar ────────────────────────────────────────────
+
+    let progressTimer = null;
+
+    function startProgress(maxSeconds) {
+      const wrap  = document.getElementById('progressWrap');
+      const fill  = document.getElementById('progressFill');
+      const label = document.getElementById('progressLabel');
+      wrap.style.display = 'block';
+      let elapsed = 0;
+      fill.style.width = '0%';
+      progressTimer = setInterval(() => {
+        elapsed++;
+        fill.style.width  = `${Math.min((elapsed / maxSeconds) * 100, 100)}%`;
+        label.textContent = `Waiting for a precise fix… ${elapsed} s / ${maxSeconds} s`;
+        if (elapsed >= maxSeconds) stopProgress();
+      }, 1000);
+    }
+
+    function stopProgress() {
+      if (progressTimer) { clearInterval(progressTimer); progressTimer = null; }
+      document.getElementById('progressWrap').style.display = 'none';
+    }
+
+    // ── Core flow ─────────────────────────────────────────────────────────────
+
+    function detectLocation(highAccuracy) {
+      if (!navigator.geolocation) {
+        setStatus('Your browser does not support Geolocation.', 'error');
+        return;
+      }
+
+      setLoading(true);
+      document.getElementById('result').style.display      = 'none';
+      document.getElementById('mapLink').style.display     = 'none';
+      document.getElementById('retryBtn').style.display    = 'none';
+      document.getElementById('accuracyHint').style.display = 'none';
+
+      const timeout = highAccuracy ? 30000 : 10000;
+
+      if (highAccuracy) {
+        setStatus('Requesting high-accuracy GPS fix… this can take up to 30 seconds.', 'info');
+        startProgress(30);
+      } else {
+        setStatus('Requesting location permission from your browser…', 'info');
+      }
+
+      navigator.geolocation.getCurrentPosition(
+        onPositionSuccess,
+        onPositionError,
+        {
+          enableHighAccuracy: true,   // always request the best the device has
+          timeout:            timeout,
+          maximumAge:         0       // never use a cached position
+        }
+      );
+    }
+
+    async function onPositionSuccess(position) {
+      stopProgress();
+      const { latitude, longitude, accuracy } = position.coords;
+      setStatus('Location obtained. Saving to server…', 'info');
+
+      try {
+        const response = await fetch('/api/location', {
+          method:  'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body:    JSON.stringify({ latitude, longitude, accuracy })
+        });
+
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({}));
+          const msg = err.errors ? err.errors.join(', ') : (err.error || 'Server error.');
+          throw new Error(msg);
+        }
+
+        const data = await response.json();
+
+        // Warn if address came back empty
+        if (!data.address) {
+          setStatus('Location saved, but address lookup failed (Nominatim may be slow). Try again in a moment.', 'warning');
+        } else {
+          setStatus('Location saved successfully!', 'success');
+        }
+
+        displayResult(data);
+
+      } catch (err) {
+        setStatus(`Error: ${err.message}`, 'error');
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    function onPositionError(error) {
+      stopProgress();
+      setLoading(false);
+      const messages = {
+        1: 'Permission denied. Allow location access in your browser settings and try again.',
+        2: 'Position unavailable. Check that Wi-Fi or GPS is enabled.',
+        3: 'Timed out waiting for a GPS fix. Try clicking "Retry with Maximum Accuracy".'
+      };
+      setStatus(messages[error.code] || 'Unknown error.', 'error');
+      // Always show retry on timeout so user can try again
+      if (error.code === 3) {
+        document.getElementById('retryBtn').style.display = 'block';
+      }
+    }
+  </script>
+
+</body>
+</html>

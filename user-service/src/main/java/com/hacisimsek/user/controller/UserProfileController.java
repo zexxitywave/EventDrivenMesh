@@ -2,6 +2,7 @@ package com.hacisimsek.user.controller;
 
 import com.hacisimsek.user.dto.AddressRequest;
 import com.hacisimsek.user.dto.CreateProfileRequest;
+import com.hacisimsek.user.dto.CustomerContactResponse;
 import com.hacisimsek.user.dto.PreferencesRequest;
 import com.hacisimsek.user.dto.UpdateProfileRequest;
 import com.hacisimsek.user.model.Address;
@@ -31,6 +32,17 @@ import java.util.UUID;
 public class UserProfileController {
 
     private final UserProfileService userProfileService;
+
+    /**
+     * Contact lookup for internal automation (n8n abandoned-cart workflow).
+     * 404 when no profile exists, so the workflow can fall back to a test email.
+     */
+    @GetMapping("/internal/{userId}")
+    public ResponseEntity<CustomerContactResponse> getContact(@PathVariable UUID userId) {
+        return userProfileService.getContact(userId)
+                .map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.notFound().build());
+    }
 
     // â”€â”€ Profile Endpoints â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 

@@ -3,6 +3,7 @@ package com.hacisimsek.order.controller;
 import com.hacisimsek.order.dto.BulkOrderRequest;
 import com.hacisimsek.order.dto.OrderRequest;
 import com.hacisimsek.order.dto.OrderResponse;
+import com.hacisimsek.order.dto.PurchaseCheckResponse;
 import com.hacisimsek.order.eventsourcing.OrderEvent;
 import com.hacisimsek.order.eventsourcing.OrderEventService;
 import com.hacisimsek.order.model.Order;
@@ -16,12 +17,14 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -74,6 +77,25 @@ public class OrderController {
     @GetMapping("/customer/{customerId}")
     public List<OrderReadResponse> getOrdersByCustomerId(@PathVariable UUID customerId) {
         return orderReadService.getByCustomerId(customerId);
+    }
+
+    /**
+     * Purchase check used by the n8n abandoned-cart recovery workflow.
+     *
+     * <p>Reads the write model (not the CQRS projection) so a checkout that
+     * happened seconds ago is visible immediately. An order counts as a
+     * purchase when it was created at/after {@code since}, is not
+     * CANCELLED/FAILED, and contains at least one of {@code productIds}.</p>
+     *
+     * <p>Example: {@code GET /api/v1/orders/customer/{id}/purchased?productIds=a,b&since=2026-11-02T10:15:30Z}</p>
+     */
+    @GetMapping("/customer/{customerId}/purchased")
+    public PurchaseCheckResponse checkPurchased(
+            @PathVariable UUID customerId,
+            @RequestParam(required = false) List<UUID> productIds,
+            @RequestParam(required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) Instant since) {
+        return orderService.checkPurchased(customerId, productIds, since);
     }
 
     /**

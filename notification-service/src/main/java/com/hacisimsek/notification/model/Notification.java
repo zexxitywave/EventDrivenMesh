@@ -72,7 +72,9 @@ public class Notification {
         ORDER_SHIPPED,
         ORDER_DELIVERED,
         OTP_VERIFICATION,
-        PASSWORD_RESET
+        PASSWORD_RESET,
+        ABANDONED_CART_REMINDER,
+        ABANDONED_CART_COUPON
     }
 
     public enum NotificationStatus {

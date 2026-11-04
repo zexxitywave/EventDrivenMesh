@@ -1,6 +1,7 @@
 package com.hacisimsek.cart.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.hacisimsek.cart.dto.AbandonedCartResponse;
 import com.hacisimsek.cart.dto.AddToCartRequest;
 import com.hacisimsek.cart.dto.CheckoutItemRequest;
 import com.hacisimsek.cart.dto.CheckoutRequest;
@@ -9,6 +10,7 @@ import com.hacisimsek.cart.dto.ProductResponse;
 import com.hacisimsek.cart.dto.UpdateCartItemRequest;
 import com.hacisimsek.cart.model.Cart;
 import com.hacisimsek.cart.model.CartItem;
+import com.hacisimsek.cart.model.ReminderStage;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
@@ -19,8 +21,13 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import java.math.BigDecimal;
+import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 
@@ -85,6 +92,7 @@ public class CartService {
         }
 
         cart.recalculate();
+        markActive(cart);
         return saveCart(cart);
     }
 
@@ -108,6 +116,7 @@ public class CartService {
         item.setTotalPrice(product.getPrice().multiply(BigDecimal.valueOf(request.getQuantity())));
 
         cart.recalculate();
+        markActive(cart);
         return saveCart(cart);
     }
 
@@ -119,6 +128,7 @@ public class CartService {
             throw new RuntimeException("Item not in cart: " + productId);
         }
         cart.recalculate();
+        markActive(cart);
         return saveCart(cart);
     }
 
@@ -133,6 +143,128 @@ public class CartService {
     public void clearCart(UUID userId) {
         cartRedisTemplate.delete(cartKey(userId));
         log.info("Cart cleared for user: {}", userId);
+    }
+
+    // ── Abandoned-cart recovery (internal API used by n8n) ───────────────────
+
+    /**
+     * Scans all carts in Redis and returns the ones that are abandoned.
+     *
+     * <p>A cart is abandoned when it still has items, its last activity
+     * ({@code updatedAt}) is older than {@code olderThanMinutes}, and — when a
+     * stage filter is supplied — its reminder stage matches.</p>
+     *
+     * <p>This uses Redis {@code KEYS}, which is fine for a demo dataset but
+     * O(N). A production implementation should maintain a Redis sorted set
+     * (score = last activity) or a small Postgres/Postgres-outbox table.</p>
+     */
+    public List<AbandonedCartResponse> getAbandonedCarts(int olderThanMinutes,
+                                                         ReminderStage stage,
+                                                         int limit) {
+        Instant cutoff = Instant.now().minusSeconds(Math.max(0, olderThanMinutes) * 60L);
+        Set<String> keys = cartRedisTemplate.keys(CART_KEY_PREFIX + "*");
+        if (keys == null || keys.isEmpty()) {
+            return List.of();
+        }
+
+        List<AbandonedCartResponse> abandoned = new ArrayList<>();
+        for (String key : keys) {
+            Object raw = cartRedisTemplate.opsForValue().get(key);
+            if (raw == null) {
+                continue;
+            }
+
+            Cart cart;
+            try {
+                cart = objectMapper.convertValue(raw, Cart.class);
+            } catch (IllegalArgumentException e) {
+                log.warn("Skipping unreadable cart at key {}: {}", key, e.getMessage());
+                continue;
+            }
+
+            if (cart.getItems() == null || cart.getItems().isEmpty()) {
+                continue;
+            }
+            if (cart.getUpdatedAt() == null || cart.getUpdatedAt().isAfter(cutoff)) {
+                continue;
+            }
+
+            ReminderStage cartStage = cart.getReminderStage() != null
+                    ? cart.getReminderStage()
+                    : ReminderStage.NONE;
+            if (stage != null && cartStage != stage) {
+                continue;
+            }
+
+            abandoned.add(AbandonedCartResponse.builder()
+                    .cartId(cart.getCartId())
+                    .userId(cart.getUserId())
+                    .items(cart.getItems())
+                    .itemCount(cart.getTotalItemCount())
+                    .grandTotal(cart.getGrandTotal())
+                    .createdAt(cart.getCreatedAt())
+                    .updatedAt(cart.getUpdatedAt())
+                    .minutesIdle(Duration.between(cart.getUpdatedAt(), Instant.now()).toMinutes())
+                    .reminderStage(cartStage)
+                    .lastReminderAt(cart.getLastReminderAt())
+                    .build());
+        }
+
+        // Oldest first: the customer who has waited longest gets reminded first.
+        abandoned.sort(Comparator.comparing(AbandonedCartResponse::getUpdatedAt));
+        if (limit > 0 && abandoned.size() > limit) {
+            return abandoned.subList(0, limit);
+        }
+        return abandoned;
+    }
+
+    /**
+     * Records that the n8n workflow sent a reminder/coupon for this cart.
+     * Preserves the remaining Redis TTL so workflow state does not extend the
+     * cart's life.
+     */
+    public Cart markReminderStage(UUID userId, ReminderStage stage) {
+        Cart cart = getCartOrThrow(userId);
+        ReminderStage newStage = stage != null ? stage : ReminderStage.NONE;
+        cart.setReminderStage(newStage);
+        cart.setLastReminderAt(newStage == ReminderStage.NONE ? null : Instant.now());
+
+        savePreservingTtl(cart);
+        log.info("Cart reminder stage for user {} set to {}", userId, newStage);
+        return cart;
+    }
+
+    /**
+     * Test helper: pretend the cart has been idle for {@code minutes} and put
+     * it back to {@link ReminderStage#NONE}. Lets you exercise the n8n workflow
+     * immediately instead of waiting for the real abandonment window.
+     * Not exposed through the API Gateway.
+     */
+    public Cart simulateIdle(UUID userId, long minutes) {
+        Cart cart = getCartOrThrow(userId);
+        cart.setUpdatedAt(Instant.now().minusSeconds(Math.max(0, minutes) * 60));
+        cart.setReminderStage(ReminderStage.NONE);
+        cart.setLastReminderAt(null);
+
+        savePreservingTtl(cart);
+        log.info("Simulated {} minutes of cart idleness for user {}", minutes, userId);
+        return cart;
+    }
+
+    /** Any genuine cart activity starts a new abandoned-cart period. */
+    private void markActive(Cart cart) {
+        cart.setReminderStage(ReminderStage.NONE);
+        cart.setLastReminderAt(null);
+    }
+
+    /** Writes the cart without extending its Redis TTL. */
+    private void savePreservingTtl(Cart cart) {
+        String key = cartKey(cart.getUserId());
+        Long remainingSeconds = cartRedisTemplate.getExpire(key, TimeUnit.SECONDS);
+        long ttl = (remainingSeconds != null && remainingSeconds > 0)
+                ? remainingSeconds
+                : cartTtlSeconds;
+        cartRedisTemplate.opsForValue().set(key, cart, ttl, TimeUnit.SECONDS);
     }
 
     // ── Helpers ───────────────────────────────────────────────────────────────

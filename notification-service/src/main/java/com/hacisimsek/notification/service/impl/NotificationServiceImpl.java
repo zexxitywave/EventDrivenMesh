@@ -244,6 +244,28 @@ public class NotificationServiceImpl implements NotificationService {
                 Notification.NotificationType.OTP_VERIFICATION, null);
     }
 
+    // ── Automation-triggered (n8n) ────────────────────────────────────────────
+
+    @Override
+    public Notification sendCustomEmail(UUID recipientId, String email, String subject,
+                                       String message, Notification.NotificationType type) {
+        Notification notification = Notification.builder()
+                .id(UUID.randomUUID())
+                .recipientId(recipientId)
+                .recipientEmail(email)
+                .subject(subject)
+                .message(message)
+                .type(type)
+                .status(Notification.NotificationStatus.PENDING)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .build();
+
+        notificationRepository.save(notification);
+        sendEmail(notification);
+        return notification;
+    }
+
     // ── Query ─────────────────────────────────────────────────────────────────
 
     @Override

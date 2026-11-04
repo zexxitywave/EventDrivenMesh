@@ -9,6 +9,7 @@ import com.hacisimsek.order.client.ShippingQuoteClient;
 import com.hacisimsek.order.dto.OrderItemResponse;
 import com.hacisimsek.order.dto.OrderRequest;
 import com.hacisimsek.order.dto.OrderResponse;
+import com.hacisimsek.order.dto.PurchaseCheckResponse;
 import com.hacisimsek.order.model.Order;
 import com.hacisimsek.order.model.OrderItem;
 import com.hacisimsek.order.outbox.OutboxEvent;
@@ -23,8 +24,11 @@ import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -338,6 +342,62 @@ public class OrderServiceImpl implements OrderService {
                 .items(itemResponses)
                 .createdAt(order.getCreatedAt())
                 .lastModifiedAt(order.getLastModifiedAt())
+                .build();
+    }
+
+    // ── Abandoned-cart purchase check ─────────────────────────────────────────
+
+    @Override
+    @Transactional(readOnly = true)
+    public PurchaseCheckResponse checkPurchased(UUID customerId,
+                                                List<UUID> productIds,
+                                                Instant since) {
+        List<Order> orders = orderRepository.findByCustomerId(customerId);
+        Set<UUID> wantedProductIds = productIds == null
+                ? Set.of()
+                : new HashSet<>(productIds);
+        Instant cutoff = since != null ? since : Instant.EPOCH;
+
+        for (Order order : orders) {
+            // A cancelled/failed order does not count as a purchase.
+            if (order.getStatus() == Order.OrderStatus.CANCELLED
+                    || order.getStatus() == Order.OrderStatus.FAILED) {
+                continue;
+            }
+            // Only orders placed after the cart was last touched count.
+            if (order.getCreatedAt() != null && order.getCreatedAt().isBefore(cutoff)) {
+                continue;
+            }
+
+            List<UUID> matched = order.getItems() == null
+                    ? List.of()
+                    : order.getItems().stream()
+                            .map(OrderItem::getProductId)
+                            .filter(id -> id != null
+                                    && (wantedProductIds.isEmpty() || wantedProductIds.contains(id)))
+                            .distinct()
+                            .toList();
+
+            if (!matched.isEmpty()) {
+                log.info("Abandoned-cart check: customer {} purchased {} in order {}",
+                        customerId, matched, order.getId());
+                return PurchaseCheckResponse.builder()
+                        .customerId(customerId)
+                        .purchased(true)
+                        .matchedOrderId(order.getId())
+                        .matchedProductIds(matched)
+                        .since(cutoff)
+                        .ordersChecked(orders.size())
+                        .build();
+            }
+        }
+
+        return PurchaseCheckResponse.builder()
+                .customerId(customerId)
+                .purchased(false)
+                .matchedProductIds(List.of())
+                .since(cutoff)
+                .ordersChecked(orders.size())
                 .build();
     }
 }

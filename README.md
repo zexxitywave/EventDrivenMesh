@@ -74,6 +74,7 @@ through a central API Gateway with JWT authentication.
   - [Notification Service](#14-notification-service)
   - [Logging Service](#15-logging-service)
   - [Analytics Service](#16-analytics-service)
+- [n8n Automation (Abandoned Cart Recovery)](#-n8n-automation-abandoned-cart-recovery)
 - [Kafka Topics](#-kafka-topics)
 - [Kubernetes](#-kubernetes)
 - [Load Testing Results](#-load-testing-results)
@@ -87,7 +88,7 @@ through a central API Gateway with JWT authentication.
 ## ✨ Key Highlights
 
 - **Event-Driven Saga** — Checkout flows are orchestrated through Kafka events with automatic compensating rollbacks. No single point of failure.
-- **Pre-Payment Delivery Quotes** — order-service prices delivery at checkout by calling shipping-service (`POST /api/v1/shipping/quotes`, via Eureka `lb://`), so `totalAmount` = items subtotal + delivery charge is charged to the customer in **one payment amount**. Delivery = fixed base fee + per-km × distance to the nearest hub (capped), configured via `shipping.pricing.*`; if shipping/geocoding is unavailable it falls back to a flat `order.shipping.fallback-delivery-charge` so checkout never breaks.
+- **Pre-Payment Delivery Quotes** — order-service prices delivery at checkout by calling shipping-service (`POST /api/v1/shipping/quotes`, via Eureka `lb://`), so `totalAmount` = items subtotal + delivery charge is charged to the customer in **one payment amount**. Free-text addresses are geocoded to coordinates via **OpenStreetMap Nominatim**, then bucketed into **Uber H3** hexagons — a resolution-8 cell (~3 km) identifying the shipment, and its resolution-6 parent (~36 km) as the delivery zone. The nearest configured hub is resolved by great-circle (Haversine) distance, and each zone deterministically maps to a single carrier so all shipments in a zone share one courier. Delivery = fixed base fee + per-km × distance to the nearest hub (capped), configured via `shipping.pricing.*`; if shipping/geocoding is unavailable it falls back to a flat `order.shipping.fallback-delivery-charge` so checkout never breaks.
 - **Polyglot Persistence** — Each service owns its data store. PostgreSQL for transactions, MongoDB for documents, Redis for session cache.
 - **Gateway-Level Security** — JWT is validated once at the API Gateway. All downstream services receive trusted identity headers — no repeated token parsing.
 - **PDF Invoice Generation** — On every successful order, the notification service auto-generates a styled PDF invoice (via OpenPDF / iText) and attaches it to the confirmation email. Invoices are stored as binary in MongoDB and downloadable anytime via `GET /api/v1/notifications/invoice/{orderId}`.
@@ -99,6 +100,7 @@ through a central API Gateway with JWT authentication.
 - **Semantic Product Search (pgvector)** — The product-service uses `pgvector` with a `vector(768)` embedding column and an HNSW cosine-distance index. At startup, `EmbeddingInitializer` backfills embeddings for all products via Ollama's `nomic-embed-text` model (768 dimensions). `GET /api/v1/products/search?keyword=...` now triggers a semantic vector search — queries are embedded on-the-fly and matched against the product index using cosine similarity, returning results ranked by relevance. A traditional keyword (ILIKE) fallback is also available via the existing `GET /api/v1/products` endpoint.
 - **Prometheus + Grafana Observability** — Micrometer-instrumented services expose HTTP latency p50/p95/p99, Kafka consumer throughput, JVM heap usage, and HikariCP connection pool metrics. Grafana dashboards at `localhost:3000`.
 - **GitHub Actions CI Pipeline** — Builds all 16 modules on every push to ensure the multi-module Maven project compiles cleanly across the entire codebase.
+- **n8n Workflow Orchestration** — An optional [n8n](n8n/README.md) workflow handles abandoned-cart recovery: it polls idle carts, re-checks orders before emailing, waits 24 hours, and sends a coupon — without adding a scheduler or workflow state machine to the Spring services. n8n runs outside Docker via `npx n8n`.
 
 ---
 
@@ -682,6 +684,43 @@ Dedicated read-side analytics store implementing the **CQRS pattern** — all an
 **DLQ Handling**
 
 Any event that fails deserialization or violates a DB constraint beyond the idempotency check is forwarded to `order-analytics-dlq`. A separate consumer can replay or inspect failed events without blocking the main pipeline.
+
+---
+
+## 🔁 n8n Automation (Abandoned Cart Recovery)
+
+The services stay focused on their domains; **n8n** handles the long-running
+abandoned-cart workflow (schedule → check → branch → wait 24h → coupon).
+It runs **outside Docker** — `npx n8n`, a global npm install, or the desktop app.
+Using **n8n Cloud**? The services must be publicly reachable; see
+[Hosted n8n setup](n8n/README.md#2b-using-n8n-cloud-hosted).
+
+**Quick start**
+
+```powershell
+npx n8n
+# open http://localhost:5678 and import:
+#   n8n/abandoned-cart-recovery.workflow.json
+
+# seed a demo cart (profile + product + cart + backdate)
+.\n8n\test-abandoned-cart.ps1 -Email you@example.com
+```
+
+**Supporting internal endpoints**
+
+| Service | Endpoint |
+|---|---|
+| cart-service | `GET /api/v1/cart/internal/abandoned?olderThanMinutes=30&stage=NONE` |
+| cart-service | `PATCH /api/v1/cart/internal/{userId}/reminder-state` |
+| cart-service | `POST /api/v1/cart/internal/{userId}/simulate-idle?minutes=45` (test only) |
+| user-service | `GET /api/v1/users/internal/{userId}` |
+| order-service | `GET /api/v1/orders/customer/{customerId}/purchased?productIds=...&since=...` |
+| notification-service | `POST /api/v1/notifications/internal/send` |
+
+Workflow state (`NONE → REMINDED → COUPON_SENT`) is stored on the cart in Redis,
+so scheduled runs cannot send duplicate reminders. Any real cart activity resets it.
+
+See [**n8n/README.md**](n8n/README.md) for the full walkthrough, test mode, and production checklist.
 
 ---
 

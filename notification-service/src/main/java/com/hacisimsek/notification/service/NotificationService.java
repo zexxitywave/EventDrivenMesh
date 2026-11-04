@@ -28,6 +28,13 @@ public interface NotificationService {
     // ── Auth-triggered notifications ──────────────────────────────────────────
     void sendOtpNotification(UUID recipientId, String email, String otp);
 
+    /**
+     * One-off email for automation (n8n). Saves the notification row and
+     * attempts delivery synchronously, returning the row with its final status.
+     */
+    Notification sendCustomEmail(UUID recipientId, String email, String subject,
+                                 String message, Notification.NotificationType type);
+
     // ── Query ─────────────────────────────────────────────────────────────────
     List<Notification> getNotificationsByRecipient(UUID recipientId);
     List<Notification> getUnreadNotifications(UUID recipientId);

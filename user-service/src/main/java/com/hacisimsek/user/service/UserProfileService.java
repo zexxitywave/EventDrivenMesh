@@ -2,6 +2,7 @@ package com.hacisimsek.user.service;
 
 import com.hacisimsek.user.dto.AddressRequest;
 import com.hacisimsek.user.dto.CreateProfileRequest;
+import com.hacisimsek.user.dto.CustomerContactResponse;
 import com.hacisimsek.user.dto.PreferencesRequest;
 import com.hacisimsek.user.dto.UpdateProfileRequest;
 import com.hacisimsek.user.model.AccountStatus;
@@ -16,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -48,6 +50,23 @@ public class UserProfileService {
     public UserProfile getProfile(UUID userId) {
         return userProfileRepository.findById(userId)
                 .orElseThrow(() -> new RuntimeException("Profile not found for user: " + userId));
+    }
+
+    /**
+     * Contact-only lookup for internal automation. Returns empty instead of
+     * throwing so callers (and n8n) can apply their own fallback.
+     */
+    @Transactional(readOnly = true)
+    public Optional<CustomerContactResponse> getContact(UUID userId) {
+        return userProfileRepository.findById(userId).map(profile -> {
+            UserPreferences prefs = profile.getPreferences();
+            return CustomerContactResponse.builder()
+                    .userId(profile.getId())
+                    .fullName(profile.getFullName())
+                    .email(profile.getEmail())
+                    .emailNotifications(prefs == null || prefs.isEmailNotifications())
+                    .build();
+        });
     }
 
     @Transactional

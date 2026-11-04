@@ -1,0 +1,16 @@
+# Minimal observability stack for local development.
+# Start with:  docker compose -f docker-compose.observability.yml up -d
+# Jaeger UI:   http://localhost:16686
+#
+# Jaeger accepts OTLP/gRPC on 4317 and OTLP/HTTP on 4318.
+# The notification service sends to localhost:4317 by default.
+
+services:
+  jaeger:
+    image: jaegertracing/jaeger:latest
+    container_name: jaeger
+    ports:
+      - "16686:16686"   # Jaeger UI
+      - "4317:4317"     # OTLP/gRPC — used by the notification service
+      - "4318:4318"     # OTLP/HTTP — optional
+    restart: unless-stopped

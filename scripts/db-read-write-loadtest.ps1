@@ -113,6 +113,7 @@ Write-Host "target        : ${DbHost}:${Port}  db=$Database"
 Write-Host "seed rows     : $SeedRows"
 Write-Host "writers       : $WriterProcesses x $WriterOps inserts ($RowsPerInsert rows each)"
 Write-Host "reader        : $ReaderQueries SELECTs"
+Write-Host "phases        : 1=read-only  2=write-only  3=mixed"
 Write-Host ""
 
 Write-Host "Creating scratch table $DemoTable ..." -ForegroundColor Yellow
@@ -133,18 +134,56 @@ $ReaderFile = Join-Path $WorkDir "reader.sql"
 Set-Content -LiteralPath $WriterFile -Value ($insertStmt * $WriterOps)
 Set-Content -LiteralPath $ReaderFile -Value ($readStmt * $ReaderQueries)
 
+# Functions that start all writers and time the whole batch
+function Invoke-WriteBatch([string]$Label) {
+    $processes = @()
+    for ($i = 0; $i -lt $WriterProcesses; $i++) {
+        $processes += New-ClientProcess -File $WriterFile -OutputFile (Join-Path $WorkDir "${Label}_writer$i.out")
+    }
+    $sw = [System.Diagnostics.Stopwatch]::StartNew()
+    $processes | Wait-Process
+    $sw.Stop()
+    $elapsed = $sw.Elapsed.TotalSeconds
+    $ops  = $WriterProcesses * $WriterOps
+    $rows = $WriterProcesses * $WriterOps * $RowsPerInsert
+    return [pscustomobject]@{
+        Ops       = $ops
+        Rows      = $rows
+        Elapsed   = $elapsed
+        OpsPerSec = if ($elapsed -gt 0) { $ops  / $elapsed } else { 0 }
+        RowsPerSec= if ($elapsed -gt 0) { $rows / $elapsed } else { 0 }
+    }
+}
+
 # ---------------------------------------------------------------- baseline
 Write-Host ""
 Write-Host "Phase 1: baseline (reads only, no writers) ..." -ForegroundColor Yellow
 $baseline = Invoke-WorkloadFile -File $ReaderFile -OutputFile (Join-Path $WorkDir "baseline.out")
-Write-Host ("  baseline read time : {0:N2}s for {1} SELECTs" -f $baseline, $ReaderQueries) -ForegroundColor Green
+Write-Host ("  baseline read time : {0:N2}s for {1} SELECTs  =  {2:N0} reads/s" -f $baseline, $ReaderQueries, ($ReaderQueries / $baseline)) -ForegroundColor Green
+
+# ---------------------------------------------------------------- write-only
+Write-Host ""
+Write-Host "Phase 2: write-only ($WriterProcesses writers, no reads) ..." -ForegroundColor Yellow
+$writeOnly = Invoke-WriteBatch -Label "writeonly"
+Write-Host ("  write batch       : {0:N2}s for {1:N0} INSERTs ({2:N0} rows)" -f $writeOnly.Elapsed, $writeOnly.Ops, $writeOnly.Rows) -ForegroundColor Green
+Write-Host ("  write throughput  : {0:N0} INSERTs/s  =  {1:N0} rows/s" -f $writeOnly.OpsPerSec, $writeOnly.RowsPerSec) -ForegroundColor Green
+
+# Restore the table to the same size as the baseline so the mixed-read
+# comparison is against an identical scan cost (count over same row count).
+Write-Host "  resetting table to $SeedRows rows so reads stay comparable ..." -ForegroundColor Yellow
+Invoke-Psql @(
+    "-v", "ON_ERROR_STOP=1",
+    "-c", "TRUNCATE $DemoTable;",
+    "-c", "INSERT INTO $DemoTable(payload,status) SELECT md5(random()::text), CASE WHEN random()<0.5 THEN 'ACTIVE' ELSE 'DONE' END FROM generate_series(1,$SeedRows);"
+) | Out-Null
 
 # ---------------------------------------------------------------- mixed load
 Write-Host ""
-Write-Host "Phase 2: mixed load ($WriterProcesses writers + 1 timed reader) ..." -ForegroundColor Yellow
-$writers = @()
+Write-Host "Phase 3: mixed load ($WriterProcesses writers + 1 timed reader) ..." -ForegroundColor Yellow
+$writerBatchStart = [DateTime]::Now
+$writerProcs = @()
 for ($i = 0; $i -lt $WriterProcesses; $i++) {
-    $writers += New-ClientProcess -File $WriterFile -OutputFile (Join-Path $WorkDir "writer$i.out")
+    $writerProcs += New-ClientProcess -File $WriterFile -OutputFile (Join-Path $WorkDir "mixed_writer$i.out")
 }
 Start-Sleep -Seconds $WarmupSeconds
 
@@ -158,21 +197,30 @@ Write-Host "  active connections during load : $activeConns" -ForegroundColor Gr
 Write-Host "  writes currently waiting on a lock : $locksWaiting" -ForegroundColor Gray
 
 $underLoad = Invoke-WorkloadFile -File $ReaderFile -OutputFile (Join-Path $WorkDir "underload.out")
-$writers | Wait-Process
+$writerProcs | Wait-Process -Timeout 60 | Out-Null
+$writerProcs | ForEach-Object { if (-not $_.HasExited) { $_ | Wait-Process | Out-Null } }
+$mixedWriterSecs = [Math]::Max((([DateTime]::Now) - $writerBatchStart).TotalSeconds, 0.00001)
+
+$mixedWriteOps  = $WriterProcesses * $WriterOps
+$mixedWriteRows = $WriterProcesses * $WriterOps * $RowsPerInsert
 
 $ratio = if ($baseline -gt 0) { $underLoad / $baseline } else { 0 }
 
 # ---------------------------------------------------------------- report
 Write-Header "Results"
-Write-Host ("  baseline (no writes)   : {0,8:N2}s   ({1:N0} reads/s)" -f $baseline, ($ReaderQueries / $baseline))
-Write-Host ("  under write load       : {0,8:N2}s   ({1:N0} reads/s)" -f $underLoad, ($ReaderQueries / $underLoad)) -ForegroundColor Yellow
-Write-Host ("  slowdown factor        : {0,8:N1}x" -f $ratio) -ForegroundColor Red
+Write-Host ("  READ-ONLY  (baseline)        : {0,8:N2}s   ({1:N0} reads/s)" -f $baseline, ($ReaderQueries / $baseline))
+Write-Host ("  WRITE-ONLY (no readers)      : {0,8:N2}s   ({1:N0} INSERTs/s = {2:N0} rows/s)" -f $writeOnly.Elapsed, $writeOnly.OpsPerSec, $writeOnly.RowsPerSec) -ForegroundColor Green
+Write-Host ("  MIXED  read side             : {0,8:N2}s   ({1:N0} reads/s)" -f $underLoad, ($ReaderQueries / $underLoad)) -ForegroundColor Yellow
+Write-Host ("  MIXED  write side            : {0,8:N2}s   ({1:N0} INSERTs/s = {2:N0} rows/s)" -f $mixedWriterSecs, ($mixedWriteOps / $mixedWriterSecs), ($mixedWriteRows / $mixedWriterSecs)) -ForegroundColor Yellow
+Write-Host ("  read slowdown (separate->mixed) : {0,8:N1}x" -f $ratio) -ForegroundColor Red
+Write-Host ("  write slowdown (separate->mixed) : {0,8:N1}x" -f ($writeOnly.OpsPerSec / ($mixedWriteOps / $mixedWriterSecs))) -ForegroundColor Red
 Write-Host ("  lock waits (MVCC)      : {0}  (expected 0 - writers do not block readers)" -f $locksWaiting) -ForegroundColor Gray
 Write-Host ""
 Write-Host "Interpretation:" -ForegroundColor Cyan
-Write-Host "  Reads slowed down even though NO locks were held. The shared write table's CPU/IO"
-Write-Host "  and connection pool are the bottleneck. A CQRS read model (separate table or replica)"
-Write-Host "  removes this coupling so read spikes cannot slow the write/saga path."
+Write-Host "  Reads AND writes got slower once the same table was shared. No locks were held"
+Write-Host "  (MVCC), so the bottleneck is shared CPU/IO and the connection pool. A CQRS read"
+Write-Host "  model (separate table or replica) removes this coupling so read spikes cannot"
+Write-Host "  slow the write/saga path."
 
 # ---------------------------------------------------------------- teardown
 Write-Host ""
