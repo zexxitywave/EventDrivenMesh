@@ -15,19 +15,21 @@ through a central API Gateway with JWT authentication.
 
 ---
 
-### Language 🛠️
+### Language
 
 ![Java](https://img.shields.io/badge/Java-21-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)
+![Go](https://img.shields.io/badge/Go-00ADD8?style=for-the-badge&logo=go&logoColor=white)
 
-### Framework & Cloud 🛠️
+### Frameworks & Cloud
 
 ![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.12-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)
 ![Spring Cloud](https://img.shields.io/badge/Spring%20Cloud-2023.0.2-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
 ![Spring Security](https://img.shields.io/badge/Spring%20Security-JWT%20%2B%20OAuth2-6DB33F?style=for-the-badge&logo=springsecurity&logoColor=white)
 
-### Infrastructure 🛠️
+### Infrastructure
 
 ![Kafka](https://img.shields.io/badge/Apache%20Kafka-KRaft-231F20?style=for-the-badge&logo=apachekafka&logoColor=white)
+![RabbitMQ](https://img.shields.io/badge/RabbitMQ-FF6600?style=for-the-badge&logo=rabbitmq&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-16-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![pgvector](https://img.shields.io/badge/pgvector-768--dim-4169E1?style=for-the-badge&logo=postgresql&logoColor=white)
 ![MongoDB](https://img.shields.io/badge/MongoDB-7.0-47A248?style=for-the-badge&logo=mongodb&logoColor=white)
@@ -35,18 +37,15 @@ through a central API Gateway with JWT authentication.
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?style=for-the-badge&logo=docker&logoColor=white)
 ![Kubernetes](https://img.shields.io/badge/Kubernetes-HPA-326CE5?style=for-the-badge&logo=kubernetes&logoColor=white)
 
-### Observability & Tools 🛠️
+### Observability & Tools
 
-![Kafka UI](https://img.shields.io/badge/Kafka%20UI-Kafbat-orange?style=for-the-badge)
-![Eureka](https://img.shields.io/badge/Eureka-Service%20Discovery-green?style=for-the-badge)
-![Actuator](https://img.shields.io/badge/Spring%20Actuator-Prometheus%20Ready-6DB33F?style=for-the-badge&logo=spring&logoColor=white)
-![Maven](https://img.shields.io/badge/Maven-Multi--Module-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
 ![Prometheus](https://img.shields.io/badge/Prometheus-Metrics-E6522C?style=for-the-badge&logo=prometheus&logoColor=white)
 ![Grafana](https://img.shields.io/badge/Grafana-Dashboards-F46800?style=for-the-badge&logo=grafana&logoColor=white)
+![Kafka UI](https://img.shields.io/badge/Kafka%20UI-Kafbat-orange?style=for-the-badge)
+![n8n](https://img.shields.io/badge/n8n-Workflow-EA4B71?style=for-the-badge&logo=n8n&logoColor=white)
+![OpenTelemetry](https://img.shields.io/badge/OpenTelemetry-425CC7?style=for-the-badge&logo=opentelemetry&logoColor=white)
 ![GitHub Actions](https://img.shields.io/badge/GitHub%20Actions-CI-2088FF?style=for-the-badge&logo=githubactions&logoColor=white)
-
-
-
+![Maven](https://img.shields.io/badge/Maven-Multi--Module-C71A36?style=for-the-badge&logo=apachemaven&logoColor=white)
 
 ---
 
@@ -54,52 +53,35 @@ through a central API Gateway with JWT authentication.
 
 - [Key Highlights](#-key-highlights)
 - [Architecture](architecture.md)
-- [🚀 Quick Start](#-quick-start)
+- [Quick Start](#-quick-start)
 - [Service Port Reference](#-service-port-reference)
-- [Services](#-services)
-  - [Service Registry](#1-service-registry)
-  - [API Gateway](#2-api-gateway)
-  - [Common Library](#3-common-library)
-  - [Auth Service](#4-auth-service)
-  - [User Service](#5-user-service)
-  - [Product Service](#6-product-service)
-  - [Seller Service](#7-seller-service)
-  - [Cart Service](#8-cart-service)
-  - [Wishlist Service](#9-wishlist-service)
-  - [Order Service](#10-order-service)
-  - [Inventory Service](#11-inventory-service)
-  - [Payment Service](#12-payment-service)
-  - [Shipping Service](#13-shipping-service)
-  - [Notification Service](#14-notification-service)
-  - [Logging Service](#15-logging-service)
-  - [Analytics Service](#16-analytics-service)
-- [n8n Automation (Abandoned Cart Recovery)](#-n8n-automation-abandoned-cart-recovery)
+- [Core Services](#-core-services)
+- [Additional Services](#-additional-services)
+- [n8n Automation](#-n8n-automation-abandoned-cart-recovery)
 - [Kafka Topics](#-kafka-topics)
 - [Kubernetes](#-kubernetes)
 - [Load Testing Results](#-load-testing-results)
-- [Kafka Partition Scaling](#-kafka-partition-scaling--impact-on-processing-time)
 - [Observability](#-observability)
-- [Project Structure](#-project-structure)
 - [Tech Stack](#-tech-stack)
 
 ---
 
 ## ✨ Key Highlights
 
-- **Event-Driven Saga** — Checkout flows are orchestrated through Kafka events with automatic compensating rollbacks. No single point of failure.
-- **Pre-Payment Delivery Quotes** — order-service prices delivery at checkout by calling shipping-service (`POST /api/v1/shipping/quotes`, via Eureka `lb://`), so `totalAmount` = items subtotal + delivery charge is charged to the customer in **one payment amount**. Free-text addresses are geocoded to coordinates via **OpenStreetMap Nominatim**, then bucketed into **Uber H3** hexagons — a resolution-8 cell (~3 km) identifying the shipment, and its resolution-6 parent (~36 km) as the delivery zone. The nearest configured hub is resolved by great-circle (Haversine) distance, and each zone deterministically maps to a single carrier so all shipments in a zone share one courier. Delivery = fixed base fee + per-km × distance to the nearest hub (capped), configured via `shipping.pricing.*`; if shipping/geocoding is unavailable it falls back to a flat `order.shipping.fallback-delivery-charge` so checkout never breaks.
-- **Polyglot Persistence** — Each service owns its data store. PostgreSQL for transactions, MongoDB for documents, Redis for session cache.
-- **Gateway-Level Security** — JWT is validated once at the API Gateway. All downstream services receive trusted identity headers — no repeated token parsing.
-- **PDF Invoice Generation** — On every successful order, the notification service auto-generates a styled PDF invoice (via OpenPDF / iText) and attaches it to the confirmation email. Invoices are stored as binary in MongoDB and downloadable anytime via `GET /api/v1/notifications/invoice/{orderId}`.
-- **Kubernetes-Ready** — HPA-configured with CPU/memory scaling, zero-downtime rolling updates, liveness/readiness probes, and Prometheus scraping out of the box.
-- **Full Observability** — A dedicated logging service aggregates structured logs across all 15 services with cross-service traceId correlation and a 30-day TTL.
-- **Analytics Service (new)** — CQRS pattern with a dedicated analytics PostgreSQL DB separate from transactional DBs. Batch Kafka consumer delivers ~500 events/sec throughput. Tracks revenue, top customers, and daily order trends.
-- **Poison Pill + DLQ Pattern** — The analytics consumer detects malformed/unprocessable events and routes them to `order-analytics-dlq` for safe reprocessing without blocking the main consumer.
-- **Idempotency via `event_id`** — A unique constraint on `event_id` in the analytics DB prevents duplicate event ingestion even under consumer restarts or replay.
-- **Semantic Product Search (pgvector)** — The product-service uses `pgvector` with a `vector(768)` embedding column and an HNSW cosine-distance index. At startup, `EmbeddingInitializer` backfills embeddings for all products via Ollama's `nomic-embed-text` model (768 dimensions). `GET /api/v1/products/search?keyword=...` now triggers a semantic vector search — queries are embedded on-the-fly and matched against the product index using cosine similarity, returning results ranked by relevance. A traditional keyword (ILIKE) fallback is also available via the existing `GET /api/v1/products` endpoint.
-- **Prometheus + Grafana Observability** — Micrometer-instrumented services expose HTTP latency p50/p95/p99, Kafka consumer throughput, JVM heap usage, and HikariCP connection pool metrics. Grafana dashboards at `localhost:3000`.
-- **GitHub Actions CI Pipeline** — Builds all 16 modules on every push to ensure the multi-module Maven project compiles cleanly across the entire codebase.
-- **n8n Workflow Orchestration** — An optional [n8n](n8n/README.md) workflow handles abandoned-cart recovery: it polls idle carts, re-checks orders before emailing, waits 24 hours, and sends a coupon — without adding a scheduler or workflow state machine to the Spring services. n8n runs outside Docker via `npx n8n`.
+- **Event-Driven Saga** — Checkout flows orchestrated through Kafka events with automatic compensating rollbacks across inventory, payment, and shipping. No single point of failure.
+- **Pre-Payment Delivery Quotes** — order-service prices delivery at checkout by calling shipping-service (`POST /api/v1/shipping/quotes`). Free-text addresses geocoded via OpenStreetMap Nominatim, bucketed into Uber H3 hexagons, nearest hub resolved by Haversine distance. `totalAmount` = items + delivery in one payment.
+- **Polyglot Persistence** — PostgreSQL for transactions, MongoDB for documents, Redis for session cache. Each service owns its own data store.
+- **Gateway-Level Security** — JWT validated once at the API Gateway. Trusted identity headers (`X-User-Id`, `X-User-Email`, `X-User-Role`) injected downstream — no repeated token parsing.
+- **PDF Invoice Generation** — Auto-generated on every order via OpenPDF, attached to confirmation email, stored in MongoDB, downloadable anytime.
+- **Semantic Product Search** — pgvector with HNSW cosine-distance index and 768-dim Ollama `nomic-embed-text` embeddings. `EmbeddingInitializer` backfills at startup.
+- **CQRS Analytics** — Dedicated PostgreSQL analytics DB, batch Kafka consumer at ~500 events/sec, poison-pill DLQ, idempotency via `event_id` unique constraint.
+- **n8n Abandoned-Cart Recovery** — 23-node n8n workflow polls idle carts, re-checks orders, sends reminder email, waits 24h, sends coupon. Workflow state in Redis — no duplicate sends.
+- **Kubernetes-Ready** — HPA-configured (2–8 pods), zero-downtime rolling updates, liveness/readiness probes, pod anti-affinity, Prometheus scraping.
+- **Scalable Notification Service (Go)** — High-throughput notification system built in Go with RabbitMQ priority queues, PostgreSQL, OpenTelemetry tracing, and Prometheus metrics.
+- **Location Service** — Browser geolocation → reverse geocoding via OSM Nominatim → PostgreSQL persistence.
+- **Sale Service** — Flash sale and promotion management with Kafka event publishing.
+- **Full Observability** — Micrometer → Prometheus → Grafana. HTTP latency p50/p95/p99, Kafka consumer lag, JVM heap, HikariCP pool.
+- **GitHub Actions CI** — Builds all modules on every push.
 
 ---
 
@@ -107,13 +89,11 @@ through a central API Gateway with JWT authentication.
 
 EventDrivenMesh is an event-driven microservices platform: backend services communicate via Apache Kafka (choreographed saga) while the API Gateway routes client traffic over REST.
 
-The full architecture — system topology, high-level design, the checkout saga, and the microservice catalog — lives in [**architecture.md**](architecture.md).
+The full architecture — system topology, HLD, checkout saga, and microservice catalog — lives in [**architecture.md**](architecture.md).
 
 ---
 
 ## 🚀 Quick Start
-
-The fastest way to run Zexxity is with Docker Compose. It spins up Kafka (KRaft), PostgreSQL (8 databases), MongoDB, Redis, and Kafka UI — no manual database setup required.
 
 ### Prerequisites
 
@@ -122,11 +102,9 @@ The fastest way to run Zexxity is with Docker Compose. It spins up Kafka (KRaft)
 | Java | 21+ |
 | Docker Desktop | Latest |
 | Maven | 3.9+ |
-| Ollama | Latest (for semantic embeddings — `nomic-embed-text` model) |
+| Ollama | Latest (for semantic search) |
 
 ### 1. Configure Environment
-
-Create a `.env` file in the project root:
 
 ```env
 # Database
@@ -135,27 +113,19 @@ DB_PORT=5432
 DB_USER=postgres
 DB_PASSWORD=postgres123
 
-# JWT — HMAC-SHA256 Base64-encoded secret
+# JWT
 JWT_SECRET=your_jwt_secret_here
 
 # Google OAuth2
 GOOGLE_CLIENT_ID=your_google_client_id
 GOOGLE_CLIENT_SECRET=your_google_client_secret
 
-# Razorpay (payment gateway)
+# Razorpay
 RAZORPAY_KEY_ID=your_razorpay_key_id
 RAZORPAY_KEY_SECRET=your_razorpay_key_secret
 
-# Email — auth-service (AWS SES)
-MAIL_USERNAME=your_ses_smtp_username
-MAIL_PASSWORD=your_ses_smtp_password
-
-# Email — notification-service (Resend)
-RESEND_API_KEY=your_resend_api_key
-
-# Ollama (for pgvector semantic embeddings)
-OLLAMA_BASE_URL=http://localhost:11434
-OLLAMA_EMBEDDING_MODEL=nomic-embed-text
+# Email (Resend)
+MAIL_PASSWORD=your_resend_api_key
 ```
 
 ### 2. Start Infrastructure
@@ -164,43 +134,25 @@ OLLAMA_EMBEDDING_MODEL=nomic-embed-text
 docker-compose up -d
 ```
 
-This starts:
+| Container | Port |
+|---|---|
+| Kafka (KRaft) | `9095` |
+| PostgreSQL 16 | `5432` |
+| MongoDB | `27017` |
+| Redis 7 | `6379` |
+| Kafka UI | `8069` |
+| Prometheus | `9091` |
+| Grafana | `3000` |
 
-| Container | Port | Notes |
-|---|---|---|
-| Kafka (KRaft) | `9095` | No ZooKeeper required (`29092` internal listener) |
-| PostgreSQL 16 | `5432` | Auto-creates 8 databases, **pgvector** extension pre-installed (`pgvector/pgvector:pg16` image) |
-| MongoDB | `27017` | |
-| Redis 7 | `6379` | Persistence enabled |
-| Kafka UI | `8069` | http://localhost:8069 |
-| Prometheus | `9091` | Scrapes all services |
-| Grafana | `3000` | admin / admin |
-| kafka-lag-exporter | `8000` | Consumer lag as Prometheus metrics |
-| Alertmanager | `9093` | Alert routing |
-
-### 3. Build All Modules
+### 3. Build & Start
 
 ```bash
 ./mvnw clean install -DskipTests
 ```
 
-### 4. Start Services (in order)
+Start in order: `service-registry` → `api-gateway` → `auth-service` → all others.
 
-```
-1. service-registry     — Eureka must be up first
-2. api-gateway
-3. auth-service
-4. All remaining services (any order)
-```
-
-> **Semantic search (pgvector)?** Start Ollama with the embedding model before the product-service:
-> ```bash
-> ollama pull nomic-embed-text
-> ollama serve   # keep running on port 11434
-> ```
-> The product-service's `EmbeddingInitializer` will auto-backfill embeddings at startup.
-
-> **Kafka reset on Windows?** Run `FIX-KAFKA.ps1` (PowerShell) or `FIX-KAFKA.bat`.
+> **Semantic search:** `ollama pull nomic-embed-text && ollama serve` before starting product-service.
 
 ---
 
@@ -223,521 +175,175 @@ This starts:
 | notification-service | `8084` | MongoDB `notification_db` |
 | logging-service | `8092` | MongoDB `logging_db` |
 | analytics-service | `8093` | PostgreSQL `analytics_db` |
-| Kafka UI | `8069` | — |
-| kafka-lag-exporter | `8000` | — |
-| Prometheus | `9091` | — |
-| Grafana | `3000` | — |
-| Alertmanager | `9093` | — |
-
-All services register with Eureka and are reachable through the API Gateway at `http://localhost:8080`.
+| sale-service | `8094` | PostgreSQL `sale_db` |
+| location-service | `8095` | PostgreSQL |
+| scalable-notification-service | `8096` | PostgreSQL |
 
 ---
 
-## 🧩 Services
+## 🧩 Core Services
 
----
+### API Gateway · `8080`
+Single entry point. Validates JWT, injects `X-User-Id` / `X-User-Email` / `X-User-Role` headers downstream.
 
-### 1. Service Registry
+### Auth Service · `8086`
+Registration, email OTP verification, login, JWT issuance, refresh token rotation, password reset, Google OAuth2.
+- Access token: 15 min · Refresh token: 7 days (rotated on use) · OTP: 15 min via AWS SES
 
-**Port:** `8761`  |  Eureka Server
+### User Service · `8087`
+User profiles, shipping addresses, preferences. Internal contact lookup endpoint for n8n.
 
-Central service discovery. Every microservice registers here on startup and the API Gateway uses it for load-balanced routing (`lb://service-name`).
+### Product Service · `8088`
+Full catalog with categories, filters, pagination. Semantic search via pgvector HNSW + Ollama embeddings.
 
-- Dashboard: http://localhost:8761
-- Infrastructure only — no REST API.
+### Cart Service · `8089`
+Redis-backed cart (TTL 7 days). Stock validation against inventory-service. Abandoned cart support with `ReminderStage` tracking (`NONE → REMINDED → COUPON_SENT`).
 
----
+**n8n internal endpoints:**
+- `GET /api/v1/cart/internal/abandoned` — scan idle carts by stage
+- `PATCH /api/v1/cart/internal/{userId}/reminder-state` — update reminder stage
+- `POST /api/v1/cart/internal/{userId}/simulate-idle` — backdate for testing
 
-### 2. API Gateway
+### Order Service · `8081`
+Drives the entire checkout saga. Quotes delivery from shipping-service, publishes `OrderCreatedEvent`, reacts to inventory/payment/shipping events via JDBC updates.
 
-**Port:** `8080`  |  Spring Cloud Gateway
-
-Single entry point for all client traffic. Validates JWT and injects identity headers (`X-User-Id`, `X-User-Email`, `X-User-Role`) into every downstream request.
-
-**JWT Validation**
-- Algorithm: HMAC-SHA256
-- Token source: `Authorization: Bearer `
-- Success → injects identity headers
-- Failure → `401 Unauthorized`
-
-**Route Table**
-
-| Path | Service | JWT |
-|---|---|---|
-| `/api/v1/auth/**` | auth-service | ✗ |
-| `/api/v1/products/**` GET | product-service | ✗ |
-| `/api/v1/orders/**` | order-service | ✓ |
-| `/api/v1/payments/**` | payment-service | ✓ |
-| `/api/v1/inventory/**` | inventory-service | ✓ |
-| `/api/v1/shipping/**` | shipping-service | ✓ |
-| `/api/v1/users/**` | user-service | ✓ |
-| `/api/v1/cart/**` | cart-service | ✓ |
-| `/api/v1/wishlist/**` | wishlist-service | ✓ |
-| `/api/v1/seller/**` | seller-service | ✓ |
-| `/api/v1/notifications/**` | notification-service | ✓ |
-| `/api/v1/logs/**` | logging-service | ✓ |
-| `/api/v1/analytics/**` | analytics-service | ✓ |
-
----
-
-### 3. Common Library
-
-**Type:** Shared Maven module (no server)
-
-Contains all shared Kafka event classes and DTOs. Every saga participant imports this library, ensuring type-safe event contracts across services.
-
-**Base Event** (all events extend `BaseEvent`)
-
-| Field | Type | Purpose |
-|---|---|---|
-| `eventId` | UUID | Unique event identifier |
-| `correlationId` | UUID | Links all events in one saga transaction |
-| `timestamp` | Instant | Event creation time |
-
-**Kafka Events**
-
-| Class | Topic | Key Fields |
-|---|---|---|
-| `OrderCreatedEvent` | `order-events` | orderId, customerId, items, totalAmount, deliveryCharge |
-| `InventoryReservedEvent` | `inventory-events` | orderId, customerId, totalAmount |
-| `InventoryReservationFailedEvent` | `inventory-events` | orderId, reason |
-| `PaymentProcessedEvent` | `payment-events` | orderId, paymentId, customerId |
-| `PaymentFailedEvent` | `payment-events` | orderId, reason |
-| `ShipmentProcessedEvent` | `shipping-events` | orderId, shipmentId, trackingNumber |
-| `ShipmentFailedEvent` | `shipping-events` | orderId, reason |
-
----
-
-### 4. Auth Service
-
-**Port:** `8086`  |  **Database:** PostgreSQL `auth_db`
-
-Handles registration, email OTP verification, login, JWT issuance, refresh token rotation, password reset, and Google OAuth2.
-
-| Token | Lifetime |
-|---|---|
-| Access token | 15 minutes |
-| Refresh token | 7 days (rotated on each use) |
-| OTP | 15 minutes (6-digit, via AWS SES) |
-
-**API Endpoints**
-
-| Method | Path | Auth | Description |
-|---|---|---|---|
-| POST | `/api/v1/auth/register` | Public | Register → sends email OTP |
-| POST | `/api/v1/auth/verify-email` | Public | Verify with OTP |
-| POST | `/api/v1/auth/login` | Public | Login → accessToken + refreshToken |
-| POST | `/api/v1/auth/refresh` | Public | Rotate refresh token |
-| POST | `/api/v1/auth/logout` | Public | Revoke refresh token |
-| POST | `/api/v1/auth/forgot-password` | Public | Send reset OTP |
-| POST | `/api/v1/auth/reset-password` | Public | Reset with OTP |
-| GET | `/api/v1/auth/me` | JWT | Get current user |
-| GET | `/api/v1/auth/oauth2/authorize/google` | Public | Start Google OAuth2 |
-
-**Login Response**
-```json
-{
-  "accessToken": "eyJ...",
-  "refreshToken": "uuid-token",
-  "tokenType": "Bearer",
-  "expiresIn": 900,
-  "userId": "uuid",
-  "email": "john@example.com",
-  "role": "ROLE_USER"
-}
-```
-
-
-Database Schema
-
-`users` table
-
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID PK | auto-generated |
-| name | VARCHAR | |
-| email | VARCHAR UNIQUE | |
-| password_hash | VARCHAR | null for OAuth2 users |
-| provider | ENUM | LOCAL, GOOGLE |
-| role | ENUM | ROLE_USER, ROLE_SELLER, ROLE_ADMIN |
-| email_verified | BOOLEAN | |
-| otp / otp_expires_at | VARCHAR / TIMESTAMP | 15-min window |
-
-`refresh_tokens` table
-
-| Column | Type | Notes |
-|---|---|---|
-| id | UUID PK | |
-| token | VARCHAR UNIQUE | |
-| user_id | UUID FK → users | |
-| expires_at | TIMESTAMP | |
-| revoked | BOOLEAN | |
-
-
-
----
-
-### 5. User Service
-
-**Port:** `8087`  |  **Database:** PostgreSQL `user_db`
-
-Manages user profiles and shipping addresses. Uses the `X-User-Id` header (injected by gateway) to identify callers — shares the same UUID as auth-service.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| POST/GET/PUT | `/api/v1/users/profile` | Create / read / update profile |
-| DELETE | `/api/v1/users/profile` | Deactivate account |
-| PATCH | `/api/v1/users/profile/preferences` | Language, currency, notifications |
-| GET/POST | `/api/v1/users/addresses` | List / add addresses |
-| PUT/DELETE | `/api/v1/users/addresses/{id}` | Update / delete address |
-| PATCH | `/api/v1/users/addresses/{id}/default` | Set default address |
-
----
-
-### 6. Product Service
-
-**Port:** `8088`  |  **Database:** PostgreSQL `product_db`  |  **Vector:** pgvector `vector(768)`
-
-Full product catalog with category hierarchy, full-text search, price filtering, pagination, sorting, and **semantic vector search** powered by pgvector.
-
-**Semantic Search (pgvector)**
-
-| Concern | Implementation |
-|---|---|
-| Extension | `pgvector` on PostgreSQL 16 → `CREATE EXTENSION IF NOT EXISTS vector` |
-| Embedding column | `embedding vector(768)` — created via `data.sql`, not mapped by Hibernate (avoids `PGobject → bytea` mismatch) |
-| Embedding model | Ollama `nomic-embed-text` (768-dim) — called via `EmbeddingService` at `app.ollama.base-url` |
-| Index | HNSW cosine-distance index: `CREATE INDEX ... USING hnsw (embedding vector_cosine_ops)` |
-| Backfill | `EmbeddingInitializer` (Spring `CommandLineRunner`) auto-generates embeddings for products missing one at startup |
-| Search | `GET /api/v1/products/search?keyword=...&limit=10` — embeds the query, runs `ORDER BY embedding <=> cast(:queryVec AS vector) LIMIT :limit`, rehydrates ranked entities |
-| Fallback | Traditional keyword (ILIKE) search remains via `GET /api/v1/products` with `keyword` param |
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/v1/products` | Create product (seller only) |
-| POST | `/api/v1/products/bulk` | Bulk create |
-| GET | `/api/v1/products/{id}` | Get by ID or SKU |
-| PUT/PATCH/DELETE | `/api/v1/products/{id}` | Update / change status / delete |
-| GET | `/api/v1/products` | Search with filters (keyword, category, price, brand) |
-| GET | `/api/v1/products/search` | **Semantic search** via pgvector cosine distance |
-| GET | `/api/v1/products/my-products` | Seller's own listings |
-
-**Search params (keyword):** `keyword`, `categoryId`, `minPrice`, `maxPrice`, `brand`, `page`, `size`, `sortBy`, `sortDir`
-**Search params (semantic):** `keyword` (query text), `limit` (max results, default 10)
-
----
-
-### 7. Seller Service
-
-**Port:** `8091`  |  **Database:** PostgreSQL `seller_db`
-
-Merchant profile management and verification lifecycle. Delegates product and order lookups to their respective services via REST.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/v1/seller/register` | Register as seller |
-| GET/PUT | `/api/v1/seller/profile` | View / update store profile |
-| GET | `/api/v1/seller/products` | Seller's product listings |
-| GET | `/api/v1/seller/orders` | Orders with seller's items |
-| GET | `/api/v1/seller/analytics` | Revenue, order count, avg value |
-| GET/POST | `/api/v1/admin/sellers/**` | Admin verification |
-
-**Verification status:** `PENDING → VERIFIED / REJECTED / SUSPENDED`
-
----
-
-### 8. Cart Service
-
-**Port:** `8089`  |  **Database:** Redis (TTL: 7 days)
-
-Session-based cart stored in Redis. Validates stock with inventory-service before adding items.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/v1/cart` | Get cart (auto-created if empty) |
-| POST | `/api/v1/cart/items` | Add item (validates stock) |
-| PUT | `/api/v1/cart/items/{productId}` | Update quantity |
-| DELETE | `/api/v1/cart/items/{productId}` | Remove item |
-| DELETE | `/api/v1/cart` | Clear cart |
-
-**Redis key:** `cart:{userId}` — serialized `Cart` JSON
-
----
-
-### 9. Wishlist Service
-
-**Port:** `8090`  |  **Database:** MongoDB `wishlist_db`
-
-Save products for later. Compound unique index on `{userId, productId}` prevents duplicates (returns `409`). Supports one-click move-to-cart.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/v1/wishlist/add` | Add to wishlist |
-| DELETE | `/api/v1/wishlist/remove/{productId}` | Remove |
-| GET | `/api/v1/wishlist/{userId}` | Get full wishlist |
-| POST | `/api/v1/wishlist/move-to-cart/{productId}` | Move to cart |
-
----
-
-### 10. Order Service
-
-**Port:** `8081`  |  **Database:** PostgreSQL `order_db`
-
-Creates orders and drives the entire saga by publishing `OrderCreatedEvent` then reacting to events from three downstream services.
-
-Prices delivery **at order creation**: order-service calls shipping-service's synchronous quote endpoint (`POST /api/v1/shipping/quotes`) over Eureka `lb://shipping-service`, adds the quoted charge to the items subtotal, and persists `totalAmount` and `deliveryCharge` on the order. If shipping/geocoding is unavailable it falls back to `order.shipping.fallback-delivery-charge` (99.00) so order creation never fails.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/v1/orders` | Place order — quotes delivery, prices total, triggers saga |
-| GET | `/api/v1/orders/{orderId}` | Get by ID |
-| GET | `/api/v1/orders/customer/{customerId}` | Orders by customer |
-
-<<<<<<< HEAD
-**Kafka:** Publishes → `order-events` (carries `totalAmount` **including** the delivery charge) &nbsp;|&nbsp; Consumes → `inventory-events`, `payment-events`, `shipping-events`
-&nbsp;|&nbsp; **REST:** `POST /api/v1/shipping/quotes` (delivery pricing)
-=======
-**Kafka:** Publishes → `order-events` (carries `totalAmount` **including** the delivery charge)  |  Consumes → `inventory-events`, `payment-events`, `shipping-events`
- |  **REST:** `POST /api/v1/shipping/quotes` (delivery pricing)
->>>>>>> 9593be455f487c35977bff8a2a4f688f9b378937
-
-**Order Status Lifecycle**
-
+**Order Status Lifecycle:**
 ```
 PENDING → INVENTORY_CHECKING → INVENTORY_RESERVED → PAYMENT_PROCESSING
        → PAYMENT_COMPLETED → SHIPPING_PROCESSING → SHIPPED → COMPLETED
                                                  → CANCELLED (inventory fail)
-                                                 → FAILED (payment / shipping fail)
+                                                 → FAILED (payment/shipping fail)
 ```
 
+**n8n internal endpoint:**
+- `GET /api/v1/orders/customer/{id}/purchased?productIds=...&since=...`
+
+### Inventory Service · `8082`
+Stock management in MongoDB. Reserves on order, releases on payment failure or shipping failure (saga compensation). Low-stock Kafka alerts.
+
+### Payment Service · `8083`
+Razorpay / Stripe / Mock adapters. Manual frontend-initiated flow or saga auto-process mode. Full refund support on shipping failure.
+
+### Shipping Service · `8085`
+Pre-payment delivery quotes with OSM geocoding + Uber H3 zone routing + Haversine hub distance. Creates shipments on `PaymentProcessedEvent`.
+
+### Notification Service · `8084`
+Transactional emails via Resend. PDF invoice auto-generated (OpenPDF) on every order. In-app notifications. 3-retry backoff on failures.
+
+**n8n internal endpoint:**
+- `POST /api/v1/notifications/internal/send` — send arbitrary email from automation
+
+### Logging Service · `8092`
+Aggregates structured logs from all Kafka topics. Cross-service `correlationId` tracing. 30-day MongoDB TTL auto-expiry.
+
+### Analytics Service · `8093`
+CQRS read-side. Batch Kafka consumer (~500 events/sec), dedicated PostgreSQL analytics DB, poison-pill DLQ, idempotency via `event_id`.
+
+### Seller Service · `8091`
+Merchant profiles, verification lifecycle (`PENDING → VERIFIED / REJECTED / SUSPENDED`), revenue analytics.
+
+### Wishlist Service · `8090`
+MongoDB wishlists. Compound unique index prevents duplicates. One-click move-to-cart.
+
 ---
 
-### 11. Inventory Service
+## 🆕 Additional Services
 
-**Port:** `8082`  |  **Database:** MongoDB `inventory`
+### Sale Service · `8094`
 
-Manages stock levels. Reserves stock on order, publishes success/failure, and emits low-stock alerts below a configurable threshold.
-
-**API Endpoints**
+Flash sale and promotion management service. Publishes `SaleStartedEvent` to Kafka so downstream services (cart, product, notification) can react to active promotions.
 
 | Method | Path | Description |
 |---|---|---|
-| POST/GET | `/api/v1/inventory` | Create / list records |
-| GET | `/api/v1/inventory/product/{productId}` | Stock by product |
-| POST | `/api/v1/inventory/{id}/restock` | Add units |
-| GET | `/api/v1/inventory/check` | Check availability |
-| GET | `/api/v1/inventory/low-stock` | Low stock items |
+| POST | `/api/v1/sales` | Create a sale / promotion |
+| GET | `/api/v1/sales` | List all active sales |
+| GET | `/api/v1/sales/{id}` | Get sale by ID |
 
-**Kafka:** Consumes → `order-events`  |  Publishes → `inventory-events`, `inventory-alerts`
+**Kafka:** Publishes → `sale-events`
 
 ---
 
-### 12. Payment Service
+### Location Service · `8095`
 
-**Port:** `8083`  |  **Database:** PostgreSQL `payment_db`
+Browser geolocation → reverse geocoding → PostgreSQL persistence. Serves a minimal SPA that calls `navigator.geolocation`, submits coordinates to the backend, and displays the resolved address.
 
-Supports Razorpay, Stripe, and a Mock adapter. Handles automatic saga-driven payments and manual frontend-initiated flows with refund support.
-
-**Payment Adapters:** Razorpay · Stripe (stub) · Mock (dev/test)
-
-**Payment modes (`payment.saga-auto-process`)**
-- `true` (default) — saga auto-advances with the Mock adapter.
-- `false` — real Razorpay: a payment row is **pre-created** when `InventoryReservedEvent` arrives (carrying the saga `correlationId`), then `POST /api/v1/payments/initiate` resumes that same row — repeated calls return the existing gateway order (idempotent, no `409`). `POST /api/v1/payments/verify` captures the payment and publishes `PaymentProcessedEvent`; the Razorpay webhook (`POST /api/v1/payments/webhook`) is signature-verified as a fallback.
-
-**API Endpoints**
+```
+Browser → POST /api/location { lat, lng, accuracy }
+        → OSM Nominatim reverse geocoding
+        → UserLocationRepository (PostgreSQL)
+```
 
 | Method | Path | Description |
 |---|---|---|
-| POST | `/api/v1/payments/initiate` | Create gateway order |
-| POST | `/api/v1/payments/verify` | Verify signature & capture |
-| POST | `/api/v1/payments/webhook` | Razorpay signature-verified callback |
-| POST | `/api/v1/payments/refund` | Full or partial refund |
-| GET | `/api/v1/payments/{paymentId}` | Get payment |
-| GET | `/api/v1/payments/order/{orderId}` | Payment by order |
-
-**Kafka:** Consumes → `inventory-events`  |  Publishes → `payment-events`
-
-**Status:** `PENDING → AUTHORIZED → COMPLETED / FAILED / REFUND_PENDING → REFUNDED`
+| POST | `/api/location` | Submit coordinates, get resolved address |
+| GET | `/api/location/{userId}` | Get location history for a user |
 
 ---
 
-### 13. Shipping Service
+### Scalable Notification Service (Go) · `8096`
 
-**Port:** `8085`  |  **Database:** PostgreSQL `shipping_db`
+High-throughput notification pipeline built in **Go** — a standalone service that complements the Java notification-service for bulk / priority-queued delivery scenarios.
 
-Quotes delivery **up front** (before payment) and creates shipments when payment completes. Geocodes the order address (OSM Nominatim), snaps it to an H3 zone, finds the nearest hub, assigns carrier + ETA, prices the delivery, and persists `deliveryCharge` on the shipment. On `PaymentProcessedEvent` it creates the shipment + tracking number and publishes `ShipmentProcessedEvent`.
+**Stack:** Go · RabbitMQ (priority queues) · PostgreSQL · OpenTelemetry (tracing + metrics) · Prometheus
 
-**Delivery pricing (`shipping.pricing.*`) — default (INR)**
+**Architecture:**
+```
+HTTP API → RabbitMQ priority queue → Worker pool → PostgreSQL
+                                                 → Prometheus metrics
+                                                 → OpenTelemetry spans
+```
 
-- `deliveryCharge = baseFee + perKm × distanceToNearestHub`, capped at `maxCharge` (549.00).
-- Geocoding failure → flat `fallbackCharge` (99.00).
-- Defaults: `baseFee = 49.00`, `perKm = 1.50`, `maxCharge = 549.00`, `fallbackCharge = 99.00`.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/v1/shipping/quotes` | Pre-payment delivery quote — deliveryCharge, distance, zone, hub, carrier, ETA (called by order-service at checkout) |
-| GET | `/api/v1/shipping/zones` | Zone summaries (hub, order counts, carriers, avg distance) |
-| GET | `/api/v1/shipping/{shipmentId}` | Get shipment |
-| GET | `/api/v1/shipping/order/{orderId}` | Shipment by order |
-
-<<<<<<< HEAD
-**Kafka:** Consumes → `payment-events` &nbsp;|&nbsp; Publishes → `shipping-events`
-&nbsp;|&nbsp; **REST:** `POST /api/v1/shipping/quotes` (delivery pricing)
-=======
-**Kafka:** Consumes → `payment-events`  |  Publishes → `shipping-events`
- |  **REST:** `POST /api/v1/shipping/quotes` (delivery pricing)
->>>>>>> 9593be455f487c35977bff8a2a4f688f9b378937
+**Key features:**
+- Priority queue routing — HIGH/MEDIUM/LOW channels with configurable RPM and worker counts
+- OpenTelemetry distributed tracing — spans across HTTP ingestion, queue publish, and worker delivery
+- Prometheus metrics exposed at `/metrics`
+- `loadtest.exe` built-in for throughput benchmarking
+- Docker Compose observability stack (Grafana + Prometheus + Jaeger)
 
 ---
 
-### 14. Notification Service
-
-**Port:** `8084`  |  **Database:** MongoDB `notification_db`
-
-Sends transactional emails via Resend and stores in-app notifications. Failed deliveries are retried up to 3 times via a scheduled job.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/v1/notifications` | All notifications |
-| GET | `/api/v1/notifications/unread` | Unread only |
-| GET | `/api/v1/notifications/unread/count` | Badge count |
-| PATCH | `/api/v1/notifications/{id}/read` | Mark as read |
-| PATCH | `/api/v1/notifications/read-all` | Mark all read |
-| GET | `/api/v1/notifications/invoice/{orderId}` | Download PDF invoice |
-
-**PDF Invoice Generation**
-
-On every `ORDER_PLACED` event, the notification service:
-1. Generates a styled PDF invoice using **OpenPDF (iText)** — includes order number, itemised table, subtotal, tax, and grand total
-2. Attaches the PDF to the order confirmation email sent via Resend
-3. Stores the raw PDF bytes in MongoDB alongside the notification record
-4. Exposes it for re-download at any time via `GET /api/v1/notifications/invoice/{orderId}` — returns `application/pdf`
-
-**Kafka:** Consumes → `order-events`, `payment-events`, `shipping-events`
-
-**Email types:** `ORDER_PLACED · PAYMENT_SUCCESS · PAYMENT_FAILED · ORDER_SHIPPED · ORDER_DELIVERED`
-
----
-
-### 15. Logging Service
-
-**Port:** `8092`  |  **Database:** MongoDB `logging_db`
-
-Intercepts all Kafka business events and converts them into structured log entries with cross-service traceId correlation. Logs are auto-expired after **30 days** via a MongoDB TTL index.
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/v1/logs` | Search (serviceName, level, keyword, traceId, date range) |
-| GET | `/api/v1/logs/{id}` | Single entry |
-| GET | `/api/v1/logs/trace/{traceId}` | All logs for one saga |
-| GET | `/api/v1/logs/stats` | Aggregated stats per service/level |
-| GET | `/api/v1/logs/errors/recent` | Recent errors for monitoring |
-
-**Kafka:** Consumes → `service-logs`, `order-events`, `payment-events`, `inventory-events`, `shipping-events`
-
----
-
-### 16. Analytics Service
-
-**Port:** `8093`  |  **Database:** PostgreSQL `analytics_db`
-
-Dedicated read-side analytics store implementing the **CQRS pattern** — all analytical queries run against a separate PostgreSQL database, leaving transactional DBs untouched. Consumes `order-events` in batches and projects aggregate metrics in real time.
-
-**Design Decisions**
-
-| Concern | Solution |
-|---|---|
-| CQRS | Dedicated `analytics_db` separate from `order_db` |
-| Throughput | Batch Kafka consumer — up to 500 events/batch, ~500 events/sec |
-| Idempotency | Unique constraint on `event_id` — safe for consumer restarts and replay |
-| Resilience | Poison pill detection routes bad events to `order-analytics-dlq` |
-
-**Kafka:** Consumes → `order-events` (batch)  |  Publishes failed events → `order-analytics-dlq`
-
-**API Endpoints**
-
-| Method | Path | Description |
-|---|---|---|
-| GET | `/api/v1/analytics/summary` | Total orders, total revenue, unique customers |
-| GET | `/api/v1/analytics/top-customers` | Top customers ranked by spend |
-| GET | `/api/v1/analytics/revenue-per-day` | Daily revenue time series |
-| GET | `/api/v1/analytics/orders` | Paginated order analytics records |
-
-**Performance Stats** (from load testing)
-
-| Metric | Value |
-|---|---|
-| Total events ingested | 19,717 |
-| Total revenue tracked | ₹1,774,510,283 |
-| Consumer throughput | ~500 events/sec |
-| Batch size | 500 events/batch |
-
-**DLQ Handling**
-
-Any event that fails deserialization or violates a DB constraint beyond the idempotency check is forwarded to `order-analytics-dlq`. A separate consumer can replay or inspect failed events without blocking the main pipeline.
-
----
-
-<<<<<<< HEAD
 ## 🔁 n8n Automation (Abandoned Cart Recovery)
 
-The services stay focused on their domains; **n8n** handles the long-running
-abandoned-cart workflow (schedule → check → branch → wait 24h → coupon).
-It runs **outside Docker** — `npx n8n`, a global npm install, or the desktop app.
-Using **n8n Cloud**? The services must be publicly reachable; see
-[Hosted n8n setup](n8n/README.md#2b-using-n8n-cloud-hosted).
+23-node n8n workflow that orchestrates abandoned-cart recovery without adding scheduler logic to Spring services.
 
-**Quick start**
+**Flow:**
+```
+Schedule (5 min) → Get Abandoned Carts → Split → Get Customer Contact
+→ Merge Cart + Customer → Check Order Status
+→ IF Should Remind?
+    TRUE  → Compose Reminder → Send Reminder Email → Mark Reminded → Wait 24h
+          → Check Order Again → IF Purchased?
+              FALSE → Build Coupon Email → Send Coupon → Mark Coupon Sent
+              TRUE  → Stop (purchased after reminder)
+    FALSE → Stop (already purchased)
+```
 
+**Quick start:**
 ```powershell
 npx n8n
-# open http://localhost:5678 and import:
-#   n8n/abandoned-cart-recovery.workflow.json
-
-# seed a demo cart (profile + product + cart + backdate)
+# Import: n8n/abandoned-cart-recovery.workflow.json
+# Seed a test cart:
 .\n8n\test-abandoned-cart.ps1 -Email you@example.com
 ```
 
-**Supporting internal endpoints**
+**Internal endpoints used:**
 
 | Service | Endpoint |
 |---|---|
 | cart-service | `GET /api/v1/cart/internal/abandoned?olderThanMinutes=30&stage=NONE` |
 | cart-service | `PATCH /api/v1/cart/internal/{userId}/reminder-state` |
-| cart-service | `POST /api/v1/cart/internal/{userId}/simulate-idle?minutes=45` (test only) |
+| cart-service | `POST /api/v1/cart/internal/{userId}/simulate-idle?minutes=45` |
 | user-service | `GET /api/v1/users/internal/{userId}` |
-| order-service | `GET /api/v1/orders/customer/{customerId}/purchased?productIds=...&since=...` |
+| order-service | `GET /api/v1/orders/customer/{id}/purchased?productIds=...&since=...` |
 | notification-service | `POST /api/v1/notifications/internal/send` |
 
-Workflow state (`NONE → REMINDED → COUPON_SENT`) is stored on the cart in Redis,
-so scheduled runs cannot send duplicate reminders. Any real cart activity resets it.
+Reminder state (`NONE → REMINDED → COUPON_SENT`) stored on the cart in Redis — scheduled runs never double-send.
 
-See [**n8n/README.md**](n8n/README.md) for the full walkthrough, test mode, and production checklist.
+See [**n8n/README.md**](n8n/README.md) for full setup, n8n Cloud tunnel instructions, and test mode.
 
 ---
 
 ## 📨 Kafka Topics
-=======
-## 🚨 Kafka Topics
->>>>>>> 9593be455f487c35977bff8a2a4f688f9b378937
 
 | Topic | Producer | Consumers | Events |
 |---|---|---|---|
@@ -746,25 +352,16 @@ See [**n8n/README.md**](n8n/README.md) for the full walkthrough, test mode, and 
 | `inventory-alerts` | inventory-service | ops / monitoring | Low-stock alerts |
 | `payment-events` | payment-service | order-service, shipping-service, notification-service, logging-service | `PaymentProcessedEvent`, `PaymentFailedEvent` |
 | `shipping-events` | shipping-service | order-service, notification-service, logging-service | `ShipmentProcessedEvent`, `ShipmentFailedEvent` |
-| `service-logs` | any service | logging-service | Explicit log entries |
+| `sale-events` | sale-service | notification-service, product-service | `SaleStartedEvent` |
+| `service-logs` | any service | logging-service | Structured log entries |
 | `wishlist-events` | wishlist-service | future use | Wishlist activity |
-| `order-analytics-dlq` | analytics-service | ops / monitoring | Poison pill / failed analytics events |
-
-**Kafka configuration (docker-compose)**
-
-| Property | Value |
-|---|---|
-| Mode | KRaft — no ZooKeeper |
-| External port | `9095` (EXTERNAL listener — localhost) |
-| Internal port | `29092` (INTERNAL listener — container-to-container) |
-| Auto topic creation | Enabled |
-| UI | http://localhost:8069 |
+| `order-analytics-dlq` | analytics-service | ops / monitoring | Poison pill events |
 
 ---
 
 ## ☸️ Kubernetes
 
-Manifests live in `/k8s`. The order-service is the reference deployment and demonstrates the standard pattern for any service.
+Manifests in `/k8s`. order-service is the reference deployment.
 
 **HPA — order-service**
 
@@ -773,220 +370,54 @@ Manifests live in `/k8s`. The order-service is the reference deployment and demo
 | Min replicas | 2 |
 | Max replicas | 8 |
 | Scale-up trigger | CPU > 60% or Memory > 70% |
-| Scale-up speed | +2 pods / 30 s (max 100% increase / 60 s) |
-| Scale-down cooldown | 120 s stabilization |
-
-**Deployment features**
+| Scale-up speed | +2 pods / 30s |
+| Scale-down cooldown | 120s stabilization |
 
 - Zero-downtime rolling update (`maxUnavailable: 0`, `maxSurge: 1`)
-- `preStop` sleep of 10 s to drain connections before SIGTERM
-- Separate startup, liveness, and readiness probes via `/actuator/health`
+- `preStop` sleep 10s to drain connections before SIGTERM
+- Startup, liveness, and readiness probes via `/actuator/health`
 - Prometheus scraping annotations on pod template
 - Pod anti-affinity to spread replicas across nodes
-
-**Deploy**
-
-```bash
-# 1. Build image
-cd order-service
-docker build -t order-service:latest .
-
-# 2. Apply manifests
-kubectl apply -f k8s/order-deployment.yaml
-kubectl apply -f k8s/order-service.yaml
-kubectl apply -f k8s/order-hpa.yaml
-```
-
-> To containerize any other service: add a `Dockerfile`, create `application-k8s.yml` with overrides, then add `Deployment` + `Service` + `HPA` manifests to `/k8s`.
 
 ---
 
 ## 🔥 Load Testing Results
 
-Load tests run against **order-service** (port `8081`) directly using **Apache JMeter 5.6.3**.
-Target: `POST /api/v1/orders` — Samsung Galaxy S26, single item per order.
-Tool: `load-tests/order-load-test.jmx`
+JMeter 5.6.3 · `POST /api/v1/orders` · 50 threads
 
----
+| Run | Orders | Ramp-up | Throughput | P50 | P95 | P99 | Errors |
+|---|---|---|---|---|---|---|---|
+| Warm-up | 15,000 | 10s | 30.3 req/s | 20ms | 741ms | 3,374ms | 0% |
+| Sustained | 15,000 | 100s | ~20 req/s | ~30ms | ~1,000ms | ~7,000ms | 0% |
+| **Total** | **30,000** | | | | | | **0%** |
 
-### Run 1 — Warm-up (50 threads × 300 loops, 10s ramp-up)
+All 30,000 orders triggered the full Kafka saga end-to-end.
 
-| Property | Value |
+**Kafka Partition Scaling impact:**
+
+| Partitions | Observed Processing Time |
 |---|---|
-| Threads (users) | 50 |
-| Ramp-up period | 10 seconds |
-| Loop count | 300 |
-| **Total orders placed** | **15,000** |
-
-| Metric | Value |
-|---|---|
-| Min response time | 8 ms |
-| Max response time | 24,564 ms |
-| Average | 209 ms |
-| Median (P50) | 20 ms |
-| P90 | 271 ms |
-| P95 | 741 ms |
-| P99 | 3,374 ms |
-| Throughput | **30.3 req/s** |
-| Error rate | **0.00%** |
-| Received KB/s | 18.80 |
-| Sent KB/s | 11.85 |
-
----
-
-### Run 2 — Sustained Load (50 threads × 300 loops, 100s ramp-up)
-
-| Property | Value |
-|---|---|
-| Threads (users) | 50 |
-| Ramp-up period | 100 seconds |
-| Loop count | 300 |
-| **Total orders placed** | **15,000** |
-
-| Metric | Value |
-|---|---|
-| Min response time | 8 ms |
-| Max response time | ~27,000 ms |
-| Average | ~209 ms |
-| Median (P50) | ~30 ms |
-| P90 | ~300 ms |
-| P95 | ~1,000 ms |
-| P99 | ~7,000 ms |
-| Throughput | **~20 req/s** |
-| Error rate | **0.00%** |
-
----
-
-### Combined Summary
-
-| Run | Orders | Threads | Ramp-up | Throughput | Errors |
-|-----|--------|---------|---------|------------|--------|
-| Warm-up | 15,000 | 50 | 10s | 30.3/s | 0% |
-| Sustained | 15,000 | 50 | 100s | ~20/s | 0% |
-| **Total** | **30,000** | | | | **0%** |
-
-> All 30,000 orders triggered the full Kafka saga:
-> `order-events → inventory-events → payment-events → shipping-events → notification (PDF email)`
->
-> Zero errors across 30,000 requests confirms the saga is stable under sustained concurrent load.
-
----
-
-## ⚡ Kafka Partition Scaling — Impact on Processing Time
-
-Increasing the number of Kafka partitions allows more consumers to process events in parallel, directly reducing end-to-end saga processing time. The table below shows observed processing times for a full-saga run at equivalent load across three partition configurations.
-
-| Service / Topic | Partitions | Observed Processing Time | Notes |
-|---|---|---|---|
-| order-service (`order-events`) | 1 | > 30 minutes | Single partition — all events processed sequentially by one consumer |
-| payment-service (`payment-events`) | 5 | ~10 minutes | 5-way parallelism — significant reduction in queue depth |
-| shipping-service (`shipping-events`) | 10 | ~4 minutes | 10-way parallelism — fastest throughput, minimal consumer lag |
-
-**Key takeaway:** Moving from 1 partition to 10 partitions reduced processing time by over **87%** (from >30 min down to ~4 min). Each additional partition enables an additional consumer instance to process events concurrently, so throughput scales nearly linearly with partition count up to the number of available consumer instances.
-
-> **Note:** Partition count can only be increased on an existing Kafka topic, never decreased. Plan your partition count based on expected peak throughput before going to production.
+| 1 | > 30 minutes |
+| 5 | ~10 minutes |
+| 10 | ~4 minutes (87% reduction) |
 
 ---
 
 ## 📊 Observability
 
-All services are instrumented with **Micrometer** and expose a `/actuator/prometheus` endpoint. Prometheus scrapes these endpoints and Grafana visualises the data.
-
-### Stack
-
-| Component | Role |
-|---|---|
-| Micrometer | Metrics instrumentation inside each Spring Boot service |
-| Prometheus | Time-series metrics scraping and storage |
-| Grafana | Dashboard visualisation and alerting |
-
-### Endpoints
+All Spring services instrumented with Micrometer → Prometheus → Grafana.
+Go scalable-notification-service uses OpenTelemetry → Prometheus + Jaeger.
 
 | Tool | URL | Credentials |
 |---|---|---|
 | Prometheus | http://localhost:9091 | — |
 | Grafana | http://localhost:3000 | admin / admin |
-| kafka-lag-exporter | http://localhost:8000 | — |
+| Kafka UI | http://localhost:8069 | — |
+| Alertmanager | http://localhost:9093 | — |
 
-### Quick Start
+**Dashboard panels:** HTTP request rate, latency p50/p95/p99, Kafka consumer lag, JVM heap, GC pause time, HikariCP connections.
 
-```bash
-# Start Prometheus
-docker run -d \
-  --name prometheus \
-  -p 9091:9090 \
-  -v $(pwd)/monitoring/prometheus.yml:/etc/prometheus/prometheus.yml \
-  prom/prometheus
-
-# Start Grafana
-docker run -d \
-  --name grafana \
-  -p 3000:3000 \
-  -e GF_SECURITY_ADMIN_PASSWORD=admin \
-  grafana/grafana
-```
-
-> On Windows with PowerShell replace `$(pwd)` with `${PWD}`.
-
-After Grafana starts:
-1. Open http://localhost:3000 and log in with `admin / admin`
-2. Add Prometheus as a data source: `http://host.docker.internal:9091`
-3. Import the dashboard JSON from `monitoring/grafana-dashboard.json`
-
-### Dashboard Panels
-
-The Grafana dashboard includes 8 panels:
-
-| Panel | Metric |
-|---|---|
-| HTTP Request Rate | Requests per second across all services |
-| HTTP Latency p50 / p95 / p99 | `http_server_requests_seconds` percentiles |
-| Kafka Consumer Lag | Messages behind per topic / consumer group |
-| Kafka Throughput | Events ingested per second (analytics consumer) |
-| JVM Heap Usage | `jvm_memory_used_bytes` — heap vs. non-heap |
-| JVM GC Pause Time | Garbage collection pause duration |
-| HikariCP Active Connections | Active DB connections per service |
-| HikariCP Pending Threads | Connection pool saturation indicator |
-
----
-
-## 📁 Project Structure
-
-```
-ecommerce-microservices/
-├── pom.xml                      # Parent POM — Java 21, Spring Boot 3.2.12
-├── docker-compose.yml           # Kafka, PostgreSQL, MongoDB, Redis, Kafka UI
-├── .env                         # Environment variables
-├── architecture.md              # System topology, HLD, saga, microservice catalog
-├── memory.md                    # Persistent agent memory / project state
-├── scripts/
-│   ├── create-multiple-postgres-dbs.sh  # Auto-creates 8 PostgreSQL databases
-│   ├── embed-csv-products.ps1           # Batch-embed csv_products via Ollama
-│   ├── demo-pgvector.ps1               # pgvector cosine search demo
-│   ├── semantic-vs-keyword.ps1          # pgvector vs ILIKE benchmark (products)
-│   └── semantic-vs-keyword-csv.ps1      # pgvector vs ILIKE benchmark (csv_products)
-├── k8s/                         # Kubernetes manifests (order-service reference)
-├── monitoring/                  # Prometheus & Grafana config
-│   ├── prometheus.yml           # Scrape configs for all services
-│   └── grafana-dashboard.json   # Pre-built Grafana dashboard (8 panels)
-├── scripts/                     # pgvector embedding & benchmark scripts
-├── common-library/              # Shared Kafka events & DTOs
-├── service-registry/            # Eureka server
-├── api-gateway/                 # Spring Cloud Gateway + JWT filter
-├── auth-service/                # Authentication, JWT, OAuth2
-├── user-service/                # User profiles & addresses
-├── product-service/             # Product catalog, categories, search, pgvector semantic search
-├── seller-service/              # Merchant management & verification
-├── cart-service/                # Redis shopping cart
-├── wishlist-service/            # MongoDB wishlists
-├── order-service/               # Orders + saga orchestration (pre-payment delivery quote)
-├── inventory-service/           # Stock management
-├── payment-service/             # Razorpay / Stripe / Mock payments
-├── shipping-service/            # Delivery quotes, H3 routing, shipment tracking
-├── notification-service/        # Email + in-app notifications
-├── logging-service/             # Centralized log aggregation (30-day TTL)
-└── analytics-service/           # CQRS analytics — batch Kafka consumer + REST API
-```
+**Alert rules:** 19 rules across 6 groups — service availability, HTTP errors, JVM memory, threads, HikariCP, ingestion pipeline.
 
 ---
 
@@ -994,32 +425,15 @@ ecommerce-microservices/
 
 | Category | Technology |
 |---|---|
-| Language | Java 21 |
-| Framework | Spring Boot 3.2.12, Spring Cloud 2023.0.2 |
-| Service Discovery | Netflix Eureka |
-| API Gateway | Spring Cloud Gateway |
-| Messaging | Apache Kafka (KRaft, Confluent 7.5.0) |
-| Vector DB | pgvector extension on PostgreSQL 16 — HNSW cosine index, 768-dim embeddings |
-| Embedding Model | Ollama `nomic-embed-text` (768 dimensions) |
-| Relational DB | PostgreSQL 16 (8 isolated databases) |
-| Document DB | MongoDB (4 databases) |
-| Cache | Redis 7 |
-| Auth | JWT (JJWT 0.12), Spring Security, Google OAuth2 |
-| Payment | Razorpay, Stripe (stub), Mock |
-| Email | AWS SES (auth-service), Resend (notification-service) |
-| Analytics | Spring Kafka batch consumer, Spring Data JPA, PostgreSQL |
-| Observability | Micrometer, Prometheus, Grafana |
-| CI/CD | GitHub Actions |
-| Build | Maven multi-module |
-| Containerization | Docker Compose, Kubernetes (HPA) |
-| Code Generation | Lombok, MapStruct |
-
----
-
-
-
-<<<<<<< HEAD
-</div>
-=======
-Built with ❤️ and Spring Boot  ·  Java 21  ·  Apache Kafka
->>>>>>> 9593be455f487c35977bff8a2a4f688f9b378937
+| **Languages** | Java 21, Go |
+| **Frameworks** | Spring Boot 3.2.12, Spring Cloud 2023.0.2, Spring Security, Spring Data JPA |
+| **Messaging** | Apache Kafka (KRaft), RabbitMQ |
+| **Databases** | PostgreSQL 16, MongoDB, Redis 7, pgvector |
+| **AI / Search** | pgvector HNSW, Ollama `nomic-embed-text` (768-dim) |
+| **Payments** | Razorpay, Stripe (stub), Mock |
+| **Automation** | n8n (abandoned-cart recovery workflow) |
+| **Cloud** | AWS SES, Resend, OpenStreetMap Nominatim |
+| **Observability** | Micrometer, Prometheus, Grafana, OpenTelemetry, Jaeger |
+| **Infrastructure** | Docker Compose, Kubernetes (HPA), GitHub Actions CI |
+| **Build** | Maven multi-module, Go modules |
+| **Auth** | JWT (JJWT 0.12), Google OAuth2, Spring Security |
