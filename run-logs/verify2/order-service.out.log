@@ -1,0 +1,603 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v3.2.12)
+
+2026-06-02T20:14:18.457Z  INFO 13200 --- [order-service] [           main] c.h.order.OrderServiceApplication        : Starting OrderServiceApplication v0.0.1-SNAPSHOT using Java 21.0.6 with PID 13200 (C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main\order-service\target\order-service-0.0.1-SNAPSHOT.jar started by jagdish in C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main)
+2026-06-02T20:14:18.685Z  INFO 13200 --- [order-service] [           main] c.h.order.OrderServiceApplication        : The following 1 profile is active: "local"
+2026-06-02T20:14:58.296Z  INFO 13200 --- [order-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-02T20:15:03.949Z  INFO 13200 --- [order-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 5179 ms. Found 1 JPA repository interface.
+2026-06-02T20:15:14.849Z  INFO 13200 --- [order-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=2c649e9d-cfdc-3e51-8655-c9512f2965e1
+2026-06-02T20:15:28.642Z  WARN 13200 --- [order-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-06-02T20:15:28.884Z  WARN 13200 --- [order-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-06-02T20:15:44.311Z  INFO 13200 --- [order-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8081 (http)
+2026-06-02T20:15:44.660Z  INFO 13200 --- [order-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-02T20:15:44.698Z  INFO 13200 --- [order-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.33]
+2026-06-02T20:15:45.378Z  INFO 13200 --- [order-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-02T20:15:45.380Z  INFO 13200 --- [order-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 85126 ms
+2026-06-02T20:16:04.632Z  INFO 13200 --- [order-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-02T20:16:06.899Z  INFO 13200 --- [order-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.10.Final
+2026-06-02T20:16:07.217Z  INFO 13200 --- [order-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-06-02T20:16:15.016Z  INFO 13200 --- [order-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-02T20:16:15.267Z  INFO 13200 --- [order-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-02T20:17:14.104Z  INFO 13200 --- [order-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@6fefc5ea
+2026-06-02T20:17:14.141Z  INFO 13200 --- [order-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-02T20:17:22.590Z  INFO 13200 --- [order-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-02T20:17:47.386Z  INFO 13200 --- [order-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-02T20:17:52.900Z  WARN 13200 --- [order-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-06-02T20:17:59.419Z  INFO 13200 --- [order-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-06-02T20:18:02.134Z  INFO 13200 --- [order-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-06-02T20:18:02.317Z  WARN 13200 --- [order-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-06-02T20:18:02.346Z  INFO 13200 --- [order-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-06-02T20:18:02.632Z  INFO 13200 --- [order-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-06-02T20:18:02.955Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-06-02T20:18:02.972Z  INFO 13200 --- [order-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-06-02T20:18:03.030Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-06-02T20:18:03.030Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-06-02T20:18:03.031Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-06-02T20:18:03.031Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-06-02T20:18:03.033Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-06-02T20:18:03.034Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-06-02T20:18:03.035Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-06-02T20:18:04.725Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-06-02T20:18:04.745Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-06-02T20:18:04.757Z  INFO 13200 --- [order-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-06-02T20:18:04.836Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1780431484831 with initial instances count: 5
+2026-06-02T20:18:04.884Z  INFO 13200 --- [order-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application ORDER-SERVICE with eureka with status UP
+2026-06-02T20:18:04.887Z  INFO 13200 --- [order-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1780431484887, current=UP, previous=STARTING]
+2026-06-02T20:18:04.892Z  INFO 13200 --- [order-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_ORDER-SERVICE/GreyNinja:order-service:8081: registering service...
+2026-06-02T20:18:05.006Z  INFO 13200 --- [order-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8081 (http) with context path ''
+2026-06-02T20:18:05.010Z  INFO 13200 --- [order-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8081
+2026-06-02T20:18:05.060Z  INFO 13200 --- [order-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_ORDER-SERVICE/GreyNinja:order-service:8081 - registration status: 204
+2026-06-02T20:18:06.012Z  INFO 13200 --- [order-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-order-service-group-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = order-service-group
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class com.hacisimsek.common.kafka.EventJsonDeserializer
+
+2026-06-02T20:18:06.324Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-06-02T20:18:06.325Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-06-02T20:18:06.326Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1780431486322
+2026-06-02T20:18:06.336Z  INFO 13200 --- [order-service] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Subscribed to topic(s): inventory-events
+2026-06-02T20:18:06.365Z  INFO 13200 --- [order-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-order-service-group-2
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = order-service-group
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class com.hacisimsek.common.kafka.EventJsonDeserializer
+
+2026-06-02T20:18:06.403Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-06-02T20:18:06.404Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-06-02T20:18:06.405Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1780431486403
+2026-06-02T20:18:06.420Z  INFO 13200 --- [order-service] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Subscribed to topic(s): payment-events
+2026-06-02T20:18:06.442Z  INFO 13200 --- [order-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-order-service-group-3
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = order-service-group
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class com.hacisimsek.common.kafka.EventJsonDeserializer
+
+2026-06-02T20:18:06.461Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-06-02T20:18:06.464Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-06-02T20:18:06.464Z  INFO 13200 --- [order-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1780431486461
+2026-06-02T20:18:06.466Z  INFO 13200 --- [order-service] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Subscribed to topic(s): shipping-events
+2026-06-02T20:18:06.794Z  INFO 13200 --- [order-service] [           main] c.h.order.OrderServiceApplication        : Started OrderServiceApplication in 246.411 seconds (process running for 267.628)
+2026-06-02T20:18:08.834Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-06-02T20:18:08.847Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-06-02T20:18:08.868Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-06-02T20:18:10.033Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:10.038Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:10.128Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:10.132Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:10.320Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:10.323Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:49.102Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: need to re-join with the given member-id: consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352
+2026-06-02T20:18:49.118Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:18:49.119Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:49.139Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: need to re-join with the given member-id: consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687
+2026-06-02T20:18:49.140Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:18:49.140Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:49.209Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: need to re-join with the given member-id: consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119
+2026-06-02T20:18:49.210Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:18:49.211Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:50.319Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:50.320Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:50.327Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119', protocol='null'}
+2026-06-02T20:18:50.335Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:18:50.338Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:50.339Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:50.339Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:18:50.340Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:18:50.437Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:50.438Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:50.439Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:18:50.440Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:18:56.782Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:56.786Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:18:56.787Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:56.790Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:56.792Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:18:56.795Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:56.799Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:56.801Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:18:56.802Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:56.948Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:56.949Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:56.950Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:18:56.951Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:18:57.011Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:57.012Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:57.013Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:18:57.013Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:18:57.079Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:57.080Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:57.081Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119', protocol='null'}
+2026-06-02T20:18:57.081Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:18:57.116Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:57.124Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:18:57.125Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:57.203Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:57.206Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:18:57.207Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:57.251Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:57.255Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:18:57.257Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:18:57.521Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:18:57.531Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:18:57.545Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:18:57.548Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:01.127Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:01.127Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:01.128Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:19:01.129Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:01.557Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:01.557Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:01.558Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:01.558Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119', protocol='null'}
+2026-06-02T20:19:01.558Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:01.559Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:01.559Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:01.559Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:01.561Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:01.561Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:01.777Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:01.782Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:01.783Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:02.020Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:02.021Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.021Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119', protocol='null'}
+2026-06-02T20:19:02.021Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:02.134Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:02.134Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.135Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:19:02.135Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:02.249Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.252Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:02.253Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:02.391Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:02.392Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.392Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:19:02.392Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:02.455Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.456Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:02.456Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:02.475Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.478Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:02.478Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:02.665Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:02.667Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.667Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:19:02.668Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:02.773Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:02.775Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:02.777Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:03.084Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:03.084Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.086Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:19:03.086Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:03.139Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:03.141Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.141Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:19:03.141Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:03.215Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.217Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:03.218Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:03.275Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.278Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:03.280Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:03.453Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:03.453Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.454Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119', protocol='null'}
+2026-06-02T20:19:03.455Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:03.582Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:03.583Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.584Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:19:03.584Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:03.643Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:03.643Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.644Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:19:03.645Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:03.651Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.654Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:03.655Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:03.742Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.744Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:03.746Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:03.828Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-02T20:19:03.830Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:03.830Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:03.853Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:03.854Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:03.899Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:03.900Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:03.969Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.015Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.085Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.086Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.086Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.087Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.088Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.089Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.188Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.188Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.204Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.320Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.321Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.331Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.331Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.331Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.331Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.436Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.436Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.436Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.474Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.474Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.474Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.475Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.474Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.475Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.576Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.576Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.576Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.649Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.650Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.682Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.685Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.737Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.738Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.760Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.778Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.778Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.792Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.853Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.876Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.877Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.883Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.883Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.884Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.925Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:04.926Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:04.992Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:04.992Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.038Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.045Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:05.047Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:05.072Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:05.072Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:05.074Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:05.075Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:05.160Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.176Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.191Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:05.191Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.192Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:05.195Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:05.196Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:05.251Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-02T20:19:05.252Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-02T20:19:05.299Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.299Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.348Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] JoinGroup failed: The coordinator is not aware of this member. Need to re-join the group. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-2-0168698a-117d-480e-9394-c0e06d92f119', protocol='null'}
+2026-06-02T20:19:05.350Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Resetting generation and member id due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-02T20:19:05.351Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-02T20:19:05.352Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is not aware of this member.' (UnknownMemberIdException)
+2026-06-02T20:19:05.353Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.362Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.433Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] JoinGroup failed: The coordinator is not aware of this member. Need to re-join the group. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-1-5f0744ff-76da-47d3-89d8-9c0120352352', protocol='null'}
+2026-06-02T20:19:05.433Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Resetting generation and member id due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-02T20:19:05.434Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-02T20:19:05.435Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is not aware of this member.' (UnknownMemberIdException)
+2026-06-02T20:19:05.435Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.442Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: need to re-join with the given member-id: consumer-order-service-group-2-d05910eb-75c9-4ec1-876b-7a23ae8bd22b
+2026-06-02T20:19:05.442Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] JoinGroup failed: The coordinator is not aware of this member. Need to re-join the group. Sent generation was Generation{generationId=-1, memberId='consumer-order-service-group-3-c42f0d4d-f901-489f-be22-f7b8ae9bd687', protocol='null'}
+2026-06-02T20:19:05.443Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Resetting generation and member id due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-02T20:19:05.443Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:19:05.443Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.444Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-02T20:19:05.444Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The coordinator is not aware of this member.' (UnknownMemberIdException)
+2026-06-02T20:19:05.445Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.503Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: need to re-join with the given member-id: consumer-order-service-group-1-11fe9ade-f3fb-4b58-81b8-2ee5ecf03aae
+2026-06-02T20:19:05.503Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:19:05.503Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:05.545Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: need to re-join with the given member-id: consumer-order-service-group-3-bcdbcf1e-bcb5-4c44-b911-e451028202ba
+2026-06-02T20:19:05.546Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:19:05.547Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] (Re-)joining group
+2026-06-02T20:19:53.944Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Successfully joined group with generation Generation{generationId=3, memberId='consumer-order-service-group-1-11fe9ade-f3fb-4b58-81b8-2ee5ecf03aae', protocol='range'}
+2026-06-02T20:19:53.944Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Successfully joined group with generation Generation{generationId=3, memberId='consumer-order-service-group-2-d05910eb-75c9-4ec1-876b-7a23ae8bd22b', protocol='range'}
+2026-06-02T20:19:54.007Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Successfully joined group with generation Generation{generationId=3, memberId='consumer-order-service-group-3-bcdbcf1e-bcb5-4c44-b911-e451028202ba', protocol='range'}
+2026-06-02T20:19:54.570Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Finished assignment for group at generation 3: {consumer-order-service-group-2-d05910eb-75c9-4ec1-876b-7a23ae8bd22b=Assignment(partitions=[payment-events-0]), consumer-order-service-group-1-11fe9ade-f3fb-4b58-81b8-2ee5ecf03aae=Assignment(partitions=[inventory-events-0]), consumer-order-service-group-3-bcdbcf1e-bcb5-4c44-b911-e451028202ba=Assignment(partitions=[shipping-events-0])}
+2026-06-02T20:19:55.251Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Successfully synced group in generation Generation{generationId=3, memberId='consumer-order-service-group-3-bcdbcf1e-bcb5-4c44-b911-e451028202ba', protocol='range'}
+2026-06-02T20:19:55.252Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Successfully synced group in generation Generation{generationId=3, memberId='consumer-order-service-group-1-11fe9ade-f3fb-4b58-81b8-2ee5ecf03aae', protocol='range'}
+2026-06-02T20:19:55.258Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Notifying assignor about the new Assignment(partitions=[inventory-events-0])
+2026-06-02T20:19:55.260Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Notifying assignor about the new Assignment(partitions=[shipping-events-0])
+2026-06-02T20:19:55.395Z  INFO 13200 --- [order-service] [ntainer#1-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-3, groupId=order-service-group] Adding newly assigned partitions: shipping-events-0
+2026-06-02T20:19:55.400Z  INFO 13200 --- [order-service] [ntainer#2-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-1, groupId=order-service-group] Adding newly assigned partitions: inventory-events-0
+2026-06-02T20:19:55.699Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Successfully synced group in generation Generation{generationId=3, memberId='consumer-order-service-group-2-d05910eb-75c9-4ec1-876b-7a23ae8bd22b', protocol='range'}
+2026-06-02T20:19:55.703Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Notifying assignor about the new Assignment(partitions=[payment-events-0])
+2026-06-02T20:19:55.706Z  INFO 13200 --- [order-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-order-service-group-2, groupId=order-service-group] Adding newly assigned partitions: payment-events-0

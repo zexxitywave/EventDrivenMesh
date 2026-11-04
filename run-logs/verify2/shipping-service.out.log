@@ -1,0 +1,180 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v3.2.12)
+
+2026-06-02T20:14:41.678Z  INFO 24264 --- [shipping-service] [           main] c.h.shipping.ShippingServiceApplication  : Starting ShippingServiceApplication v0.0.1-SNAPSHOT using Java 21.0.6 with PID 24264 (C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main\shipping-service\target\shipping-service-0.0.1-SNAPSHOT.jar started by jagdish in C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main)
+2026-06-02T20:14:41.693Z  INFO 24264 --- [shipping-service] [           main] c.h.shipping.ShippingServiceApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-06-02T20:15:20.996Z  INFO 24264 --- [shipping-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-06-02T20:15:26.298Z  INFO 24264 --- [shipping-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 5152 ms. Found 1 JPA repository interface.
+2026-06-02T20:15:38.582Z  INFO 24264 --- [shipping-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=2696f2d4-4ac1-3c9d-87e1-e2bb34bb20c8
+2026-06-02T20:15:54.003Z  WARN 24264 --- [shipping-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-06-02T20:15:54.158Z  WARN 24264 --- [shipping-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-06-02T20:16:07.058Z  INFO 24264 --- [shipping-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8085 (http)
+2026-06-02T20:16:07.097Z  INFO 24264 --- [shipping-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-02T20:16:07.098Z  INFO 24264 --- [shipping-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.33]
+2026-06-02T20:16:08.126Z  INFO 24264 --- [shipping-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-02T20:16:08.133Z  INFO 24264 --- [shipping-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 85114 ms
+2026-06-02T20:16:24.687Z  INFO 24264 --- [shipping-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-06-02T20:16:25.553Z  INFO 24264 --- [shipping-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.10.Final
+2026-06-02T20:16:25.928Z  INFO 24264 --- [shipping-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-06-02T20:16:28.069Z  INFO 24264 --- [shipping-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-06-02T20:16:28.289Z  INFO 24264 --- [shipping-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-06-02T20:17:13.281Z  INFO 24264 --- [shipping-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@539dd2d0
+2026-06-02T20:17:13.320Z  INFO 24264 --- [shipping-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-06-02T20:17:17.058Z  WARN 24264 --- [shipping-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-06-02T20:17:22.617Z  INFO 24264 --- [shipping-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-06-02T20:17:31.668Z  INFO 24264 --- [shipping-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-06-02T20:17:38.688Z  WARN 24264 --- [shipping-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-06-02T20:17:45.090Z  INFO 24264 --- [shipping-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-06-02T20:17:48.865Z  INFO 24264 --- [shipping-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-06-02T20:17:49.418Z  WARN 24264 --- [shipping-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-06-02T20:17:49.474Z  INFO 24264 --- [shipping-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-06-02T20:17:50.452Z  INFO 24264 --- [shipping-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-06-02T20:17:51.639Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-06-02T20:17:51.656Z  INFO 24264 --- [shipping-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-06-02T20:17:51.923Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-06-02T20:17:51.947Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-06-02T20:17:51.955Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-06-02T20:17:51.956Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-06-02T20:17:51.962Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-06-02T20:17:51.963Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-06-02T20:17:51.963Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-06-02T20:17:57.353Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-06-02T20:17:57.366Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-06-02T20:17:57.373Z  INFO 24264 --- [shipping-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-06-02T20:17:57.398Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1780431477392 with initial instances count: 3
+2026-06-02T20:17:57.443Z  INFO 24264 --- [shipping-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application SHIPPING-SERVICE with eureka with status UP
+2026-06-02T20:17:57.451Z  INFO 24264 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1780431477451, current=UP, previous=STARTING]
+2026-06-02T20:17:57.615Z  INFO 24264 --- [shipping-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SHIPPING-SERVICE/localhost:shipping-service:8085: registering service...
+2026-06-02T20:17:58.104Z  INFO 24264 --- [shipping-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8085 (http) with context path ''
+2026-06-02T20:17:58.131Z  INFO 24264 --- [shipping-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8085
+2026-06-02T20:17:58.616Z  INFO 24264 --- [shipping-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SHIPPING-SERVICE/localhost:shipping-service:8085 - registration status: 204
+2026-06-02T20:17:59.376Z  INFO 24264 --- [shipping-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-06-02T20:17:59.591Z  INFO 24264 --- [shipping-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9093]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-shipping-service-group-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = shipping-service-group
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.springframework.kafka.support.serializer.JsonDeserializer
+
+2026-06-02T20:17:59.907Z  INFO 24264 --- [shipping-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : These configurations '[spring.json.trusted.packages, spring.json.use.type.headers]' were supplied but are not used yet.
+2026-06-02T20:17:59.911Z  INFO 24264 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-06-02T20:17:59.912Z  INFO 24264 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-06-02T20:17:59.913Z  INFO 24264 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1780431479908
+2026-06-02T20:17:59.918Z  INFO 24264 --- [shipping-service] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Subscribed to topic(s): payment-events
+2026-06-02T20:18:00.292Z  INFO 24264 --- [shipping-service] [           main] c.h.shipping.ShippingServiceApplication  : Started ShippingServiceApplication in 221.556 seconds (process running for 242.527)
+2026-06-02T20:18:41.415Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cluster ID: NkU4OEVBNTcwNTJENDM2Qg
+2026-06-02T20:18:41.451Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node -1 due to request timeout.
+2026-06-02T20:18:41.459Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 0 due to node -1 being disconnected (elapsed time since creation: 40485ms, elapsed time since send: 30331ms, request timeout: 30000ms)
+2026-06-02T20:19:04.382Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9093 (id: 2147483646 rack: null)
+2026-06-02T20:19:04.456Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] (Re-)joining group
+2026-06-02T20:19:05.266Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9093 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-02T20:19:05.267Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9093 (id: 2147483646 rack: null)
+2026-06-02T20:19:05.269Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='', protocol='null'}
+2026-06-02T20:19:05.270Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-06-02T20:19:05.424Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9093 (id: 2147483646 rack: null)
+2026-06-02T20:19:05.431Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-02T20:19:05.432Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] (Re-)joining group
+2026-06-02T20:19:05.811Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Request joining group due to: need to re-join with the given member-id: consumer-shipping-service-group-1-01edc047-4421-4bf8-b8fe-82fcba53fb25
+2026-06-02T20:19:05.812Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-02T20:19:05.812Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] (Re-)joining group
+2026-06-02T20:19:09.890Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Successfully joined group with generation Generation{generationId=1, memberId='consumer-shipping-service-group-1-01edc047-4421-4bf8-b8fe-82fcba53fb25', protocol='range'}
+2026-06-02T20:19:10.025Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Finished assignment for group at generation 1: {consumer-shipping-service-group-1-01edc047-4421-4bf8-b8fe-82fcba53fb25=Assignment(partitions=[payment-events-0])}
+2026-06-02T20:19:10.701Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Successfully synced group in generation Generation{generationId=1, memberId='consumer-shipping-service-group-1-01edc047-4421-4bf8-b8fe-82fcba53fb25', protocol='range'}
+2026-06-02T20:19:10.704Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Notifying assignor about the new Assignment(partitions=[payment-events-0])
+2026-06-02T20:19:10.783Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Adding newly assigned partitions: payment-events-0
+2026-06-02T20:19:11.048Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Found no committed offset for partition payment-events-0
+2026-06-02T20:19:11.167Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.SubscriptionState    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Resetting offset for partition payment-events-0 to position FetchPosition{offset=0, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9093 (id: 1 rack: null)], epoch=2}}.
+2026-06-02T20:19:11.200Z  INFO 24264 --- [shipping-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : shipping-service-group: partitions assigned: [payment-events-0]

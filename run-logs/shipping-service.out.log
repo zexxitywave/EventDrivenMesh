@@ -1,0 +1,782 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v3.2.12)
+
+2026-09-18T09:49:53.055Z  INFO 21968 --- [shipping-service] [           main] c.h.shipping.ShippingServiceApplication  : Starting ShippingServiceApplication v0.0.1-SNAPSHOT using Java 21.0.6 with PID 21968 (C:\Users\jagdish\Downloads\Event-Driven Mesh\shipping-service\target\shipping-service-0.0.1-SNAPSHOT.jar started by jagdish in C:\Users\jagdish\Downloads\Event-Driven Mesh)
+2026-09-18T09:49:53.062Z  INFO 21968 --- [shipping-service] [           main] c.h.shipping.ShippingServiceApplication  : No active profile set, falling back to 1 default profile: "default"
+2026-09-18T09:49:58.139Z  INFO 21968 --- [shipping-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data JPA repositories in DEFAULT mode.
+2026-09-18T09:49:58.584Z  INFO 21968 --- [shipping-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 426 ms. Found 1 JPA repository interface.
+2026-09-18T09:49:59.883Z  INFO 21968 --- [shipping-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=ab293407-3c04-305f-9fcd-c2a3f35cfd7b
+2026-09-18T09:50:01.313Z  WARN 21968 --- [shipping-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-09-18T09:50:01.322Z  WARN 21968 --- [shipping-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-09-18T09:50:02.892Z  INFO 21968 --- [shipping-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8085 (http)
+2026-09-18T09:50:02.943Z  INFO 21968 --- [shipping-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-09-18T09:50:02.951Z  INFO 21968 --- [shipping-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.33]
+2026-09-18T09:50:03.086Z  INFO 21968 --- [shipping-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-09-18T09:50:03.090Z  INFO 21968 --- [shipping-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 9857 ms
+2026-09-18T09:50:06.175Z  INFO 21968 --- [shipping-service] [           main] o.hibernate.jpa.internal.util.LogHelper  : HHH000204: Processing PersistenceUnitInfo [name: default]
+2026-09-18T09:50:06.459Z  INFO 21968 --- [shipping-service] [           main] org.hibernate.Version                    : HHH000412: Hibernate ORM core version 6.4.10.Final
+2026-09-18T09:50:06.666Z  INFO 21968 --- [shipping-service] [           main] o.h.c.internal.RegionFactoryInitiator    : HHH000026: Second-level cache disabled
+2026-09-18T09:50:07.344Z  INFO 21968 --- [shipping-service] [           main] o.s.o.j.p.SpringPersistenceUnitInfo      : No LoadTimeWeaver setup: ignoring JPA class transformer
+2026-09-18T09:50:07.413Z  INFO 21968 --- [shipping-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Starting...
+2026-09-18T09:50:07.732Z  INFO 21968 --- [shipping-service] [           main] com.zaxxer.hikari.pool.HikariPool        : HikariPool-1 - Added connection org.postgresql.jdbc.PgConnection@24731caf
+2026-09-18T09:50:07.736Z  INFO 21968 --- [shipping-service] [           main] com.zaxxer.hikari.HikariDataSource       : HikariPool-1 - Start completed.
+2026-09-18T09:50:07.859Z  WARN 21968 --- [shipping-service] [           main] org.hibernate.orm.deprecation            : HHH90000025: PostgreSQLDialect does not need to be specified explicitly using 'hibernate.dialect' (remove the property setting and it will be selected by default)
+2026-09-18T09:50:09.840Z  INFO 21968 --- [shipping-service] [           main] o.h.e.t.j.p.i.JtaPlatformInitiator       : HHH000489: No JTA platform available (set 'hibernate.transaction.jta.platform' to enable JTA platform integration)
+2026-09-18T09:50:10.025Z  INFO 21968 --- [shipping-service] [           main] j.LocalContainerEntityManagerFactoryBean : Initialized JPA EntityManagerFactory for persistence unit 'default'
+2026-09-18T09:50:13.774Z  WARN 21968 --- [shipping-service] [           main] JpaBaseConfiguration$JpaWebConfiguration : spring.jpa.open-in-view is enabled by default. Therefore, database queries may be performed during view rendering. Explicitly configure spring.jpa.open-in-view to disable this warning
+2026-09-18T09:50:17.669Z  INFO 21968 --- [shipping-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-09-18T09:50:17.810Z  WARN 21968 --- [shipping-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-09-18T09:50:17.831Z  INFO 21968 --- [shipping-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 4 endpoint(s) beneath base path '/actuator'
+2026-09-18T09:50:18.319Z  INFO 21968 --- [shipping-service] [           main] o.a.k.clients.admin.AdminClientConfig    : AdminClientConfig values: 
+	auto.include.jmx.reporter = true
+	bootstrap.servers = [localhost:9095]
+	client.dns.lookup = use_all_dns_ips
+	client.id = 
+	connections.max.idle.ms = 300000
+	default.api.timeout.ms = 60000
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+
+2026-09-18T09:50:18.676Z  INFO 21968 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-09-18T09:50:18.677Z  INFO 21968 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-09-18T09:50:18.677Z  INFO 21968 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1789725018675
+2026-09-18T09:50:19.386Z  INFO 21968 --- [shipping-service] [| adminclient-1] o.a.kafka.common.utils.AppInfoParser     : App info kafka.admin.client for adminclient-1 unregistered
+2026-09-18T09:50:19.393Z  INFO 21968 --- [shipping-service] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics scheduler closed
+2026-09-18T09:50:19.394Z  INFO 21968 --- [shipping-service] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Closing reporter org.apache.kafka.common.metrics.JmxReporter
+2026-09-18T09:50:19.395Z  INFO 21968 --- [shipping-service] [| adminclient-1] o.apache.kafka.common.metrics.Metrics    : Metrics reporters closed
+2026-09-18T09:50:19.453Z  INFO 21968 --- [shipping-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-09-18T09:50:19.600Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-09-18T09:50:19.616Z  INFO 21968 --- [shipping-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T09:50:19.736Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-09-18T09:50:19.737Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-09-18T09:50:19.738Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-09-18T09:50:19.739Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-09-18T09:50:19.739Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-09-18T09:50:19.740Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-09-18T09:50:19.740Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-09-18T09:50:20.873Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-09-18T09:50:20.888Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-09-18T09:50:20.892Z  INFO 21968 --- [shipping-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-09-18T09:50:20.904Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1789725020903 with initial instances count: 4
+2026-09-18T09:50:20.917Z  INFO 21968 --- [shipping-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application SHIPPING-SERVICE with eureka with status UP
+2026-09-18T09:50:20.918Z  INFO 21968 --- [shipping-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1789725020918, current=UP, previous=STARTING]
+2026-09-18T09:50:20.924Z  INFO 21968 --- [shipping-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SHIPPING-SERVICE/GreyNinja.mshome.net:shipping-service:8085: registering service...
+2026-09-18T09:50:20.949Z  INFO 21968 --- [shipping-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8085 (http) with context path ''
+2026-09-18T09:50:20.954Z  INFO 21968 --- [shipping-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8085
+2026-09-18T09:50:21.034Z  INFO 21968 --- [shipping-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9095]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-shipping-service-group-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = shipping-service-group
+	group.instance.id = null
+	heartbeat.interval.ms = 10000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 30000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class com.hacisimsek.common.kafka.EventJsonDeserializer
+
+2026-09-18T09:50:21.051Z  INFO 21968 --- [shipping-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_SHIPPING-SERVICE/GreyNinja.mshome.net:shipping-service:8085 - registration status: 204
+2026-09-18T09:50:21.126Z  INFO 21968 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-09-18T09:50:21.126Z  INFO 21968 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-09-18T09:50:21.127Z  INFO 21968 --- [shipping-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1789725021126
+2026-09-18T09:50:21.132Z  INFO 21968 --- [shipping-service] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Subscribed to topic(s): payment-events
+2026-09-18T09:50:21.200Z  INFO 21968 --- [shipping-service] [           main] c.h.shipping.ShippingServiceApplication  : Started ShippingServiceApplication in 30.289 seconds (process running for 32.444)
+2026-09-18T09:50:21.250Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-09-18T09:50:21.252Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T09:50:21.256Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] (Re-)joining group
+2026-09-18T09:50:21.385Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Request joining group due to: need to re-join with the given member-id: consumer-shipping-service-group-1-141d5b05-dce4-4b67-a6e3-b01a0cc31f79
+2026-09-18T09:50:21.387Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-09-18T09:50:21.388Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] (Re-)joining group
+2026-09-18T09:50:21.437Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Successfully joined group with generation Generation{generationId=53, memberId='consumer-shipping-service-group-1-141d5b05-dce4-4b67-a6e3-b01a0cc31f79', protocol='range'}
+2026-09-18T09:50:21.454Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Finished assignment for group at generation 53: {consumer-shipping-service-group-1-141d5b05-dce4-4b67-a6e3-b01a0cc31f79=Assignment(partitions=[payment-events-0, payment-events-1, payment-events-2, payment-events-3, payment-events-4])}
+2026-09-18T09:50:21.549Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Successfully synced group in generation Generation{generationId=53, memberId='consumer-shipping-service-group-1-141d5b05-dce4-4b67-a6e3-b01a0cc31f79', protocol='range'}
+2026-09-18T09:50:21.550Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Notifying assignor about the new Assignment(partitions=[payment-events-0, payment-events-1, payment-events-2, payment-events-3, payment-events-4])
+2026-09-18T09:50:21.555Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Adding newly assigned partitions: payment-events-0, payment-events-1, payment-events-2, payment-events-3, payment-events-4
+2026-09-18T09:50:21.635Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Setting offset for partition payment-events-3 to the committed offset FetchPosition{offset=6049, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9095 (id: 1 rack: null)], epoch=406}}
+2026-09-18T09:50:21.636Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Setting offset for partition payment-events-2 to the committed offset FetchPosition{offset=6431, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9095 (id: 1 rack: null)], epoch=406}}
+2026-09-18T09:50:21.637Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Setting offset for partition payment-events-4 to the committed offset FetchPosition{offset=5648, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9095 (id: 1 rack: null)], epoch=406}}
+2026-09-18T09:50:21.638Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Setting offset for partition payment-events-1 to the committed offset FetchPosition{offset=6360, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9095 (id: 1 rack: null)], epoch=406}}
+2026-09-18T09:50:21.639Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Setting offset for partition payment-events-0 to the committed offset FetchPosition{offset=6182, offsetEpoch=Optional.empty, currentLeader=LeaderAndEpoch{leader=Optional[localhost:9095 (id: 1 rack: null)], epoch=408}}
+2026-09-18T09:50:21.641Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.s.k.l.KafkaMessageListenerContainer    : shipping-service-group: partitions assigned: [payment-events-0, payment-events-1, payment-events-2, payment-events-3, payment-events-4]
+2026-09-18T09:53:13.809Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : [ShippingSagaHandler] payment-events type=com.hacisimsek.common.event.payment.PaymentProcessedEvent
+2026-09-18T09:53:13.867Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : Received PaymentProcessedEvent for order: 6a4b474f-91e7-4b25-b14d-8bc796dfb8e1
+2026-09-18T09:53:14.036Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Processing shipping for order: 6a4b474f-91e7-4b25-b14d-8bc796dfb8e1
+2026-09-18T09:53:20.436Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.geo.GeocodingClient         : Geocoded '12 MG Road, Shivajinagar, Bengaluru, Karnataka 560001, India' via 'Shivajinagar,Bengaluru,Karnataka 560001,India' -> 12.9855286, 77.6054496 (Shivajinagar, Bengaluru Central City Corporation, Bengaluru, Bangalore North, Bengaluru Urban, Karnataka, 560051, India)
+2026-09-18T09:53:20.460Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : [Shipping] geocoded 12 MG Road, Shivajinagar, Bengaluru, Karnataka 560001, India -> cell=8861892e93fffff zone=8661892efffffff hub=Bengaluru Hub dist=1.9444275750677382km carrier=FedEx
+2026-09-18T09:53:22.228Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.clients.producer.ProducerConfig    : ProducerConfig values: 
+	acks = -1
+	auto.include.jmx.reporter = true
+	batch.size = 16384
+	bootstrap.servers = [localhost:9095]
+	buffer.memory = 33554432
+	client.dns.lookup = use_all_dns_ips
+	client.id = producer-1
+	compression.type = none
+	connections.max.idle.ms = 540000
+	delivery.timeout.ms = 120000
+	enable.idempotence = true
+	interceptor.classes = []
+	key.serializer = class org.apache.kafka.common.serialization.StringSerializer
+	linger.ms = 0
+	max.block.ms = 60000
+	max.in.flight.requests.per.connection = 5
+	max.request.size = 1048576
+	metadata.max.age.ms = 300000
+	metadata.max.idle.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partitioner.adaptive.partitioning.enable = true
+	partitioner.availability.timeout.ms = 0
+	partitioner.class = null
+	partitioner.ignore.keys = false
+	receive.buffer.bytes = 32768
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retries = 2147483647
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	transaction.timeout.ms = 60000
+	transactional.id = null
+	value.serializer = class org.springframework.kafka.support.serializer.JsonSerializer
+
+2026-09-18T09:53:22.365Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.clients.producer.KafkaProducer     : [Producer clientId=producer-1] Instantiated an idempotent producer.
+2026-09-18T09:53:22.505Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-09-18T09:53:22.529Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-09-18T09:53:22.530Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1789725202505
+2026-09-18T09:53:23.714Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-09-18T09:53:23.737Z  INFO 21968 --- [shipping-service] [ad | producer-1] o.a.k.c.p.internals.TransactionManager   : [Producer clientId=producer-1] ProducerId set to 24004 with epoch 0
+2026-09-18T09:53:23.754Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Order shipped successfully. Order ID: 6a4b474f-91e7-4b25-b14d-8bc796dfb8e1, Tracking: DR401492193IJ
+Hibernate: 
+    insert 
+    into
+        shipments
+        (carrier_name, correlation_id, created_at, created_by, customer_id, delivery_distance_km, estimated_delivery_date, h3cell, hub_name, last_modified_at, last_modified_by, latitude, longitude, order_id, recipient_name, recipient_phone, shipped_date, shipping_address, status, tracking_number, zone_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        shipments 
+    set
+        carrier_name=?,
+        correlation_id=?,
+        created_by=?,
+        customer_id=?,
+        delivery_distance_km=?,
+        estimated_delivery_date=?,
+        h3cell=?,
+        hub_name=?,
+        last_modified_at=?,
+        last_modified_by=?,
+        latitude=?,
+        longitude=?,
+        order_id=?,
+        recipient_name=?,
+        recipient_phone=?,
+        shipped_date=?,
+        shipping_address=?,
+        status=?,
+        tracking_number=?,
+        zone_id=? 
+    where
+        id=?
+2026-09-18T09:53:52.610Z  INFO 21968 --- [shipping-service] [nio-8085-exec-1] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring DispatcherServlet 'dispatcherServlet'
+2026-09-18T09:53:52.621Z  INFO 21968 --- [shipping-service] [nio-8085-exec-1] o.s.web.servlet.DispatcherServlet        : Initializing Servlet 'dispatcherServlet'
+2026-09-18T09:53:52.762Z  INFO 21968 --- [shipping-service] [nio-8085-exec-1] o.s.web.servlet.DispatcherServlet        : Completed initialization in 140 ms
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.carrier_name,
+        s1_0.correlation_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.customer_id,
+        s1_0.delivery_distance_km,
+        s1_0.estimated_delivery_date,
+        s1_0.h3cell,
+        s1_0.hub_name,
+        s1_0.last_modified_at,
+        s1_0.last_modified_by,
+        s1_0.latitude,
+        s1_0.longitude,
+        s1_0.order_id,
+        s1_0.recipient_name,
+        s1_0.recipient_phone,
+        s1_0.shipped_date,
+        s1_0.shipping_address,
+        s1_0.status,
+        s1_0.tracking_number,
+        s1_0.zone_id 
+    from
+        shipments s1_0 
+    where
+        s1_0.order_id=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.carrier_name,
+        s1_0.correlation_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.customer_id,
+        s1_0.delivery_distance_km,
+        s1_0.estimated_delivery_date,
+        s1_0.h3cell,
+        s1_0.hub_name,
+        s1_0.last_modified_at,
+        s1_0.last_modified_by,
+        s1_0.latitude,
+        s1_0.longitude,
+        s1_0.order_id,
+        s1_0.recipient_name,
+        s1_0.recipient_phone,
+        s1_0.shipped_date,
+        s1_0.shipping_address,
+        s1_0.status,
+        s1_0.tracking_number,
+        s1_0.zone_id 
+    from
+        shipments s1_0 
+    where
+        s1_0.zone_id is not null
+2026-09-18T09:55:19.851Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T09:55:20.879Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : [ShippingSagaHandler] payment-events type=com.hacisimsek.common.event.payment.PaymentProcessedEvent
+2026-09-18T09:55:20.899Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : Received PaymentProcessedEvent for order: b88455b5-bb3d-4a29-9d12-3659f4050dae
+2026-09-18T09:55:20.982Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Processing shipping for order: b88455b5-bb3d-4a29-9d12-3659f4050dae
+2026-09-18T09:55:22.875Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.geo.GeocodingClient         : Geocoded 'Linking Road, Bandra West, Mumbai, Maharashtra 400050, India' via 'Linking Road,Bandra West,Mumbai,Maharashtra 400050,India' -> 19.0637505, 72.83498 (Linking Road, Linking Road Shopping area, Khar, Bandra West, Mumbai Zone 3, Mumbai, Mumbai Suburban District, Maharashtra, 400050, India)
+2026-09-18T09:55:22.879Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : [Shipping] geocoded Linking Road, Bandra West, Mumbai, Maharashtra 400050, India -> cell=88608b0b17fffff zone=86608b0b7ffffff hub=Mumbai Hub dist=4.691636840684154km carrier=USPS
+2026-09-18T09:55:22.909Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Order shipped successfully. Order ID: b88455b5-bb3d-4a29-9d12-3659f4050dae, Tracking: TL988323628LZ
+Hibernate: 
+    insert 
+    into
+        shipments
+        (carrier_name, correlation_id, created_at, created_by, customer_id, delivery_distance_km, estimated_delivery_date, h3cell, hub_name, last_modified_at, last_modified_by, latitude, longitude, order_id, recipient_name, recipient_phone, shipped_date, shipping_address, status, tracking_number, zone_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        shipments 
+    set
+        carrier_name=?,
+        correlation_id=?,
+        created_by=?,
+        customer_id=?,
+        delivery_distance_km=?,
+        estimated_delivery_date=?,
+        h3cell=?,
+        hub_name=?,
+        last_modified_at=?,
+        last_modified_by=?,
+        latitude=?,
+        longitude=?,
+        order_id=?,
+        recipient_name=?,
+        recipient_phone=?,
+        shipped_date=?,
+        shipping_address=?,
+        status=?,
+        tracking_number=?,
+        zone_id=? 
+    where
+        id=?
+2026-09-18T09:55:23.023Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : [ShippingSagaHandler] payment-events type=com.hacisimsek.common.event.payment.PaymentProcessedEvent
+2026-09-18T09:55:23.025Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : Received PaymentProcessedEvent for order: 048a4269-d1cd-4c24-a0a1-209f8ddc47a0
+2026-09-18T09:55:23.026Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Processing shipping for order: 048a4269-d1cd-4c24-a0a1-209f8ddc47a0
+2026-09-18T09:55:23.767Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.geo.GeocodingClient         : Geocoded 'Connaught Place, New Delhi, Delhi 110001, India' via 'Connaught Place,New Delhi,Delhi 110001,India' -> 28.6317695, 77.2193804 (Connaught Place, New Delhi, Delhi, 110001, India)
+2026-09-18T09:55:23.767Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : [Shipping] geocoded Connaught Place, New Delhi, Delhi 110001, India -> cell=883da11409fffff zone=863da1147ffffff hub=New Delhi Hub dist=2.2304096060350407km carrier=FedEx
+2026-09-18T09:55:23.771Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Order shipped successfully. Order ID: 048a4269-d1cd-4c24-a0a1-209f8ddc47a0, Tracking: LQ402956217IQ
+Hibernate: 
+    insert 
+    into
+        shipments
+        (carrier_name, correlation_id, created_at, created_by, customer_id, delivery_distance_km, estimated_delivery_date, h3cell, hub_name, last_modified_at, last_modified_by, latitude, longitude, order_id, recipient_name, recipient_phone, shipped_date, shipping_address, status, tracking_number, zone_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        shipments 
+    set
+        carrier_name=?,
+        correlation_id=?,
+        created_by=?,
+        customer_id=?,
+        delivery_distance_km=?,
+        estimated_delivery_date=?,
+        h3cell=?,
+        hub_name=?,
+        last_modified_at=?,
+        last_modified_by=?,
+        latitude=?,
+        longitude=?,
+        order_id=?,
+        recipient_name=?,
+        recipient_phone=?,
+        shipped_date=?,
+        shipping_address=?,
+        status=?,
+        tracking_number=?,
+        zone_id=? 
+    where
+        id=?
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.carrier_name,
+        s1_0.correlation_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.customer_id,
+        s1_0.delivery_distance_km,
+        s1_0.estimated_delivery_date,
+        s1_0.h3cell,
+        s1_0.hub_name,
+        s1_0.last_modified_at,
+        s1_0.last_modified_by,
+        s1_0.latitude,
+        s1_0.longitude,
+        s1_0.order_id,
+        s1_0.recipient_name,
+        s1_0.recipient_phone,
+        s1_0.shipped_date,
+        s1_0.shipping_address,
+        s1_0.status,
+        s1_0.tracking_number,
+        s1_0.zone_id 
+    from
+        shipments s1_0 
+    where
+        s1_0.zone_id is not null
+2026-09-18T09:58:23.760Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-2 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.767Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-0 to 408 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.767Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-4 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.768Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-8 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.768Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-1 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.768Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-5 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.768Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-9 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.769Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-6 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.769Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-3 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:58:23.770Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-7 to 402 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T09:59:21.368Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Node -1 disconnected.
+2026-09-18T10:00:19.891Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:02:23.866Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=producer-1] Node -1 disconnected.
+2026-09-18T10:05:19.905Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:10:20.037Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:10:56.738Z  INFO 21968 --- [shipping-service] [g-service-group] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: session timed out without receiving a heartbeat response. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:10:56.759Z  INFO 21968 --- [shipping-service] [g-service-group] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:10:56.827Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:10:56.876Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 2372 due to node 2147483646 being disconnected (elapsed time since creation: 23815ms, elapsed time since send: 23814ms, request timeout: 30000ms)
+2026-09-18T10:10:56.878Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 2373 due to node 2147483646 being disconnected (elapsed time since creation: 13652ms, elapsed time since send: 13652ms, request timeout: 30000ms)
+2026-09-18T10:10:56.878Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 2374 due to node 2147483646 being disconnected (elapsed time since creation: 3542ms, elapsed time since send: 3541ms, request timeout: 30000ms)
+2026-09-18T10:11:06.910Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:11:06.946Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FETCH request with correlation id 2371 due to node 1 being disconnected (elapsed time since creation: 35062ms, elapsed time since send: 35062ms, request timeout: 30000ms)
+2026-09-18T10:11:06.947Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2375 due to node 1 being disconnected (elapsed time since creation: 9900ms, elapsed time since send: 10188ms, request timeout: 30000ms)
+2026-09-18T10:11:06.947Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2376 due to node 1 being disconnected (elapsed time since creation: 5099ms, elapsed time since send: 5101ms, request timeout: 30000ms)
+2026-09-18T10:11:06.979Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=320886503, epoch=2235) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:11:39.477Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:11:39.478Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight API_VERSIONS request with correlation id 2377 due to node 1 being disconnected (elapsed time since creation: 30231ms, elapsed time since send: 30231ms, request timeout: 30000ms)
+2026-09-18T10:11:39.495Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=320886503, epoch=INITIAL) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:12:11.896Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:12:11.899Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight API_VERSIONS request with correlation id 2381 due to node 1 being disconnected (elapsed time since creation: 32300ms, elapsed time since send: 32300ms, request timeout: 30000ms)
+2026-09-18T10:12:11.899Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=320886503, epoch=INITIAL) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:12:47.228Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:12:47.229Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight API_VERSIONS request with correlation id 2390 due to node 1 being disconnected (elapsed time since creation: 34543ms, elapsed time since send: 34543ms, request timeout: 30000ms)
+2026-09-18T10:12:47.230Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=320886503, epoch=INITIAL) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:12:53.981Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=producer-1] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:12:53.986Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=producer-1] Cancelled in-flight METADATA request with correlation id 14 due to node 1 being disconnected (elapsed time since creation: 30032ms, elapsed time since send: 30032ms, request timeout: 30000ms)
+2026-09-18T10:13:22.666Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:13:22.673Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight API_VERSIONS request with correlation id 2398 due to node 1 being disconnected (elapsed time since creation: 34945ms, elapsed time since send: 34945ms, request timeout: 30000ms)
+2026-09-18T10:13:22.676Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=320886503, epoch=INITIAL) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:13:24.321Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=producer-1] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:13:24.322Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.NetworkClient   : [Producer clientId=producer-1] Cancelled in-flight API_VERSIONS request with correlation id 15 due to node 1 being disconnected (elapsed time since creation: 30009ms, elapsed time since send: 30009ms, request timeout: 30000ms)
+2026-09-18T10:13:49.305Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:14:19.177Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:14:19.308Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FETCH request with correlation id 2408 due to node 1 being disconnected (elapsed time since creation: 51453ms, elapsed time since send: 33886ms, request timeout: 30000ms)
+2026-09-18T10:14:19.310Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2409 due to node 1 being disconnected (elapsed time since creation: 51452ms, elapsed time since send: 33875ms, request timeout: 30000ms)
+2026-09-18T10:14:19.315Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2410 due to node 1 being disconnected (elapsed time since creation: 45864ms, elapsed time since send: 33874ms, request timeout: 30000ms)
+2026-09-18T10:14:19.316Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2411 due to node 1 being disconnected (elapsed time since creation: 40861ms, elapsed time since send: 33874ms, request timeout: 30000ms)
+2026-09-18T10:14:19.317Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2412 due to node 1 being disconnected (elapsed time since creation: 35858ms, elapsed time since send: 33874ms, request timeout: 30000ms)
+2026-09-18T10:14:19.317Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 2414 due to node 1 being disconnected (elapsed time since creation: 30850ms, elapsed time since send: 30850ms, request timeout: 30000ms)
+2026-09-18T10:14:19.319Z  INFO 21968 --- [shipping-service] [g-service-group] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: session timed out without receiving a heartbeat response. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:14:19.320Z  INFO 21968 --- [shipping-service] [g-service-group] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:14:19.323Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:14:19.319Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=320886503, epoch=INITIAL) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:14:19.323Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 2416 due to node 2147483646 being disconnected (elapsed time since creation: 25986ms, elapsed time since send: 25986ms, request timeout: 30000ms)
+2026-09-18T10:14:19.323Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 2417 due to node 2147483646 being disconnected (elapsed time since creation: 15969ms, elapsed time since send: 15969ms, request timeout: 30000ms)
+2026-09-18T10:14:19.324Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 2418 due to node 2147483646 being disconnected (elapsed time since creation: 5948ms, elapsed time since send: 5948ms, request timeout: 30000ms)
+2026-09-18T10:14:34.976Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:14:49.968Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Attempt to heartbeat failed since coordinator localhost:9095 (id: 2147483646 rack: null) is either not started or not valid
+2026-09-18T10:14:49.969Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:14:49.969Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:14:49.970Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:14:51.332Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:15:20.194Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:18:32.035Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Attempt to heartbeat failed since coordinator localhost:9095 (id: 2147483646 rack: null) is either not started or not valid
+2026-09-18T10:18:32.056Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:18:32.057Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:18:32.074Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:18:32.850Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:18:33.141Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Attempt to heartbeat failed since coordinator localhost:9095 (id: 2147483646 rack: null) is either not started or not valid
+2026-09-18T10:18:33.147Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:18:33.147Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:18:33.148Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:18:33.504Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:20:20.227Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:25:20.273Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:26:39.829Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : [ShippingSagaHandler] payment-events type=com.hacisimsek.common.event.payment.PaymentProcessedEvent
+2026-09-18T10:26:39.864Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.saga.ShippingSagaHandler    : Received PaymentProcessedEvent for order: 0f590cc9-387f-4e9e-97c5-ad54ba235dbc
+2026-09-18T10:26:40.134Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Processing shipping for order: 0f590cc9-387f-4e9e-97c5-ad54ba235dbc
+2026-09-18T10:26:41.348Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.shipping.geo.GeocodingClient         : Geocoded 'Park Street, Kolkata, West Bengal 700016, India' via 'Park Street,Kolkata,West Bengal 700016,India' -> 22.5551591, 88.3501171 (Park Street, Park Street Flyover, Dharmatala, Kolkata, Kolkata Metropolitan Area, Kolkata, West Bengal, 700087, India)
+2026-09-18T10:26:41.366Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : [Shipping] geocoded Park Street, Kolkata, West Bengal 700016, India -> cell=883cf2c665fffff zone=863cf2c67ffffff hub=Kolkata Hub dist=2.4008436042422017km carrier=UPS
+2026-09-18T10:26:41.568Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] c.h.s.service.impl.ShippingServiceImpl   : Order shipped successfully. Order ID: 0f590cc9-387f-4e9e-97c5-ad54ba235dbc, Tracking: WJ480030566KG
+Hibernate: 
+    insert 
+    into
+        shipments
+        (carrier_name, correlation_id, created_at, created_by, customer_id, delivery_distance_km, estimated_delivery_date, h3cell, hub_name, last_modified_at, last_modified_by, latitude, longitude, order_id, recipient_name, recipient_phone, shipped_date, shipping_address, status, tracking_number, zone_id, id) 
+    values
+        (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+Hibernate: 
+    update
+        shipments 
+    set
+        carrier_name=?,
+        correlation_id=?,
+        created_by=?,
+        customer_id=?,
+        delivery_distance_km=?,
+        estimated_delivery_date=?,
+        h3cell=?,
+        hub_name=?,
+        last_modified_at=?,
+        last_modified_by=?,
+        latitude=?,
+        longitude=?,
+        order_id=?,
+        recipient_name=?,
+        recipient_phone=?,
+        shipped_date=?,
+        shipping_address=?,
+        status=?,
+        tracking_number=?,
+        zone_id=? 
+    where
+        id=?
+2026-09-18T10:26:42.412Z  WARN 21968 --- [shipping-service] [ntainer#0-0-C-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : SQL Warning Code: 0, SQLState: 01000
+2026-09-18T10:26:42.414Z  WARN 21968 --- [shipping-service] [ntainer#0-0-C-1] o.h.engine.jdbc.spi.SqlExceptionHelper   : database "shipping_db" has a collation version mismatch
+2026-09-18T10:28:47.552Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-1 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.603Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-9 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.606Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-4 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.627Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-6 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.688Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-5 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.697Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-8 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.708Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-2 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.714Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-3 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.722Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-7 to 406 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+2026-09-18T10:28:47.732Z  INFO 21968 --- [shipping-service] [ad | producer-1] org.apache.kafka.clients.Metadata        : [Producer clientId=producer-1] Resetting the last seen epoch of partition shipping-events-0 to 412 since the associated topicId changed from null to 937owVTuR5a3WRtvMlSLbw
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.carrier_name,
+        s1_0.correlation_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.customer_id,
+        s1_0.delivery_distance_km,
+        s1_0.estimated_delivery_date,
+        s1_0.h3cell,
+        s1_0.hub_name,
+        s1_0.last_modified_at,
+        s1_0.last_modified_by,
+        s1_0.latitude,
+        s1_0.longitude,
+        s1_0.order_id,
+        s1_0.recipient_name,
+        s1_0.recipient_phone,
+        s1_0.shipped_date,
+        s1_0.shipping_address,
+        s1_0.status,
+        s1_0.tracking_number,
+        s1_0.zone_id 
+    from
+        shipments s1_0 
+    where
+        s1_0.order_id=?
+2026-09-18T10:30:20.336Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+Hibernate: 
+    select
+        s1_0.id,
+        s1_0.carrier_name,
+        s1_0.correlation_id,
+        s1_0.created_at,
+        s1_0.created_by,
+        s1_0.customer_id,
+        s1_0.delivery_distance_km,
+        s1_0.estimated_delivery_date,
+        s1_0.h3cell,
+        s1_0.hub_name,
+        s1_0.last_modified_at,
+        s1_0.last_modified_by,
+        s1_0.latitude,
+        s1_0.longitude,
+        s1_0.order_id,
+        s1_0.recipient_name,
+        s1_0.recipient_phone,
+        s1_0.shipped_date,
+        s1_0.shipping_address,
+        s1_0.status,
+        s1_0.tracking_number,
+        s1_0.zone_id 
+    from
+        shipments s1_0 
+    where
+        s1_0.zone_id is not null
+2026-09-18T10:35:20.409Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:40:20.510Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:45:20.538Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:50:20.576Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-09-18T10:52:10.954Z  INFO 21968 --- [shipping-service] [g-service-group] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: session timed out without receiving a heartbeat response. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:52:10.963Z  INFO 21968 --- [shipping-service] [g-service-group] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:11.153Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:52:12.488Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 6557 due to node 2147483646 being disconnected (elapsed time since creation: 21570ms, elapsed time since send: 21570ms, request timeout: 30000ms)
+2026-09-18T10:52:12.495Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight HEARTBEAT request with correlation id 6558 due to node 2147483646 being disconnected (elapsed time since creation: 11556ms, elapsed time since send: 11554ms, request timeout: 30000ms)
+2026-09-18T10:52:17.521Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Disconnecting from node 1 due to request timeout.
+2026-09-18T10:52:17.532Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FETCH request with correlation id 6556 due to node 1 being disconnected (elapsed time since creation: 33262ms, elapsed time since send: 33262ms, request timeout: 30000ms)
+2026-09-18T10:52:17.532Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 6559 due to node 1 being disconnected (elapsed time since creation: 5015ms, elapsed time since send: 6587ms, request timeout: 30000ms)
+2026-09-18T10:52:17.538Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.kafka.clients.FetchSessionHandler    : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Error sending fetch request (sessionId=417319290, epoch=3869) to node 1:
+
+org.apache.kafka.common.errors.DisconnectException: null
+
+2026-09-18T10:52:20.082Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:40.584Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Attempt to heartbeat failed since coordinator localhost:9095 (id: 2147483646 rack: null) is either not started or not valid
+2026-09-18T10:52:40.633Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:52:40.752Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:40.822Z  INFO 21968 --- [shipping-service] [g-service-group] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:52:43.483Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:43.803Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:44.431Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:44.442Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Attempt to heartbeat failed since coordinator localhost:9095 (id: 2147483646 rack: null) is either not started or not valid
+2026-09-18T10:52:44.442Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Group coordinator localhost:9095 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-09-18T10:52:44.443Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Requesting disconnect from last known coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:52:44.445Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Client requested disconnect from node 2147483646
+2026-09-18T10:52:44.966Z  INFO 21968 --- [shipping-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-shipping-service-group-1, groupId=shipping-service-group] Discovered group coordinator localhost:9095 (id: 2147483646 rack: null)
+2026-09-18T10:55:20.614Z  INFO 21968 --- [shipping-service] [trap-executor-0] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration

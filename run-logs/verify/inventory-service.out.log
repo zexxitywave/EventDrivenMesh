@@ -1,0 +1,253 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v3.2.12)
+
+2026-06-03T01:36:40.171+05:30  INFO 25160 --- [inventory-service] [           main] c.h.i.InventoryServiceApplication        : Starting InventoryServiceApplication v0.0.1-SNAPSHOT using Java 21.0.6 with PID 25160 (C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main\inventory-service\target\inventory-service-0.0.1-SNAPSHOT.jar started by jagdish in C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main)
+2026-06-03T01:36:40.185+05:30  INFO 25160 --- [inventory-service] [           main] c.h.i.InventoryServiceApplication        : No active profile set, falling back to 1 default profile: "default"
+2026-06-03T01:37:21.081+05:30  INFO 25160 --- [inventory-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data MongoDB repositories in DEFAULT mode.
+2026-06-03T01:37:28.871+05:30  INFO 25160 --- [inventory-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 7582 ms. Found 2 MongoDB repository interfaces.
+2026-06-03T01:37:38.509+05:30  INFO 25160 --- [inventory-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=e73ad6c6-cee0-32d4-9afa-7dca7566a286
+2026-06-03T01:37:42.472+05:30  WARN 25160 --- [inventory-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-06-03T01:37:42.623+05:30  WARN 25160 --- [inventory-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-06-03T01:37:52.381+05:30  INFO 25160 --- [inventory-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8082 (http)
+2026-06-03T01:37:52.857+05:30  INFO 25160 --- [inventory-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-03T01:37:52.859+05:30  INFO 25160 --- [inventory-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.33]
+2026-06-03T01:37:53.695+05:30  INFO 25160 --- [inventory-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-03T01:37:53.698+05:30  INFO 25160 --- [inventory-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 72642 ms
+2026-06-03T01:38:14.696+05:30  INFO 25160 --- [inventory-service] [           main] org.mongodb.driver.client                : MongoClient with metadata {"driver": {"name": "mongo-java-driver|sync|spring-boot", "version": "4.11.5"}, "os": {"type": "Windows", "name": "Windows 11", "architecture": "amd64", "version": "10.0"}, "platform": "Java/Oracle Corporation/21.0.6+8-LTS-188"} created with settings MongoClientSettings{readPreference=primary, writeConcern=WriteConcern{w=null, wTimeout=null ms, journal=null}, retryWrites=true, retryReads=true, readConcern=ReadConcern{level=null}, credential=null, transportSettings=null, streamFactoryFactory=null, commandListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsCommandListener@721fc2e3], codecRegistry=ProvidersCodecRegistry{codecProviders=[ValueCodecProvider{}, BsonValueCodecProvider{}, DBRefCodecProvider{}, DBObjectCodecProvider{}, DocumentCodecProvider{}, CollectionCodecProvider{}, IterableCodecProvider{}, MapCodecProvider{}, GeoJsonCodecProvider{}, GridFSFileCodecProvider{}, Jsr310CodecProvider{}, JsonObjectCodecProvider{}, BsonCodecProvider{}, EnumCodecProvider{}, com.mongodb.client.model.mql.ExpressionCodecProvider@63187d63, com.mongodb.Jep395RecordCodecProvider@1ccdc7aa, com.mongodb.KotlinCodecProvider@1a536164]}, loggerSettings=LoggerSettings{maxDocumentLength=1000}, clusterSettings={hosts=[localhost:27017], srvServiceName=mongodb, mode=SINGLE, requiredClusterType=UNKNOWN, requiredReplicaSetName='null', serverSelector='null', clusterListeners='[]', serverSelectionTimeout='30000 ms', localThreshold='15 ms'}, socketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=0, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, heartbeatSocketSettings=SocketSettings{connectTimeoutMS=10000, readTimeoutMS=10000, receiveBufferSize=0, proxySettings=ProxySettings{host=null, port=null, username=null, password=null}}, connectionPoolSettings=ConnectionPoolSettings{maxSize=100, minSize=0, maxWaitTimeMS=120000, maxConnectionLifeTimeMS=0, maxConnectionIdleTimeMS=0, maintenanceInitialDelayMS=0, maintenanceFrequencyMS=60000, connectionPoolListeners=[io.micrometer.core.instrument.binder.mongodb.MongoMetricsConnectionPoolListener@1657b017], maxConnecting=2}, serverSettings=ServerSettings{heartbeatFrequencyMS=10000, minHeartbeatFrequencyMS=500, serverListeners='[]', serverMonitorListeners='[]'}, sslSettings=SslSettings{enabled=false, invalidHostNameAllowed=false, context=null}, applicationName='null', compressorList=[], uuidRepresentation=JAVA_LEGACY, serverApi=null, autoEncryptionSettings=null, dnsClient=null, inetAddressResolver=null, contextProvider=null}
+2026-06-03T01:38:23.756+05:30  INFO 25160 --- [inventory-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-06-03T01:38:25.505+05:30  INFO 25160 --- [inventory-service] [localhost:27017] org.mongodb.driver.cluster               : Exception in monitor thread while connecting to server localhost:27017
+
+com.mongodb.MongoSocketReadTimeoutException: Timeout while receiving message
+	at com.mongodb.internal.connection.InternalStreamConnection.translateReadException(InternalStreamConnection.java:728) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveMessageWithAdditionalTimeout(InternalStreamConnection.java:606) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveCommandMessageResponse(InternalStreamConnection.java:451) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.sendAndReceive(InternalStreamConnection.java:372) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.CommandHelper.sendAndReceive(CommandHelper.java:92) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.CommandHelper.executeCommand(CommandHelper.java:48) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnectionInitializer.initializeConnectionDescription(InternalStreamConnectionInitializer.java:130) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnectionInitializer.startHandshake(InternalStreamConnectionInitializer.java:78) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.open(InternalStreamConnection.java:213) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitorRunnable.lookupServerDescription(DefaultServerMonitor.java:193) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:153) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:304) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796) ~[na:na]
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099) ~[na:na]
+	at com.mongodb.internal.connection.SocketStream.read(SocketStream.java:175) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.SocketStream.read(SocketStream.java:200) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveResponseBuffers(InternalStreamConnection.java:739) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveMessageWithAdditionalTimeout(InternalStreamConnection.java:603) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	... 10 common frames omitted
+
+2026-06-03T01:38:45.912+05:30  INFO 25160 --- [inventory-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-06-03T01:38:46.159+05:30  WARN 25160 --- [inventory-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-06-03T01:38:46.185+05:30  INFO 25160 --- [inventory-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-06-03T01:38:47.098+05:30  INFO 25160 --- [inventory-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-06-03T01:38:48.592+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-06-03T01:38:48.628+05:30  INFO 25160 --- [inventory-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-06-03T01:38:48.872+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-06-03T01:38:48.874+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-06-03T01:38:48.874+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-06-03T01:38:48.877+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-06-03T01:38:48.878+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-06-03T01:38:48.879+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-06-03T01:38:48.879+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-06-03T01:38:57.369+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-06-03T01:38:57.711+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-06-03T01:38:57.770+05:30  INFO 25160 --- [inventory-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-06-03T01:38:57.816+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1780430937812 with initial instances count: 2
+2026-06-03T01:38:57.840+05:30  INFO 25160 --- [inventory-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application INVENTORY-SERVICE with eureka with status UP
+2026-06-03T01:38:57.846+05:30  INFO 25160 --- [inventory-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1780430937846, current=UP, previous=STARTING]
+2026-06-03T01:38:58.128+05:30  INFO 25160 --- [inventory-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_INVENTORY-SERVICE/localhost:inventory-service:8082: registering service...
+2026-06-03T01:38:58.743+05:30  INFO 25160 --- [inventory-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8082 (http) with context path ''
+2026-06-03T01:38:58.764+05:30  INFO 25160 --- [inventory-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8082
+2026-06-03T01:39:00.156+05:30  INFO 25160 --- [inventory-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_INVENTORY-SERVICE/localhost:inventory-service:8082 - registration status: 204
+2026-06-03T01:39:03.856+05:30  INFO 25160 --- [inventory-service] [           main] o.s.cloud.commons.util.InetUtils         : Cannot determine local hostname
+2026-06-03T01:39:05.351+05:30  INFO 25160 --- [inventory-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : ConsumerConfig values: 
+	allow.auto.create.topics = true
+	auto.commit.interval.ms = 5000
+	auto.include.jmx.reporter = true
+	auto.offset.reset = earliest
+	bootstrap.servers = [localhost:9092]
+	check.crcs = true
+	client.dns.lookup = use_all_dns_ips
+	client.id = consumer-inventory-service-group-1
+	client.rack = 
+	connections.max.idle.ms = 540000
+	default.api.timeout.ms = 60000
+	enable.auto.commit = false
+	exclude.internal.topics = true
+	fetch.max.bytes = 52428800
+	fetch.max.wait.ms = 500
+	fetch.min.bytes = 1
+	group.id = inventory-service-group
+	group.instance.id = null
+	heartbeat.interval.ms = 3000
+	interceptor.classes = []
+	internal.leave.group.on.close = true
+	internal.throw.on.fetch.stable.offset.unsupported = false
+	isolation.level = read_uncommitted
+	key.deserializer = class org.apache.kafka.common.serialization.StringDeserializer
+	max.partition.fetch.bytes = 1048576
+	max.poll.interval.ms = 300000
+	max.poll.records = 500
+	metadata.max.age.ms = 300000
+	metric.reporters = []
+	metrics.num.samples = 2
+	metrics.recording.level = INFO
+	metrics.sample.window.ms = 30000
+	partition.assignment.strategy = [class org.apache.kafka.clients.consumer.RangeAssignor, class org.apache.kafka.clients.consumer.CooperativeStickyAssignor]
+	receive.buffer.bytes = 65536
+	reconnect.backoff.max.ms = 1000
+	reconnect.backoff.ms = 50
+	request.timeout.ms = 30000
+	retry.backoff.ms = 100
+	sasl.client.callback.handler.class = null
+	sasl.jaas.config = null
+	sasl.kerberos.kinit.cmd = /usr/bin/kinit
+	sasl.kerberos.min.time.before.relogin = 60000
+	sasl.kerberos.service.name = null
+	sasl.kerberos.ticket.renew.jitter = 0.05
+	sasl.kerberos.ticket.renew.window.factor = 0.8
+	sasl.login.callback.handler.class = null
+	sasl.login.class = null
+	sasl.login.connect.timeout.ms = null
+	sasl.login.read.timeout.ms = null
+	sasl.login.refresh.buffer.seconds = 300
+	sasl.login.refresh.min.period.seconds = 60
+	sasl.login.refresh.window.factor = 0.8
+	sasl.login.refresh.window.jitter = 0.05
+	sasl.login.retry.backoff.max.ms = 10000
+	sasl.login.retry.backoff.ms = 100
+	sasl.mechanism = GSSAPI
+	sasl.oauthbearer.clock.skew.seconds = 30
+	sasl.oauthbearer.expected.audience = null
+	sasl.oauthbearer.expected.issuer = null
+	sasl.oauthbearer.jwks.endpoint.refresh.ms = 3600000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.max.ms = 10000
+	sasl.oauthbearer.jwks.endpoint.retry.backoff.ms = 100
+	sasl.oauthbearer.jwks.endpoint.url = null
+	sasl.oauthbearer.scope.claim.name = scope
+	sasl.oauthbearer.sub.claim.name = sub
+	sasl.oauthbearer.token.endpoint.url = null
+	security.protocol = PLAINTEXT
+	security.providers = null
+	send.buffer.bytes = 131072
+	session.timeout.ms = 45000
+	socket.connection.setup.timeout.max.ms = 30000
+	socket.connection.setup.timeout.ms = 10000
+	ssl.cipher.suites = null
+	ssl.enabled.protocols = [TLSv1.2, TLSv1.3]
+	ssl.endpoint.identification.algorithm = https
+	ssl.engine.factory.class = null
+	ssl.key.password = null
+	ssl.keymanager.algorithm = SunX509
+	ssl.keystore.certificate.chain = null
+	ssl.keystore.key = null
+	ssl.keystore.location = null
+	ssl.keystore.password = null
+	ssl.keystore.type = JKS
+	ssl.protocol = TLSv1.3
+	ssl.provider = null
+	ssl.secure.random.implementation = null
+	ssl.trustmanager.algorithm = PKIX
+	ssl.truststore.certificates = null
+	ssl.truststore.location = null
+	ssl.truststore.password = null
+	ssl.truststore.type = JKS
+	value.deserializer = class org.springframework.kafka.support.serializer.JsonDeserializer
+
+2026-06-03T01:39:07.077+05:30  INFO 25160 --- [inventory-service] [           main] o.a.k.clients.consumer.ConsumerConfig    : These configurations '[spring.json.trusted.packages, spring.json.use.type.headers]' were supplied but are not used yet.
+2026-06-03T01:39:07.092+05:30  INFO 25160 --- [inventory-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka version: 3.6.2
+2026-06-03T01:39:07.098+05:30  INFO 25160 --- [inventory-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka commitId: c4deed513057c94e
+2026-06-03T01:39:07.100+05:30  INFO 25160 --- [inventory-service] [           main] o.a.kafka.common.utils.AppInfoParser     : Kafka startTimeMs: 1780430947081
+2026-06-03T01:39:07.126+05:30  INFO 25160 --- [inventory-service] [           main] fkaConsumerFactory$ExtendedKafkaConsumer : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Subscribed to topic(s): order-events
+2026-06-03T01:39:07.530+05:30  INFO 25160 --- [inventory-service] [           main] c.h.i.InventoryServiceApplication        : Started InventoryServiceApplication in 165.734 seconds (process running for 176.604)
+2026-06-03T01:39:37.706+05:30  INFO 25160 --- [inventory-service] [localhost:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=2011878300}
+2026-06-03T01:39:42.584+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Disconnecting from node -1 due to request timeout.
+2026-06-03T01:39:42.596+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Cancelled in-flight API_VERSIONS request with correlation id 1 due to node -1 being disconnected (elapsed time since creation: 31770ms, elapsed time since send: 31770ms, request timeout: 30000ms)
+2026-06-03T01:39:42.597+05:30  WARN 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-06-03T01:40:12.773+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Disconnecting from node -1 due to request timeout.
+2026-06-03T01:40:12.847+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Cancelled in-flight API_VERSIONS request with correlation id 2 due to node -1 being disconnected (elapsed time since creation: 30061ms, elapsed time since send: 30061ms, request timeout: 30000ms)
+2026-06-03T01:40:12.857+05:30  WARN 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-06-03T01:41:08.781+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Disconnecting from node -1 due to request timeout.
+2026-06-03T01:41:08.887+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Cancelled in-flight METADATA request with correlation id 6 due to node -1 being disconnected (elapsed time since creation: 30654ms, elapsed time since send: 30654ms, request timeout: 30000ms)
+2026-06-03T01:41:08.919+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Cancelled in-flight FIND_COORDINATOR request with correlation id 5 due to node -1 being disconnected (elapsed time since creation: 55725ms, elapsed time since send: 30606ms, request timeout: 30000ms)
+2026-06-03T01:41:08.945+05:30  WARN 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-06-03T01:41:11.388+05:30  INFO 25160 --- [inventory-service] [localhost:27017] org.mongodb.driver.cluster               : Exception in monitor thread while connecting to server localhost:27017
+
+com.mongodb.MongoSocketReadTimeoutException: Timeout while receiving message
+	at com.mongodb.internal.connection.InternalStreamConnection.translateReadException(InternalStreamConnection.java:728) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveMessageWithAdditionalTimeout(InternalStreamConnection.java:606) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveCommandMessageResponse(InternalStreamConnection.java:451) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receive(InternalStreamConnection.java:404) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitorRunnable.lookupServerDescription(DefaultServerMonitor.java:221) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.DefaultServerMonitor$ServerMonitorRunnable.run(DefaultServerMonitor.java:153) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at java.base/java.lang.Thread.run(Thread.java:1583) ~[na:na]
+Caused by: java.net.SocketTimeoutException: Read timed out
+	at java.base/sun.nio.ch.NioSocketImpl.timedRead(NioSocketImpl.java:278) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.implRead(NioSocketImpl.java:304) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl.read(NioSocketImpl.java:346) ~[na:na]
+	at java.base/sun.nio.ch.NioSocketImpl$1.read(NioSocketImpl.java:796) ~[na:na]
+	at java.base/java.net.Socket$SocketInputStream.read(Socket.java:1099) ~[na:na]
+	at com.mongodb.internal.connection.SocketStream.read(SocketStream.java:175) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.SocketStream.read(SocketStream.java:200) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveResponseBuffers(InternalStreamConnection.java:739) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	at com.mongodb.internal.connection.InternalStreamConnection.receiveMessageWithAdditionalTimeout(InternalStreamConnection.java:603) ~[mongodb-driver-core-4.11.5.jar!/:na]
+	... 5 common frames omitted
+
+2026-06-03T01:41:32.630+05:30  INFO 25160 --- [inventory-service] [localhost:27017] org.mongodb.driver.cluster               : Monitor thread successfully connected to server with description ServerDescription{address=localhost:27017, type=STANDALONE, state=CONNECTED, ok=true, minWireVersion=0, maxWireVersion=27, maxDocumentSize=16777216, logicalSessionTimeoutMinutes=30, roundTripTimeNanos=359101700}
+2026-06-03T01:41:40.242+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Disconnecting from node -1 due to request timeout.
+2026-06-03T01:41:40.243+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Cancelled in-flight API_VERSIONS request with correlation id 7 due to node -1 being disconnected (elapsed time since creation: 31038ms, elapsed time since send: 31038ms, request timeout: 30000ms)
+2026-06-03T01:41:40.243+05:30  WARN 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Bootstrap broker localhost:9092 (id: -1 rack: null) disconnected
+2026-06-03T01:41:48.034+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.Metadata        : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Cluster ID: MkU3OEVBNTcwNTJENDM2Qg
+2026-06-03T01:41:48.180+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-03T01:41:48.254+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:41:56.065+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response COORDINATOR_NOT_AVAILABLE. isDisconnected: false. Rediscovery will be attempted.
+2026-06-03T01:41:56.066+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-03T01:41:56.070+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: The coordinator is not available. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='', protocol='null'}
+2026-06-03T01:41:56.071+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Client requested disconnect from node 2147483646
+2026-06-03T01:41:58.818+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-03T01:41:58.824+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The coordinator is not available.' (CoordinatorNotAvailableException)
+2026-06-03T01:41:58.825+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:02.424+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: need to re-join with the given member-id: consumer-inventory-service-group-1-0cb25d18-2cfd-4214-bc91-8cd5789a6351
+2026-06-03T01:42:02.428+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-03T01:42:02.428+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:06.435+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Group coordinator localhost:9092 (id: 2147483646 rack: null) is unavailable or invalid due to cause: error response NOT_COORDINATOR. isDisconnected: false. Rediscovery will be attempted.
+2026-06-03T01:42:06.437+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Requesting disconnect from last known coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-03T01:42:06.440+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: This is not the correct coordinator. Marking coordinator unknown. Sent generation was Generation{generationId=-1, memberId='consumer-inventory-service-group-1-0cb25d18-2cfd-4214-bc91-8cd5789a6351', protocol='null'}
+2026-06-03T01:42:06.441+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] org.apache.kafka.clients.NetworkClient   : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Client requested disconnect from node 2147483646
+2026-06-03T01:42:07.237+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Discovered group coordinator localhost:9092 (id: 2147483646 rack: null)
+2026-06-03T01:42:07.245+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'This is not the correct coordinator.' (NotCoordinatorException)
+2026-06-03T01:42:07.248+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:08.138+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-03T01:42:08.140+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-03T01:42:08.243+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:08.422+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-03T01:42:08.425+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-03T01:42:08.539+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:08.924+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-03T01:42:08.926+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-03T01:42:09.039+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:10.088+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: Coordinator localhost:9092 (id: 2147483646 rack: null) is loading the group.
+2026-06-03T01:42:10.089+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The coordinator is loading and hence can't process requests.' (CoordinatorLoadInProgressException)
+2026-06-03T01:42:10.090+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:23.729+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] JoinGroup failed: The coordinator is not aware of this member. Need to re-join the group. Sent generation was Generation{generationId=-1, memberId='consumer-inventory-service-group-1-0cb25d18-2cfd-4214-bc91-8cd5789a6351', protocol='null'}
+2026-06-03T01:42:23.731+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Resetting generation and member id due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-03T01:42:23.732+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: encountered UNKNOWN_MEMBER_ID from JOIN_GROUP response
+2026-06-03T01:42:23.732+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The coordinator is not aware of this member.' (UnknownMemberIdException)
+2026-06-03T01:42:23.733+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:24.144+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: need to re-join with the given member-id: consumer-inventory-service-group-1-e9066d25-92fd-49d1-866e-252753915f95
+2026-06-03T01:42:24.145+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Request joining group due to: rebalance failed due to 'The group member needs to have a valid member id before actually entering a consumer group.' (MemberIdRequiredException)
+2026-06-03T01:42:24.146+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] (Re-)joining group
+2026-06-03T01:42:27.309+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Successfully joined group with generation Generation{generationId=2, memberId='consumer-inventory-service-group-1-e9066d25-92fd-49d1-866e-252753915f95', protocol='range'}
+2026-06-03T01:42:27.860+05:30  INFO 25160 --- [inventory-service] [ntainer#0-0-C-1] o.a.k.c.c.internals.ConsumerCoordinator  : [Consumer clientId=consumer-inventory-service-group-1, groupId=inventory-service-group] Finished assignment for group at generation 2: {consumer-inventory-service-group-1-e9066d25-92fd-49d1-866e-252753915f95=Assignment(partitions=[order-events-0])}

@@ -1,0 +1,42 @@
+server:
+  port: 8051
+
+spring:
+  application:
+    name: order-service
+
+  jackson:
+    time-zone: UTC
+    serialization:
+      write-dates-as-timestamps: false
+
+  datasource:
+    url: jdbc:postgresql://host.docker.internal:5432/order_db?options=-c%20TimeZone=UTC
+    username: postgres
+    password: postgres
+    driver-class-name: org.postgresql.Driver
+
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        jdbc:
+          time_zone: UTC
+
+  kafka:
+    bootstrap-servers: host.docker.internal:9092
+    consumer:
+      group-id: order-service-group
+      auto-offset-reset: earliest
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://host.docker.internal:8761/eureka/
+
+  instance:
+    prefer-ip-address: true

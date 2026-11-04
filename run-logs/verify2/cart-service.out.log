@@ -1,0 +1,55 @@
+
+  .   ____          _            __ _ _
+ /\\ / ___'_ __ _ _(_)_ __  __ _ \ \ \ \
+( ( )\___ | '_ | '_| | '_ \/ _` | \ \ \ \
+ \\/  ___)| |_)| | | | | || (_| |  ) ) ) )
+  '  |____| .__|_| |_|_| |_\__, | / / / /
+ =========|_|==============|___/=/_/_/_/
+ :: Spring Boot ::               (v3.2.12)
+
+2026-06-03T01:44:53.225+05:30  INFO 22796 --- [cart-service] [           main] c.h.cart.CartServiceApplication          : Starting CartServiceApplication v0.0.1-SNAPSHOT using Java 21.0.6 with PID 22796 (C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main\cart-service\target\cart-service-0.0.1-SNAPSHOT.jar started by jagdish in C:\Users\jagdish\Downloads\Telegram Desktop\spring-boot-projects\ecommerce-microservices-main)
+2026-06-03T01:44:53.229+05:30 DEBUG 22796 --- [cart-service] [           main] c.h.cart.CartServiceApplication          : Running with Spring Boot v3.2.12, Spring v6.1.15
+2026-06-03T01:44:53.231+05:30  INFO 22796 --- [cart-service] [           main] c.h.cart.CartServiceApplication          : No active profile set, falling back to 1 default profile: "default"
+2026-06-03T01:45:27.899+05:30  INFO 22796 --- [cart-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Multiple Spring Data modules found, entering strict repository configuration mode
+2026-06-03T01:45:27.915+05:30  INFO 22796 --- [cart-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Bootstrapping Spring Data Redis repositories in DEFAULT mode.
+2026-06-03T01:45:28.500+05:30  INFO 22796 --- [cart-service] [           main] .s.d.r.c.RepositoryConfigurationDelegate : Finished Spring Data repository scanning in 409 ms. Found 0 Redis repository interfaces.
+2026-06-03T01:45:39.913+05:30  INFO 22796 --- [cart-service] [           main] o.s.cloud.context.scope.GenericScope     : BeanFactory id=da6abff7-962e-315d-b217-c2f86bedc0ec
+2026-06-03T01:45:44.206+05:30  WARN 22796 --- [cart-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig' of type [org.springframework.cloud.client.loadbalancer.LoadBalancerAutoConfiguration$DeferringLoadBalancerInterceptorConfig] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). The currently created BeanPostProcessor [lbRestClientPostProcessor] is declared through a non-static factory method on that class; consider declaring it as static instead.
+2026-06-03T01:45:44.280+05:30  WARN 22796 --- [cart-service] [           main] trationDelegate$BeanPostProcessorChecker : Bean 'deferringLoadBalancerInterceptor' of type [org.springframework.cloud.client.loadbalancer.DeferringLoadBalancerInterceptor] is not eligible for getting processed by all BeanPostProcessors (for example: not eligible for auto-proxying). Is this bean getting eagerly injected/applied to a currently created BeanPostProcessor [lbRestClientPostProcessor]? Check the corresponding BeanPostProcessor declaration and its dependencies/advisors. If this bean does not have to be post-processed, declare it with ROLE_INFRASTRUCTURE.
+2026-06-03T01:45:52.077+05:30  INFO 22796 --- [cart-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat initialized with port 8089 (http)
+2026-06-03T01:45:52.114+05:30  INFO 22796 --- [cart-service] [           main] o.apache.catalina.core.StandardService   : Starting service [Tomcat]
+2026-06-03T01:45:52.115+05:30  INFO 22796 --- [cart-service] [           main] o.apache.catalina.core.StandardEngine    : Starting Servlet engine: [Apache Tomcat/10.1.33]
+2026-06-03T01:45:52.453+05:30  INFO 22796 --- [cart-service] [           main] o.a.c.c.C.[Tomcat].[localhost].[/]       : Initializing Spring embedded WebApplicationContext
+2026-06-03T01:45:52.458+05:30  INFO 22796 --- [cart-service] [           main] w.s.c.ServletWebServerApplicationContext : Root WebApplicationContext: initialization completed in 58928 ms
+2026-06-03T01:46:32.451+05:30  INFO 22796 --- [cart-service] [           main] DiscoveryClientOptionalArgsConfiguration : Eureka HTTP Client uses RestTemplate.
+2026-06-03T01:46:32.654+05:30  WARN 22796 --- [cart-service] [           main] iguration$LoadBalancerCaffeineWarnLogger : Spring Cloud LoadBalancer is currently working with the default cache. While this cache implementation is useful for development and tests, it's recommended to use Caffeine cache in production.You can switch to using Caffeine cache, by adding it and org.springframework.cache.caffeine.CaffeineCacheManager to the classpath.
+2026-06-03T01:46:32.693+05:30  INFO 22796 --- [cart-service] [           main] o.s.b.a.e.web.EndpointLinksResolver      : Exposing 1 endpoint(s) beneath base path '/actuator'
+2026-06-03T01:46:33.029+05:30  INFO 22796 --- [cart-service] [           main] o.s.c.n.eureka.InstanceInfoFactory       : Setting initial instance status as: STARTING
+2026-06-03T01:46:33.661+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Initializing Eureka in region us-east-1
+2026-06-03T01:46:33.685+05:30  INFO 22796 --- [cart-service] [           main] c.n.d.s.r.aws.ConfigClusterResolver      : Resolving eureka endpoints via configuration
+2026-06-03T01:46:33.772+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-06-03T01:46:33.772+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-06-03T01:46:33.773+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-06-03T01:46:33.774+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-06-03T01:46:33.775+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-06-03T01:46:33.779+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Application version is -1: true
+2026-06-03T01:46:33.781+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-06-03T01:46:35.219+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : The response status is 200
+2026-06-03T01:46:35.225+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Starting heartbeat executor: renew interval is: 30
+2026-06-03T01:46:35.232+05:30  INFO 22796 --- [cart-service] [           main] c.n.discovery.InstanceInfoReplicator     : InstanceInfoReplicator onDemand update allowed rate per min is 4
+2026-06-03T01:46:35.278+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Discovery Client initialized at timestamp 1780431395275 with initial instances count: 0
+2026-06-03T01:46:35.284+05:30  INFO 22796 --- [cart-service] [           main] o.s.c.n.e.s.EurekaServiceRegistry        : Registering application CART-SERVICE with eureka with status UP
+2026-06-03T01:46:35.290+05:30  INFO 22796 --- [cart-service] [           main] com.netflix.discovery.DiscoveryClient    : Saw local status change event StatusChangeEvent [timestamp=1780431395290, current=UP, previous=STARTING]
+2026-06-03T01:46:35.373+05:30  INFO 22796 --- [cart-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_CART-SERVICE/localhost:cart-service:8089: registering service...
+2026-06-03T01:46:35.403+05:30  INFO 22796 --- [cart-service] [           main] o.s.b.w.embedded.tomcat.TomcatWebServer  : Tomcat started on port 8089 (http) with context path ''
+2026-06-03T01:46:35.410+05:30  INFO 22796 --- [cart-service] [           main] .s.c.n.e.s.EurekaAutoServiceRegistration : Updating port to 8089
+2026-06-03T01:46:35.538+05:30  INFO 22796 --- [cart-service] [nfoReplicator-0] com.netflix.discovery.DiscoveryClient    : DiscoveryClient_CART-SERVICE/localhost:cart-service:8089 - registration status: 204
+2026-06-03T01:46:36.455+05:30  INFO 22796 --- [cart-service] [           main] c.h.cart.CartServiceApplication          : Started CartServiceApplication in 121.826 seconds (process running for 141.029)
+2026-06-03T01:47:05.245+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Disable delta property : false
+2026-06-03T01:47:05.249+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Single vip registry refresh property : null
+2026-06-03T01:47:05.249+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Force full registry fetch : false
+2026-06-03T01:47:05.250+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Application is null : false
+2026-06-03T01:47:05.250+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Registered Applications size is zero : true
+2026-06-03T01:47:05.251+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Application version is -1: false
+2026-06-03T01:47:05.251+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : Getting all instance registry info from the eureka server
+2026-06-03T01:47:05.344+05:30  INFO 22796 --- [cart-service] [freshExecutor-0] com.netflix.discovery.DiscoveryClient    : The response status is 200
