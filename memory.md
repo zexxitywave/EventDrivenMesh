@@ -67,6 +67,7 @@ Infra ports: Kafka `9095` (ext) / `29092` (internal) · Kafka UI `8069` · Prome
 - GHCR images published on `main` pushes (`latest`/`sha-*`) and tag pushes (`{{raw}}`, `v{{major}}.{{minor}}`). CI (`ci.yml`) now uses `fetch-depth: 0` + trigger `tags: ['v*']` + tag-push check on docker-publish. Earlier releases v1.0.0–v1.2.0 never got semver images (no tag-trigger back then).
 - **v1.3.0** released; all 15 images verified on GHCR with `v1.3.0`/`v1.3`. Tag `v1.3.0` points at `c7db1d9`. Release page on GitHub is drafted by the user (not the agent).
 - Next release should be **v1.4.0** (delivery-charge feature `13d3667` is not tagged; latest images on `main` already contain it).
+- README now has `## About` and `## Releases` sections: version table from v1.4.0 (in progress) back to v1.0.0, the GHCR tag scheme, and links to each GitHub release page.
 
 ## Recent Commits (newest first)
 

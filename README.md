@@ -1,9 +1,5 @@
 # EventDrivenMesh
 
-A production-grade, event-driven backend built with Spring Boot microservices.
-Services communicate asynchronously via Apache Kafka (saga pattern) and synchronously via REST
-through a central API Gateway with JWT authentication.
-
 *"Polyglot Persistence · Choreography-Based Saga · Zero-Downtime Kubernetes Deployments"*
 
 [![CI](https://github.com/zexxitywave/EventDrivenMesh/actions/workflows/ci.yml/badge.svg)](https://github.com/zexxitywave/EventDrivenMesh/actions/workflows/ci.yml)
@@ -12,6 +8,16 @@ through a central API Gateway with JWT authentication.
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.2.12-6DB33F)](https://spring.io/projects/spring-boot)
 [![Prometheus](https://img.shields.io/badge/Prometheus-E6522C)](https://prometheus.io/)
 [![Grafana](https://img.shields.io/badge/Grafana-F46800)](https://grafana.com/)
+
+---
+
+## 📖 About
+
+**EventDrivenMesh** is a production-grade, event-driven e-commerce backend built as a mesh of 18 application services — 17 Spring Boot services and one Go service — registered with Eureka behind a central API Gateway. Services communicate asynchronously over Apache Kafka using a choreography-based saga with automatic compensation, and synchronously over REST through the gateway, which validates JWTs once and injects trusted identity headers downstream.
+
+The platform covers the full commerce lifecycle: catalog and semantic search, cart and wishlist, seller onboarding, checkout, inventory reservation, payments (Razorpay / Stripe / Mock), pre-payment delivery quoting, shipping, PDF invoices and transactional email, coupons, flash sales, location lookup, CQRS analytics, and centralized logging. Each service owns its data store — PostgreSQL 16 with pgvector, MongoDB, or Redis — while the Go notification service adds RabbitMQ priority queues for high-throughput delivery, and n8n drives abandoned-cart recovery outside the Java services.
+
+Everything ships production-style: Docker Compose for local infrastructure, Kubernetes manifests with HPA and zero-downtime rollouts, versioned images on GHCR, GitHub Actions CI, and a Prometheus / Grafana / OpenTelemetry observability stack. The checkout saga has been load tested end-to-end with 30,000 orders at a 0% error rate.
 
 ---
 
@@ -51,6 +57,7 @@ through a central API Gateway with JWT authentication.
 
 ## 📋 Table of Contents
 
+- [About](#-about)
 - [Key Highlights](#-key-highlights)
 - [Architecture](architecture.md)
 - [Quick Start](#-quick-start)
@@ -62,6 +69,7 @@ through a central API Gateway with JWT authentication.
 - [Kubernetes](#-kubernetes)
 - [Load Testing Results](#-load-testing-results)
 - [Observability](#-observability)
+- [Releases](#-releases)
 - [Tech Stack](#-tech-stack)
 
 ---
@@ -173,6 +181,7 @@ Start in order: `service-registry` → `api-gateway` → `auth-service` → all 
 | payment-service | `8083` | PostgreSQL `payment_db` |
 | shipping-service | `8085` | PostgreSQL `shipping_db` |
 | notification-service | `8084` | MongoDB `notification_db` |
+| coupon-service | `8097` | PostgreSQL `coupon_db` |
 | logging-service | `8092` | MongoDB `logging_db` |
 | analytics-service | `8093` | PostgreSQL `analytics_db` |
 | sale-service | `8094` | PostgreSQL `sale_db` |
@@ -197,12 +206,17 @@ User profiles, shipping addresses, preferences. Internal contact lookup endpoint
 Full catalog with categories, filters, pagination. Semantic search via pgvector HNSW + Ollama embeddings.
 
 ### Cart Service · `8089`
-Redis-backed cart (TTL 7 days). Stock validation against inventory-service. Abandoned cart support with `ReminderStage` tracking (`NONE → REMINDED → COUPON_SENT`).
+Redis-backed cart (TTL 7 days). Stock validation against inventory-service. Abandoned cart support with `ReminderStage` tracking (`NONE → REMINDED → COUPON_SENT`). Coupons are validated through coupon-service, lower the cart total, and are redeemed at checkout.
 
 **n8n internal endpoints:**
 - `GET /api/v1/cart/internal/abandoned` — scan idle carts by stage
 - `PATCH /api/v1/cart/internal/{userId}/reminder-state` — update reminder stage
 - `POST /api/v1/cart/internal/{userId}/simulate-idle` — backdate for testing
+
+### Coupon Service · `8097`
+Generates short-lived discount codes (`CART10-XXXXXXXX`) and validates/redeems them. Used by cart-service at apply/checkout time and by the n8n workflow to put a real, valid code in the second recovery email.
+
+**API:** `POST /api/v1/coupons/generate`, `GET /api/v1/coupons/validate`, `POST /api/v1/coupons/redeem`, `GET /api/v1/coupons/exists`
 
 ### Order Service · `8081`
 Drives the entire checkout saga. Quotes delivery from shipping-service, publishes `OrderCreatedEvent`, reacts to inventory/payment/shipping events via JDBC updates.
@@ -323,7 +337,7 @@ Schedule (5 min) → Get Abandoned Carts → Split → Get Customer Contact
 npx n8n
 # Import: n8n/abandoned-cart-recovery.workflow.json
 # Seed a test cart:
-.\n8n\test-abandoned-cart.ps1 -Email you@example.com
+.\n8n\test-abandoned-cart.ps1 -Email you@yourdomain.com
 ```
 
 **Internal endpoints used:**
@@ -336,6 +350,7 @@ npx n8n
 | user-service | `GET /api/v1/users/internal/{userId}` |
 | order-service | `GET /api/v1/orders/customer/{id}/purchased?productIds=...&since=...` |
 | notification-service | `POST /api/v1/notifications/internal/send` |
+| coupon-service | `POST /api/v1/coupons/generate?discountPercent=10` |
 
 Reminder state (`NONE → REMINDED → COUPON_SENT`) stored on the cart in Redis — scheduled runs never double-send.
 
@@ -418,6 +433,22 @@ Go scalable-notification-service uses OpenTelemetry → Prometheus + Jaeger.
 **Dashboard panels:** HTTP request rate, latency p50/p95/p99, Kafka consumer lag, JVM heap, GC pause time, HikariCP connections.
 
 **Alert rules:** 19 rules across 6 groups — service availability, HTTP errors, JVM memory, threads, HikariCP, ingestion pipeline.
+
+---
+
+## 📦 Releases
+
+Container images are published to GHCR on every push to `main` (`latest`, `sha-*`) and on every `v*` tag (`vX.Y.Z`, `vX.Y`). Full release notes live on the [GitHub releases page](https://github.com/zexxitywave/EventDrivenMesh/releases).
+
+| Version | Date | Highlights |
+|---|---|---|
+| **v1.4.0** · in progress | — | Pre-payment delivery quotes (OSM geocoding + Uber H3 + Haversine pricing) · coupon-service · n8n abandoned-cart recovery · sale-service · location-service · Go scalable-notification-service |
+| [v1.3.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.3.0) | 2026-09-19 | Geocoding + Uber H3 delivery zones · shipping address carried through the saga · pgvector semantic search · CQRS read model · Chaos Monkey · Prometheus / Grafana / Alertmanager stack · first semver-tagged GHCR images |
+| [v1.2.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.2.0) | 2026-09-02 | Security, resilience & platform: `/api/v1` versioning · transactional Outbox · Redis JWT blacklist · DLQ forwarding · OpenAPI docs · GHCR publishing pipeline |
+| [v1.1.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.1.0) | 2026-07-30 | Maintenance re-tag of v1.0.0 (no code changes) |
+| [v1.0.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.0.0) | 2026-07-30 | Initial release: Kafka saga, JWT API gateway, polyglot persistence, 16-service mesh |
+
+> **Current development:** v1.4.0 is not tagged yet — `main` already carries the delivery-quote, coupon, and automation changes.
 
 ---
 
