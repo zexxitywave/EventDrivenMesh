@@ -442,13 +442,11 @@ Container images are published to GHCR on every push to `main` (`latest`, `sha-*
 
 | Version | Date | Highlights |
 |---|---|---|
-| **v1.4.0** · in progress | — | Pre-payment delivery quotes (OSM geocoding + Uber H3 + Haversine pricing) · coupon-service · n8n abandoned-cart recovery · sale-service · location-service · Go scalable-notification-service |
+| [v1.4.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.4.0) | 2026-11-10 | Pre-payment delivery quotes (OSM geocoding + Uber H3 + Haversine pricing) · coupon-service · n8n abandoned-cart recovery · sale-service · location-service · Go scalable-notification-service |
 | [v1.3.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.3.0) | 2026-09-19 | Geocoding + Uber H3 delivery zones · shipping address carried through the saga · pgvector semantic search · CQRS read model · Chaos Monkey · Prometheus / Grafana / Alertmanager stack · first semver-tagged GHCR images |
 | [v1.2.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.2.0) | 2026-09-02 | Security, resilience & platform: `/api/v1` versioning · transactional Outbox · Redis JWT blacklist · DLQ forwarding · OpenAPI docs · GHCR publishing pipeline |
 | [v1.1.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.1.0) | 2026-07-30 | Maintenance re-tag of v1.0.0 (no code changes) |
 | [v1.0.0](https://github.com/zexxitywave/EventDrivenMesh/releases/tag/v1.0.0) | 2026-07-30 | Initial release: Kafka saga, JWT API gateway, polyglot persistence, 16-service mesh |
-
-> **Current development:** v1.4.0 is not tagged yet — `main` already carries the delivery-quote, coupon, and automation changes.
 
 ---
 
