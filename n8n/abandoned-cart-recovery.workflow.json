@@ -12,7 +12,10 @@
       "name": "Sticky Note - Overview",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [-460, -60]
+      "position": [
+        -460,
+        -60
+      ]
     },
     {
       "parameters": {
@@ -25,7 +28,10 @@
       "name": "Sticky Note - Test mode",
       "type": "n8n-nodes-base.stickyNote",
       "typeVersion": 1,
-      "position": [60, -300]
+      "position": [
+        60,
+        -300
+      ]
     },
     {
       "parameters": {
@@ -42,7 +48,10 @@
       "name": "Schedule Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
       "typeVersion": 1.2,
-      "position": [0, 0]
+      "position": [
+        0,
+        0
+      ]
     },
     {
       "parameters": {
@@ -101,6 +110,12 @@
               "name": "fallbackEmail",
               "value": "",
               "type": "string"
+            },
+            {
+              "id": "c1000000-0000-4000-8000-00000000000a",
+              "name": "couponServiceBaseUrl",
+              "value": "http://localhost:8097",
+              "type": "string"
             }
           ]
         },
@@ -110,7 +125,10 @@
       "name": "Config",
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
-      "position": [220, 0]
+      "position": [
+        220,
+        0
+      ]
     },
     {
       "parameters": {
@@ -121,7 +139,10 @@
       "name": "Get Abandoned Carts",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [440, 0]
+      "position": [
+        440,
+        0
+      ]
     },
     {
       "parameters": {
@@ -132,7 +153,10 @@
       "name": "Split Carts",
       "type": "n8n-nodes-base.splitOut",
       "typeVersion": 1,
-      "position": [660, 0]
+      "position": [
+        660,
+        0
+      ]
     },
     {
       "parameters": {
@@ -143,7 +167,10 @@
       "name": "Get Customer Contact",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [880, 0],
+      "position": [
+        880,
+        0
+      ],
       "alwaysOutputData": true,
       "onError": "continueRegularOutput"
     },
@@ -156,7 +183,10 @@
       "name": "Merge Cart + Customer",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1100, 0]
+      "position": [
+        1100,
+        0
+      ]
     },
     {
       "parameters": {
@@ -180,7 +210,10 @@
       "name": "Check Order Status",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [1320, 0],
+      "position": [
+        1320,
+        0
+      ],
       "alwaysOutputData": true
     },
     {
@@ -222,7 +255,10 @@
       "name": "IF Should Remind?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [1540, 0]
+      "position": [
+        1540,
+        0
+      ]
     },
     {
       "parameters": {},
@@ -230,18 +266,24 @@
       "name": "Stop - Already Purchased",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [1780, -140]
+      "position": [
+        1780,
+        -140
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const cart = $('Merge Cart + Customer').item.json;\nconst name = cart.customerName || 'there';\nconst itemList = (cart.items || [])\n  .map(i => `<li>${i.productName} × ${i.quantity}</li>`)\n  .join('');\n\nconst message = `<html><body style=\"font-family:Arial,sans-serif;color:#0f172a\">\n  <h2>Your cart is still waiting, ${name}!</h2>\n  <p>You left these items behind:</p>\n  <ul>${itemList}</ul>\n  <p><strong>Cart total: ₹${cart.grandTotal}</strong></p>\n  <p><a href=\"http://localhost:3000/cart\">Return to your cart</a></p>\n  <p style=\"color:#64748b;font-size:12px\">Already bought them? Ignore this email.</p>\n</body></html>`;\n\nreturn {\n  json: {\n    recipientId: cart.userId,\n    recipientEmail: cart.email,\n    customerName: name,\n    itemCount: cart.itemCount,\n    grandTotal: cart.grandTotal,\n    subject: `${name}, your cart is still waiting`,\n    message,\n    type: 'ABANDONED_CART_REMINDER',\n  },\n};\n"
+        "jsCode": "const cart = $('Merge Cart + Customer').item.json;\nconst name = cart.customerName || 'there';\nconst itemList = (cart.items || [])\n  .map(i => `<li>${i.productName} × ${i.quantity}</li>`)\n  .join('');\n\nconst message = `<html><body style=\"font-family:Arial,sans-serif;color:#0f172a\">\n  <h2>Your cart is still waiting, ${name}!</h2>\n  <p>You left these items behind:</p>\n  <ul>${itemList}</ul>\n  <p><strong>Cart total: Rs.${cart.grandTotal}</strong></p>\n  <p><a href=\"http://localhost:3000/cart\">Return to your cart</a></p>\n  <p style=\"color:#64748b;font-size:12px\">Already bought them? Ignore this email.</p>\n</body></html>`;\n\nreturn {\n  json: {\n    recipientId: cart.userId,\n    recipientEmail: cart.email,\n    customerName: name,\n    itemCount: cart.itemCount,\n    grandTotal: cart.grandTotal,\n    subject: `${name}, your cart is still waiting`,\n    message,\n    type: 'ABANDONED_CART_REMINDER',\n  },\n};\n"
       },
       "id": "b1000000-0000-4000-8000-00000000000a",
       "name": "Compose Reminder",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [1780, 120]
+      "position": [
+        1780,
+        120
+      ]
     },
     {
       "parameters": {
@@ -256,7 +298,10 @@
       "name": "Send Reminder Email",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2000, 120]
+      "position": [
+        2000,
+        120
+      ]
     },
     {
       "parameters": {
@@ -271,7 +316,10 @@
       "name": "Mark Reminder Sent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2220, 120]
+      "position": [
+        2220,
+        120
+      ]
     },
     {
       "parameters": {
@@ -282,7 +330,10 @@
       "name": "Prepare Wait",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [2440, 120]
+      "position": [
+        2440,
+        120
+      ]
     },
     {
       "parameters": {
@@ -293,7 +344,10 @@
       "name": "Wait 24h",
       "type": "n8n-nodes-base.wait",
       "typeVersion": 1.1,
-      "position": [2560, 120]
+      "position": [
+        2560,
+        120
+      ]
     },
     {
       "parameters": {
@@ -317,7 +371,10 @@
       "name": "Check Order Status Again",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [2780, 120],
+      "position": [
+        2780,
+        120
+      ],
       "alwaysOutputData": true
     },
     {
@@ -329,7 +386,10 @@
       "name": "Attach Cart After Wait",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3000, 120]
+      "position": [
+        3000,
+        120
+      ]
     },
     {
       "parameters": {
@@ -360,7 +420,10 @@
       "name": "IF Purchased After Wait?",
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
-      "position": [3220, 120]
+      "position": [
+        3220,
+        120
+      ]
     },
     {
       "parameters": {},
@@ -368,18 +431,24 @@
       "name": "Stop - Purchased After Reminder",
       "type": "n8n-nodes-base.noOp",
       "typeVersion": 1,
-      "position": [3460, -40]
+      "position": [
+        3460,
+        -40
+      ]
     },
     {
       "parameters": {
         "mode": "runOnceForEachItem",
-        "jsCode": "const cart = $json;\nconst discount = $('Config').first().json.couponDiscountPercent;\nconst code = 'CART' + discount + '-' + Math.random().toString(36).slice(2, 8).toUpperCase();\nconst name = cart.customerName || 'there';\n\nconst message = `<html><body style=\"font-family:Arial,sans-serif;color:#0f172a\">\n  <h2>Still thinking it over, ${name}?</h2>\n  <p>Here is <strong>${discount}% off</strong> the items in your cart.</p>\n  <p>Use coupon code:</p>\n  <p style=\"font-size:22px;letter-spacing:3px\"><strong>${code}</strong></p>\n  <p><a href=\"http://localhost:3000/cart\">Complete your order</a></p>\n  <p style=\"color:#64748b;font-size:12px\">This code is for this demo store only.</p>\n</body></html>`;\n\nreturn {\n  json: {\n    recipientId: cart.userId,\n    recipientEmail: cart.email,\n    subject: `${discount}% off the items in your cart`,\n    message,\n    type: 'ABANDONED_CART_COUPON',\n    couponCode: code,\n  },\n};\n"
+        "jsCode": "const coupon = $json || {};\nconst cart = $('Attach Cart After Wait').item.json;\nconst discount = coupon.discountPercent ?? $('Config').first().json.couponDiscountPercent;\nconst code = coupon.code || ('CART' + discount + '-DEMO');\nconst name = cart.customerName || 'there';\n\nconst message = `<html><body style=\"font-family:Arial,sans-serif;color:#0f172a\">\n  <h2>Still thinking it over, ${name}?</h2>\n  <p>Here is <strong>${discount}% off</strong> the items in your cart.</p>\n  <p>Use coupon code:</p>\n  <p style=\"font-size:22px;letter-spacing:3px\"><strong>${code}</strong></p>\n  <p><a href=\"http://localhost:3000/cart\">Complete your order</a></p>\n  <p style=\"color:#64748b;font-size:12px\">This code is valid for 7 days and can be used up to 5 times. Demo store only.</p>\n</body></html>`;\n\nreturn {\n  json: {\n    recipientId: cart.userId,\n    recipientEmail: cart.email,\n    subject: `${discount}% off the items in your cart`,\n    message,\n    type: 'ABANDONED_CART_COUPON',\n    couponCode: code,\n  },\n};"
       },
       "id": "b1000000-0000-4000-8000-000000000011",
       "name": "Build Coupon Email",
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
-      "position": [3460, 220]
+      "position": [
+        3460,
+        220
+      ]
     },
     {
       "parameters": {
@@ -394,7 +463,10 @@
       "name": "Send Coupon Email",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3680, 220]
+      "position": [
+        3680,
+        220
+      ]
     },
     {
       "parameters": {
@@ -409,7 +481,24 @@
       "name": "Mark Coupon Sent",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
-      "position": [3900, 220]
+      "position": [
+        3900,
+        220
+      ]
+    },
+    {
+      "parameters": {
+        "url": "={{ $('Config').first().json.couponServiceBaseUrl }}/api/v1/coupons/generate?discountPercent={{ $('Config').first().json.couponDiscountPercent }}",
+        "options": {}
+      },
+      "id": "b1000000-0000-4000-8000-00000000000f",
+      "name": "Generate Coupon",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3560,
+        160
+      ]
     }
   ],
   "connections": {
@@ -596,7 +685,7 @@
         ],
         [
           {
-            "node": "Build Coupon Email",
+            "node": "Generate Coupon",
             "type": "main",
             "index": 0
           }
@@ -619,6 +708,17 @@
         [
           {
             "node": "Mark Coupon Sent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Coupon": {
+      "main": [
+        [
+          {
+            "node": "Build Coupon Email",
             "type": "main",
             "index": 0
           }

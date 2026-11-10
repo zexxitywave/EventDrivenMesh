@@ -1,4 +1,4 @@
-# Starts four Cloudflare Quick Tunnels so n8n Cloud can reach the Spring services
+# Starts five Cloudflare Quick Tunnels so n8n Cloud can reach the Spring services
 # running on this machine.
 #
 # Prerequisite (one time):
@@ -9,7 +9,7 @@
 #   .\n8n\start-tunnels.ps1
 #   .\n8n\start-tunnels.ps1 -WaitSeconds 40
 #
-# The script prints the four URLs to paste into the n8n "Config" node.
+# The script prints the five URLs to paste into the n8n "Config" node.
 # The tunnel URLs are temporary and change every time you restart them.
 
 param(
@@ -22,7 +22,8 @@ $tunnels = @(
     @{ Name = "cart-service";         Port = 8089; ConfigKey = "cartServiceBaseUrl" },
     @{ Name = "order-service";        Port = 8081; ConfigKey = "orderServiceBaseUrl" },
     @{ Name = "user-service";         Port = 8087; ConfigKey = "userServiceBaseUrl" },
-    @{ Name = "notification-service"; Port = 8084; ConfigKey = "notificationServiceBaseUrl" }
+    @{ Name = "notification-service"; Port = 8084; ConfigKey = "notificationServiceBaseUrl" },
+    @{ Name = "coupon-service";       Port = 8097; ConfigKey = "couponServiceBaseUrl" }
 )
 
 $cloudflared = Get-Command cloudflared -ErrorAction SilentlyContinue

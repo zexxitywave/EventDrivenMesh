@@ -18,6 +18,8 @@ spring:
 app:
   cart:
     ttl-seconds: 604800
+  coupon:
+    base-url: ${COUPON_SERVICE_URL:http://localhost:8097}
 
 eureka:
   client:

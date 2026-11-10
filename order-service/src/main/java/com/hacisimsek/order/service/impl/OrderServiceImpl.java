@@ -90,8 +90,14 @@ public class OrderServiceImpl implements OrderService {
                 .map(item -> item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+        BigDecimal couponDiscount = orderRequest.getDiscountAmount() != null
+                ? orderRequest.getDiscountAmount().max(BigDecimal.ZERO)
+                : BigDecimal.ZERO;
+        // A coupon can never discount more than the item subtotal.
+        couponDiscount = couponDiscount.min(subtotal);
+
         BigDecimal deliveryCharge = shippingQuoteClient.getDeliveryCharge(orderRequest.getShippingAddress());
-        BigDecimal totalAmount = subtotal.add(deliveryCharge);
+        BigDecimal totalAmount = subtotal.subtract(couponDiscount).add(deliveryCharge);
 
         UUID correlationId = UUID.randomUUID();
 

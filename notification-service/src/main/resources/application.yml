@@ -2,6 +2,14 @@ server:
   port: 8084
 
 spring:
+  config:
+    # Local development convenience: load repo-root .env so MAIL_PASSWORD and
+    # friends are available whether the service is started from the repo root
+    # (java -jar) or from the module directory (mvn spring-boot:run).
+    # Both imports are optional, so deployments without a .env still work.
+    import:
+      - optional:file:.env[.properties]
+      - optional:file:../.env[.properties]
   application:
     name: notification-service
 

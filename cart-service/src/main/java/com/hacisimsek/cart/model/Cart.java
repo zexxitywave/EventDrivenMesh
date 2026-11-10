@@ -19,6 +19,11 @@ public class Cart implements Serializable {
     private Instant createdAt;
     private Instant updatedAt;
 
+    /** Coupon currently applied to this cart (null when none). */
+    private String appliedCouponCode;
+    private int couponDiscountPercent;
+    private BigDecimal discountAmount = BigDecimal.ZERO;
+
     /**
      * Abandoned-cart recovery state, advanced by the n8n workflow through
      * {@code PATCH /api/v1/cart/internal/{userId}/reminder-state}.
@@ -51,6 +56,9 @@ public class Cart implements Serializable {
         private BigDecimal grandTotal = BigDecimal.ZERO;
         private Instant createdAt;
         private Instant updatedAt;
+        private String appliedCouponCode;
+        private int couponDiscountPercent;
+        private BigDecimal discountAmount = BigDecimal.ZERO;
         private ReminderStage reminderStage = ReminderStage.NONE;
         private Instant lastReminderAt;
 
@@ -60,21 +68,37 @@ public class Cart implements Serializable {
         public Builder grandTotal(BigDecimal grandTotal) { this.grandTotal = grandTotal; return this; }
         public Builder createdAt(Instant createdAt) { this.createdAt = createdAt; return this; }
         public Builder updatedAt(Instant updatedAt) { this.updatedAt = updatedAt; return this; }
+        public Builder appliedCouponCode(String appliedCouponCode) { this.appliedCouponCode = appliedCouponCode; return this; }
+        public Builder couponDiscountPercent(int couponDiscountPercent) { this.couponDiscountPercent = couponDiscountPercent; return this; }
+        public Builder discountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount; return this; }
         public Builder reminderStage(ReminderStage reminderStage) { this.reminderStage = reminderStage; return this; }
         public Builder lastReminderAt(Instant lastReminderAt) { this.lastReminderAt = lastReminderAt; return this; }
         public Cart build() {
             Cart cart = new Cart(cartId, userId, items, grandTotal, createdAt, updatedAt);
+            cart.setAppliedCouponCode(appliedCouponCode);
+            cart.setCouponDiscountPercent(couponDiscountPercent);
+            cart.setDiscountAmount(discountAmount);
             cart.setReminderStage(reminderStage);
             cart.setLastReminderAt(lastReminderAt);
             return cart;
         }
     }
 
-    /** Recalculates grandTotal from all items. */
+    /** Recalculates subtotal, coupon discount and grandTotal from all items. */
     public void recalculate() {
-        this.grandTotal = items.stream()
+        BigDecimal subtotal = items.stream()
                 .map(CartItem::getTotalPrice)
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        if (appliedCouponCode != null && couponDiscountPercent > 0) {
+            this.discountAmount = subtotal
+                    .multiply(BigDecimal.valueOf(couponDiscountPercent))
+                    .divide(BigDecimal.valueOf(100), 2, java.math.RoundingMode.HALF_UP);
+        } else {
+            this.discountAmount = BigDecimal.ZERO;
+        }
+
+        this.grandTotal = subtotal.subtract(discountAmount).max(BigDecimal.ZERO);
         this.updatedAt = Instant.now();
     }
 
@@ -94,6 +118,15 @@ public class Cart implements Serializable {
 
     public BigDecimal getGrandTotal() { return grandTotal; }
     public void setGrandTotal(BigDecimal grandTotal) { this.grandTotal = grandTotal; }
+
+    public String getAppliedCouponCode() { return appliedCouponCode; }
+    public void setAppliedCouponCode(String appliedCouponCode) { this.appliedCouponCode = appliedCouponCode; }
+
+    public int getCouponDiscountPercent() { return couponDiscountPercent; }
+    public void setCouponDiscountPercent(int couponDiscountPercent) { this.couponDiscountPercent = couponDiscountPercent; }
+
+    public BigDecimal getDiscountAmount() { return discountAmount; }
+    public void setDiscountAmount(BigDecimal discountAmount) { this.discountAmount = discountAmount != null ? discountAmount : BigDecimal.ZERO; }
 
     public Instant getCreatedAt() { return createdAt; }
     public void setCreatedAt(Instant createdAt) { this.createdAt = createdAt; }

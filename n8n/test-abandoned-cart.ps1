@@ -8,19 +8,24 @@
 #   Redis              :6379
 #
 # Usage (PowerShell):
-#   .\n8n\test-abandoned-cart.ps1 -Email you@example.com
-#   .\n8n\test-abandoned-cart.ps1 -Email you@example.com -IdleMinutes 45
+#   .\n8n\test-abandoned-cart.ps1 -Email you@yourdomain.com
+#   .\n8n\test-abandoned-cart.ps1 -Email you@yourdomain.com -IdleMinutes 45
 #
+# The email must be a real inbox: Resend rejects fake domains such as example.com.
 # Then in n8n: open the imported workflow and click "Execute workflow".
 
 param(
     [string]$UserId = "11111111-1111-1111-1111-111111111111",
-    [string]$Email = "you@example.com",
+    [string]$Email = "",
     [string]$FullName = "N8N Demo Customer",
     [int]$IdleMinutes = 45
 )
 
 $ErrorActionPreference = "Stop"
+
+if ([string]::IsNullOrWhiteSpace($Email) -or $Email -match '@example\.com$') {
+    throw "Pass a real, deliverable email address with -Email (for example -Email you@yourdomain.com). Resend rejects example.com."
+}
 
 $userBase    = "http://localhost:8087"
 $productBase = "http://localhost:8088"
@@ -48,7 +53,19 @@ try {
 catch {
     $status = $_.Exception.Response.StatusCode.value__
     if ($status -eq 400) {
-        Write-Host "Profile already exists - reusing it."
+        # 400 means the profile (or the email) already exists. Make sure this
+        # userId really has a profile; otherwise the email belongs to another
+        # account and the workflow would never find a contact.
+        $existing = $null
+        try {
+            $existing = Invoke-RestMethod -Method Get -Uri "$userBase/api/v1/users/internal/$UserId" -TimeoutSec 10
+        } catch { }
+        if ($existing) {
+            Write-Host "Profile already exists - reusing it."
+        }
+        else {
+            throw "Could not create a profile for $UserId. The email '$Email' is probably already used by another user; pass a different -Email or -UserId."
+        }
     }
     else {
         throw

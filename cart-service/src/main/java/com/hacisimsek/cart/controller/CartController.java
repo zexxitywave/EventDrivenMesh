@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.Map;
@@ -67,6 +68,25 @@ public class CartController {
             @RequestHeader("X-User-Id") UUID userId,
             @PathVariable UUID productId) {
         return ResponseEntity.ok(cartService.removeItem(userId, productId));
+    }
+
+    /**
+     * Apply a coupon code. Validates it through coupon-service and recalculates
+     * the cart total with the discount.
+     */
+    @PostMapping("/coupon")
+    public ResponseEntity<Cart> applyCoupon(
+            @RequestHeader("X-User-Id") UUID userId,
+            @RequestParam String code) {
+        return ResponseEntity.ok(cartService.applyCoupon(userId, code));
+    }
+
+    /**
+     * Remove the currently applied coupon and restore the full total.
+     */
+    @DeleteMapping("/coupon")
+    public ResponseEntity<Cart> removeCoupon(@RequestHeader("X-User-Id") UUID userId) {
+        return ResponseEntity.ok(cartService.removeCoupon(userId));
     }
 
     /**

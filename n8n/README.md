@@ -134,7 +134,7 @@ winget install --id Cloudflare.cloudflared
 .\n8n\start-tunnels.ps1
 ```
 
-The script starts one outbound-only tunnel per service and prints four
+The script starts one outbound-only tunnel per service and prints five
 `https://<random>.trycloudflare.com` URLs. Paste them into the `Config` node:
 
 | Config field | Tunnel target |
@@ -143,6 +143,7 @@ The script starts one outbound-only tunnel per service and prints four
 | `orderServiceBaseUrl` | `http://localhost:8081` |
 | `userServiceBaseUrl` | `http://localhost:8087` |
 | `notificationServiceBaseUrl` | `http://localhost:8084` |
+| `couponServiceBaseUrl` | `http://localhost:8097` |
 
 Stop them when you are done:
 
@@ -155,7 +156,7 @@ Stop them when you are done:
 - **Quick-tunnel URLs are ephemeral.** They change every time you restart the tunnels.
   Re-run the script and update `Config` before executing the workflow.
 - **No inbound firewall rules are needed.** `cloudflared` makes outbound connections only;
-  you do not need to open ports 8081/8084/8087/8089 on your router.
+  you do not need to open ports 8081/8084/8097/8087/8089 on your router.
 - **Tunnels expose unauthenticated endpoints.** While the tunnels are up, anyone with the
   URL can call `/internal/**`. Keep them short-lived for the demo, and add a shared-secret
   header before exposing them for real.
@@ -193,6 +194,7 @@ For a permanent setup, either:
 | `orderServiceBaseUrl` | `http://localhost:8081` | order-service |
 | `userServiceBaseUrl` | `http://localhost:8087` | user-service |
 | `notificationServiceBaseUrl` | `http://localhost:8084` | notification-service |
+| `couponServiceBaseUrl` | `http://localhost:8097` | coupon-service |
 | `olderThanMinutes` | `30` | how long a cart must be idle |
 | `limit` | `100` | max carts per run |
 | `reminderDelayMinutes` | `1440` | wait between email #1 and the coupon (24h) |
@@ -220,19 +222,27 @@ IDE or `mvn spring-boot:run`:
 - cart-service `:8089`
 - order-service `:8081` (needed only for the purchase check)
 - notification-service `:8084`
+- coupon-service `:8097` (generates the real coupon code for email #2)
 
 > If you only run the n8n workflow (the cart is already seeded in Redis), Eureka is not
 > needed — all n8n calls go directly to `localhost:<port>`. Eureka is required by the
 > **seed script**, because `POST /api/v1/cart/items` calls product/inventory by service name.
 
 Email delivery uses the notification-service's existing SMTP config
-(`MAIL_PASSWORD` / `spring.mail.*`). If email is not configured, the workflow still runs, but
-the notification row ends up `FAILED`/`RETRY_PENDING` in MongoDB.
+(`MAIL_PASSWORD` / `spring.mail.*`). The service also imports the repo-root `.env`
+(optional) on startup, so local runs pick up `MAIL_PASSWORD` automatically.
+If email is not configured, the workflow still runs, but the notification row ends
+up `FAILED`/`RETRY_PENDING` in MongoDB.
+
+> **Resend only accepts real recipient domains.** It rejects `example.com` with
+> `550 Invalid 'to' field`, so always pass a real inbox to the seed script.
+> Resend also sends from `noreply@zexxity.online`; that domain must stay verified
+> in the Resend dashboard.
 
 ### Seed an abandoned cart
 
 ```powershell
-.\n8n\test-abandoned-cart.ps1 -Email you@example.com
+.\n8n\test-abandoned-cart.ps1 -Email you@yourdomain.com
 ```
 
 This creates a profile, picks an ACTIVE product, adds it to the cart, backdates the cart by

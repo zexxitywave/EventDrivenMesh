@@ -17,4 +17,14 @@ public class RestTemplateConfig {
     public RestTemplate restTemplate() {
         return new RestTemplate();
     }
+
+    /**
+     * Plain RestTemplate for a fixed URL (the coupon-service is called by
+     * host:port, not by Eureka service name, so it works even when the coupon
+     * service is not registered).
+     */
+    @Bean
+    public RestTemplate plainRestTemplate() {
+        return new RestTemplate();
+    }
 }

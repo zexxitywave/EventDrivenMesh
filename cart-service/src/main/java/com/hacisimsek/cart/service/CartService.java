@@ -6,6 +6,7 @@ import com.hacisimsek.cart.dto.AddToCartRequest;
 import com.hacisimsek.cart.dto.CheckoutItemRequest;
 import com.hacisimsek.cart.dto.CheckoutRequest;
 import com.hacisimsek.cart.dto.CheckoutResponse;
+import com.hacisimsek.cart.dto.CouponResponse;
 import com.hacisimsek.cart.dto.ProductResponse;
 import com.hacisimsek.cart.dto.UpdateCartItemRequest;
 import com.hacisimsek.cart.model.Cart;
@@ -37,18 +38,24 @@ public class CartService {
 
     private final RedisTemplate<String, Object> cartRedisTemplate;
     private final RestTemplate restTemplate;
+    private final RestTemplate plainRestTemplate;
     private final ObjectMapper objectMapper;
 
     public CartService(RedisTemplate<String, Object> cartRedisTemplate,
-                       RestTemplate restTemplate,
+                       @Qualifier("restTemplate") RestTemplate restTemplate,
+                       @Qualifier("plainRestTemplate") RestTemplate plainRestTemplate,
                        @Qualifier("cartObjectMapper") ObjectMapper objectMapper) {
         this.cartRedisTemplate = cartRedisTemplate;
         this.restTemplate = restTemplate;
+        this.plainRestTemplate = plainRestTemplate;
         this.objectMapper = objectMapper;
     }
 
     @Value("${app.cart.ttl-seconds}")
     private long cartTtlSeconds;
+
+    @Value("${app.coupon.base-url:http://localhost:8097}")
+    private String couponBaseUrl;
 
     private static final String CART_KEY_PREFIX  = "cart:";
     private static final String PRODUCT_BASE_URL = "http://product-service/api/v1/products";
@@ -130,6 +137,75 @@ public class CartService {
         cart.recalculate();
         markActive(cart);
         return saveCart(cart);
+    }
+
+    // ── Coupons ───────────────────────────────────────────────────────────────
+
+    /**
+     * Validate a coupon through coupon-service and apply the discount to this
+     * cart. The cart total is recalculated immediately.
+     */
+    public Cart applyCoupon(UUID userId, String code) {
+        if (code == null || code.isBlank()) {
+            throw new RuntimeException("Coupon code is required");
+        }
+
+        Cart cart = getCartOrThrow(userId);
+        CouponResponse coupon = validateCoupon(code.trim().toUpperCase());
+
+        cart.setAppliedCouponCode(coupon.getCode());
+        cart.setCouponDiscountPercent(coupon.getDiscountPercent());
+        cart.recalculate();
+        markActive(cart);
+        log.info("Applied coupon {} ({}% off) to cart for user {}",
+                coupon.getCode(), coupon.getDiscountPercent(), userId);
+        return saveCart(cart);
+    }
+
+    /** Remove an applied coupon and restore the cart's undiscounted total. */
+    public Cart removeCoupon(UUID userId) {
+        Cart cart = getCartOrThrow(userId);
+        cart.setAppliedCouponCode(null);
+        cart.setCouponDiscountPercent(0);
+        cart.recalculate();
+        markActive(cart);
+        log.info("Removed coupon from cart for user {}", userId);
+        return saveCart(cart);
+    }
+
+    private CouponResponse validateCoupon(String code) {
+        try {
+            ResponseEntity<CouponResponse> response = plainRestTemplate.getForEntity(
+                    couponBaseUrl + "/api/v1/coupons/validate?code={code}",
+                    CouponResponse.class, code);
+            CouponResponse coupon = response.getBody();
+            if (coupon == null) {
+                throw new RuntimeException("Invalid or expired coupon: " + code);
+            }
+            return coupon;
+        } catch (HttpClientErrorException.NotFound e) {
+            throw new RuntimeException("Invalid or expired coupon: " + code);
+        } catch (RuntimeException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new RuntimeException("Could not reach coupon-service: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Consume one use of an applied coupon after the order was created.
+     * Best effort: the order is already placed, so a coupon-service hiccup must
+     * not turn a successful checkout into an error.
+     */
+    private void redeemCoupon(String code) {
+        try {
+            plainRestTemplate.postForEntity(
+                    couponBaseUrl + "/api/v1/coupons/redeem?code={code}",
+                    null, CouponResponse.class, code);
+            log.info("Redeemed coupon {} at checkout", code);
+        } catch (Exception e) {
+            log.warn("Order created but coupon {} could not be redeemed: {}", code, e.getMessage());
+        }
     }
 
     // ── View Cart ─────────────────────────────────────────────────────────────
@@ -341,6 +417,14 @@ public class CartService {
             throw new RuntimeException("Cart is empty for user: " + userId);
         }
 
+        // Re-validate the coupon at checkout time: it may have expired or been
+        // fully redeemed since it was applied to the cart.
+        if (cart.getAppliedCouponCode() != null && !cart.getAppliedCouponCode().isBlank()) {
+            CouponResponse coupon = validateCoupon(cart.getAppliedCouponCode());
+            cart.setCouponDiscountPercent(coupon.getDiscountPercent());
+            cart.recalculate();
+        }
+
         CheckoutRequest orderRequest = new CheckoutRequest();
         orderRequest.setCustomerId(userId);
         orderRequest.setItems(cart.getItems().stream()
@@ -350,6 +434,8 @@ public class CartService {
                         item.getQuantity(),
                         item.getPrice()))
                 .collect(java.util.stream.Collectors.toList()));
+        orderRequest.setCouponCode(cart.getAppliedCouponCode());
+        orderRequest.setDiscountAmount(cart.getDiscountAmount());
 
         try {
             ResponseEntity<CheckoutResponse> response = restTemplate.postForEntity(
@@ -357,6 +443,9 @@ public class CartService {
             CheckoutResponse order = response.getBody();
             if (order == null) {
                 throw new RuntimeException("Order service returned empty response");
+            }
+            if (cart.getAppliedCouponCode() != null && !cart.getAppliedCouponCode().isBlank()) {
+                redeemCoupon(cart.getAppliedCouponCode());
             }
             clearCart(userId);
             log.info("Checkout completed for user: {}, orderId: {}", userId, order.getOrderId());
