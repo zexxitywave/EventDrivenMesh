@@ -66,12 +66,17 @@ Infra ports: Kafka `9095` (ext) / `29092` (internal) · Kafka UI `8069` · Prome
 
 - GHCR images published on `main` pushes (`latest`/`sha-*`) and tag pushes (`{{raw}}`, `v{{major}}.{{minor}}`). CI (`ci.yml`) now uses `fetch-depth: 0` + trigger `tags: ['v*']` + tag-push check on docker-publish. Earlier releases v1.0.0–v1.2.0 never got semver images (no tag-trigger back then).
 - **v1.3.0** released; all 15 images verified on GHCR with `v1.3.0`/`v1.3`. Tag `v1.3.0` points at `c7db1d9`. Release page on GitHub is drafted by the user (not the agent).
-- Next release should be **v1.4.0** (delivery-charge feature `13d3667` is not tagged; latest images on `main` already contain it).
-- README now has `## About` and `## Releases` sections: version table from v1.4.0 (in progress) back to v1.0.0, the GHCR tag scheme, and links to each GitHub release page.
+- **v1.4.0 released 2026-11-10** — tag `v1.4.0` (annotated, at `52fb370`) and GitHub release "v1.4.0 - Delivery Quotes, Coupons & Automation Services" are live. Release notes cover delivery quotes, coupon-service, cart/order coupon flow, n8n recovery, sale/location services, and the Go notification service. CI tag build: run `42866372589`.
+- Coupon work was committed in `6485e9a` (coupon-service + cart/order integration + compose/pom). `coupon-service` and `sale-service` are **not** in the CI image matrix yet and have no Dockerfiles, so only the existing 15 services publish images.
+- Next release should be **v1.5.0**.
+- README `## About` / `## Releases` sections are live: version table v1.4.0 → v1.0.0, GHCR tag scheme, links to each GitHub release page.
 
 ## Recent Commits (newest first)
 
 ```
+52fb370 docs: mark v1.4.0 as released in the README            (pushed)
+6485e9a feat: add coupon-service and wire coupons through cart, checkout, and n8n  (pushed)
+4ecd7e3 docs: add About and Releases sections to README         (pushed)
 11e195f docs: document pre-payment delivery quote feature          (pushed)
 13d3667 feat: quote delivery charge at order time and include payment total  (pushed)
 c7db1d9 ci: build semver-tagged images on version tag pushes
@@ -86,7 +91,7 @@ c9cdf7c feat: seed catalog stock in inventory, bulk-order count, AWS deploy conf
 
 - Infra containers **currently running** (started last session): kafka, kafka-ui, redis, mongodb, postgres — all healthy.
 - 5 JVM services (registry, order, inventory, payment, shipping) were left running during the delivery-charge verification; re-check before relying on endpoints.
-- README split into `architecture.md` + `memory.md` is **uncommitted** (working tree only).
+- README split into `architecture.md` + `memory.md` is committed; working tree now has only unrelated `mvnw` / `mvnw.cmd` edits plus untracked `.mvn/` and `*/target/` build output.
 
 ## Conventions / Guardrails
 
